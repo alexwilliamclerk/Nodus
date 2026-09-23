@@ -20,7 +20,7 @@ const archivedFiles=new Set(asar.listPackage(archive).map(file=>file.replaceAll(
 for(const file of files){
   const archivePath=file.split(path.sep).join('/');
   assert(archivedFiles.has(archivePath),`Packaged file missing: ${archivePath}; related entries: ${[...archivedFiles].filter(item=>item.includes('skill')).slice(0,12).join(', ')}`);
-  assert(readFileSync(file).equals(asar.extractFile(archive,archivePath)),`Packaged file differs: ${file}`);
+  assert(readFileSync(file).equals(asar.extractFile(archive,file)),`Packaged file differs: ${file}`);
 }
 const source=JSON.parse(readFileSync('package.json','utf8'));
 const packed=JSON.parse(asar.extractFile(archive,'package.json').toString());
