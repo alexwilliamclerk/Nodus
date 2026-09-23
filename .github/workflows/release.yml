@@ -47,6 +47,12 @@ jobs:
         if: matrix.platform == 'linux'
         run: pnpm exec electron-builder --linux AppImage --x64 --publish never
       - run: node scripts/verify-package.mjs ${{ matrix.platform }}
+      - name: Verify Windows installation and removal
+        if: matrix.platform == 'win'
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          ./tests/windows-uninstall.ps1 -InstallerPath "dist/Nodus-Setup-${version}-x64.exe"
       - name: Prepare stable download filename
         run: node scripts/prepare-release-asset.mjs ${{ matrix.platform }}
       - uses: actions/upload-artifact@v4

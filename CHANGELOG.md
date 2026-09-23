@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0
+
+- Added an in-app update check that downloads the platform installer from Nodus GitHub Releases, verifies its SHA-256, and opens the installer or locates the Linux AppImage.
+- Added a Windows uninstall entry in Settings and documented recovery when the local NSIS uninstaller fails its integrity check.
+- Added a release build check that installs and uninstalls the Windows installer on a clean runner.
+
+The Windows v1.2.0 uninstaller passed a clean install/uninstall test. A deliberately corrupted copy was restored by moving it aside, reinstalling to the same directory, and uninstalling. This does not establish the cause of failures on every user's device. Installers remain unsigned; clean-machine user acceptance across all Windows configurations is still pending.
+
 ## 1.2.0
 
 - Added Light, Dark, and Follow system options in Settings. The chosen theme applies immediately, survives restarts, and also themes native menus and dialogs.

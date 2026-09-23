@@ -84,6 +84,8 @@ Once Nodus opens:
 
 **7. Choose your appearance.** Switch between light, dark, and system themes in Settings. Your choice is saved across restarts; website previews keep their own colors.
 
+**8. Check for updates.** Settings can check GitHub Releases, download the package for your platform, verify its SHA-256, and open the installer. Windows builds also provide a direct uninstall entry and [recovery steps for a damaged uninstaller](docs/windows-uninstall.md).
+
 ## What Nodus can produce
 
 | Deliverable | Files | Current scope |
@@ -125,6 +127,8 @@ New versions appear on [GitHub Releases](https://github.com/alexwilliamclerk/Nod
 ## Security and privacy
 
 Report sensitive vulnerabilities through the repository's private reporting channel when available. See [SECURITY.md](SECURITY.md) for reporting guidance and credential handling. Current packages are not formally developer-signed or notarized, and clean-machine Windows and Linux installation has not been validated.
+
+If Windows reports **“NSIS Error: Installer integrity check has failed”** when running `Uninstall Nodus.exe`, follow the [tested repair steps](docs/windows-uninstall.md) before trying again. Do not bypass the integrity check.
 
 ## License
 

@@ -47,6 +47,8 @@ Nodus 是一个以**动态选择与持续反馈**为核心的 AI 桌面工作台
 
 在“设置与模型连接”的“外观主题”中，可选浅色、深色或跟随系统。选择会在重启后保留；作品预览保持作品原有配色。
 
+同一设置页新增“检查更新”：从 GitHub Releases 下载本平台安装包并核对 SHA-256，然后打开安装程序。Windows 版还提供卸载入口；如果 `Uninstall Nodus.exe` 报完整性错误，请按 [Windows 卸载修复说明](docs/windows-uninstall.zh-CN.md)处理。
+
 ## 下载安装
 
 安装包内置 Electron 与 Pi SDK，**无需先安装 Node.js 或 Pi CLI**。模型调用需要自行配置有效的服务商凭据。

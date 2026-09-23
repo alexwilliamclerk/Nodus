@@ -167,6 +167,12 @@ dialog::backdrop { background:#44382d25; }
 dialog h2 { font-size:16px; font-weight:500; }
 .settings-modal { width:430px; }
 .settings-modal header { display:flex; justify-content:space-between; align-items:center; }
+.update-panel { margin-top:16px; padding:13px 0; border-top:1px solid var(--line); }
+.update-panel strong { font-size:12px; font-weight:600; }
+.update-panel p { margin:5px 0 9px; line-height:1.55; }
+.update-panel progress { width:100%; height:7px; accent-color:var(--accent); }
+.update-actions { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+.update-actions .text-button { color:var(--muted); }
 .toggle-setting { display:flex; gap:8px; align-items:center; margin:18px 0; }
 .field-label { display:grid; gap:5px; font-size:12px; margin-top:13px; }
 .credential-paste { justify-self:start; padding:3px 7px; color:var(--muted); border:1px solid var(--line); }

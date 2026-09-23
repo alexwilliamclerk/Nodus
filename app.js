@@ -744,6 +744,34 @@ function renderConnections(){
   };});
 }
 function showModelPopover(open) { clearTimeout(popoverTimer);$('#modelPopover').hidden=!open;$('#modelConnectionButton').setAttribute('aria-expanded',String(open));if(open)renderModel(); }
+async function checkUpdates(){
+  const button=$('#checkUpdateButton');button.disabled=true;
+  $('#updateStatus').textContent='正在检查 GitHub 最新版本…';
+  $('#downloadUpdateButton').hidden=true;$('#openUpdateInstallerButton').hidden=true;$('#updateProgress').hidden=true;
+  try{
+    const result=await api.checkUpdate();
+    if(result.available){
+      $('#updateStatus').textContent=result.downloadable?`当前 v${result.currentVersion}，发现新版 v${result.latestVersion}。可下载并校验安装包。`:`发现新版 v${result.latestVersion}，但此平台的安装包或校验文件尚未备齐。`;
+    }else{
+      $('#updateStatus').textContent=result.downloadable?`当前已是最新版本 v${result.currentVersion}。如本机安装文件损坏，可重新下载安装包；若卸载程序报完整性错误，请先阅读下方“卸载报错怎么办？”。`:`当前已是最新版本 v${result.currentVersion}。`;
+    }
+    $('#downloadUpdateButton').hidden=!result.downloadable;
+    $('#downloadUpdateButton').textContent=result.available?'下载更新':'重新下载安装包';
+  }catch(error){$('#updateStatus').textContent=`检查更新失败：${error.message}`;}
+  finally{button.disabled=false;}
+}
+async function downloadAppUpdate(){
+  const button=$('#downloadUpdateButton');button.disabled=true;$('#checkUpdateButton').disabled=true;
+  $('#updateProgress').hidden=false;$('#updateProgress').value=0;$('#updateStatus').textContent='正在下载并校验安装包…';
+  try{
+    const result=await api.downloadUpdate();
+    $('#updateStatus').textContent=`v${result.version} 安装包已下载并通过 SHA-256 校验。${result.reused?'使用了已校验的本地文件。':''}`;
+    $('#openUpdateInstallerButton').hidden=false;
+    $('#openUpdateInstallerButton').textContent=api.platform==='linux'?'定位 AppImage':'打开安装包';
+    $('#updateProgress').value=100;
+  }catch(error){$('#updateStatus').textContent=`下载更新失败：${error.message}`;$('#updateProgress').hidden=true;}
+  finally{button.disabled=false;$('#checkUpdateButton').disabled=false;}
+}
 function openSettings() {
   if(!$('#previewEveryInput')){
     $('#settingsModal header').insertAdjacentHTML('afterend','<label class="field-label">当前任务的预览节奏<select id="previewEveryInput"><option value="0">手动确认后生成</option><option value="3">每 3 次修改生成预览</option><option value="5">每 5 次修改生成预览</option><option value="8">每 8 次修改生成预览</option></select></label><p class="muted">选择次数即授权按之后提交的修改自动制作新版本（消耗模型用量）。只用于已有作品的修改；普通答疑不计数，每版完成后停在评分处。可随时改回手动。</p>');
@@ -788,6 +816,7 @@ function openSettings() {
   }
   $('#rememberConnection').checked=false;
   $('#restoreSavedConnection').disabled=anyBusy();
+  $('#uninstallPanel').hidden=api.platform!=='win32';
   $('#providerInput').innerHTML=(model.providers||[]).map(provider=>`<option value="${esc(provider.id)}">${esc(provider.label)}</option>`).join('')||$('#providerInput').innerHTML;
   showModelPopover(false);$('#providerInput').value=state.settings.provider||model.providerId||'kimi-coding';$('#modelIdInput').value=model.modelId||state.settings.modelId||'';$('#apiKeyInput').value='';$('#settingsError').textContent='';$('#themeSetting').value=state.settings.theme||'light';$('#showDialogSetting').checked=state.settings.showTemporaryDialog!==false;$('#connectModel').disabled=anyBusy();updateProviderNote();$('#settingsModal').showModal();
 }
@@ -905,6 +934,26 @@ function bindEvents() {
   window.addEventListener('resize',hideModelMenu);
   on('#closeSettings','click',()=>$('#settingsModal').close());on('#cancelSettings','click',()=>$('#settingsModal').close());on('#connectModel','click',connectModel);on('#providerInput','change',()=>{$('#modelIdInput').value='';updateProviderNote();});
   on('#showDialogSetting','change',e=>{state.settings.showTemporaryDialog=e.target.checked;persist();renderAction(activeTask());});
+  on('#checkUpdateButton','click',checkUpdates);
+  on('#downloadUpdateButton','click',downloadAppUpdate);
+  on('#openUpdateInstallerButton','click',async()=>{
+    try{const result=await api.openUpdateInstaller();$('#updateStatus').textContent=result.message;}
+    catch(error){$('#updateStatus').textContent=`无法打开安装包：${error.message}`;}
+  });
+  on('#openUpdatePageButton','click',async()=>{try{await api.openUpdatePage();}catch(error){$('#updateStatus').textContent=`无法打开发布页：${error.message}`;}});
+  api.onUpdateProgress?.(({received,total})=>{
+    if($('#updateProgress').hidden||!total)return;
+    const percent=Math.min(100,Math.floor(received/total*100));
+    $('#updateProgress').value=percent;
+    $('#updateStatus').textContent=`正在下载更新包：${percent}%`;
+  });
+  on('#uninstallNodusButton','click',async()=>{
+    try{
+      const result=await api.uninstallNodus();
+      if(result.openedSettings)$('#uninstallStatus').textContent='未找到本地卸载程序，已打开 Windows“已安装的应用”。如果卸载程序报完整性错误，请先重新下载并安装相同版本以修复。';
+    }catch(error){$('#uninstallStatus').textContent=`无法启动卸载：${error.message}。可重新下载安装包并安装到原目录，再从 Windows“已安装的应用”卸载。`;}
+  });
+  on('#uninstallHelpButton','click',async()=>{try{await api.openUninstallHelp();}catch(error){$('#uninstallStatus').textContent=`无法打开卸载帮助：${error.message}`;}});
   on('#themeSetting','change',async e=>{
     const theme=e.target.value,previous=state.settings.theme||'light';
     try{applyAppearance(await api.setTheme(theme));state.settings.theme=theme;persist();}

@@ -30,6 +30,7 @@ pnpm test
 node tests/delivery-desktop.mjs
 node tests/agent-modes-desktop.mjs
 node tests/theme-desktop.mjs
+node tests/update-desktop.mjs
 ```
 
 The first two commands run in CI. Desktop scripts above use synthetic tasks and mocked model responses. Some other historical scripts require prior local tasks or installed applications; `test:desktop` is not a self-contained CI entry point. Real-account scripts may call a paid model and should only be run with intentionally configured test credentials.
@@ -47,6 +48,7 @@ macOS produces an arm64 DMG, Windows an x64 NSIS installer, and Linux an x64 App
 ## GitHub releases
 
 The Release workflow builds the committed source on macOS, Windows, and Linux, checks packaged application files against that source, collects installers, and computes SHA-256 values. It publishes a draft only after all three builds succeed, then marks it public.
+On Windows, the release workflow also silently installs and uninstalls the just-built installer in an isolated runner and checks the Windows Apps entry. A separate diagnostic workflow tests recovery from a deliberately damaged uninstaller.
 
 Run it from **Actions → Release → Run workflow**, or include `[release]` in a main-branch commit message. The tag is read from `package.json`; increment the version before the next release. Existing releases are never overwritten. The workflow uses GitHub's temporary `GITHUB_TOKEN`; no personal token or model credential is needed.
 

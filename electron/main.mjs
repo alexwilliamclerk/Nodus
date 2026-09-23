@@ -15,6 +15,7 @@ import {executeGoat} from '../backend/goat-service.mjs';
 import {exportVersion,validateDeliveryDirectory} from '../backend/delivery-service.mjs';
 import { PiService } from "../backend/pi-service.mjs";
 import { StorageService } from "../backend/storage.mjs";
+import {checkForUpdate,downloadUpdate} from '../backend/update-service.mjs';
 
 import { ArtifactService, readArtifact, withVersionContext, artifactUrl as previewUrl } from "../backend/artifact-service.mjs";
 
@@ -28,6 +29,9 @@ let previewOrigin;
 let bootstrapped=false;
 let backupBusy=false;
 let quitting=false;
+let availableUpdate=null;
+let downloadedUpdate=null;
+let updateBusy=false;
 const deliveryDirectories=new Map();
 
 app.setName("Nodus");
@@ -139,6 +143,55 @@ function createWindow() {
 }
 
 function registerIpc() {
+  ipcMain.handle('forma:check-update',async()=>{
+    if(updateBusy)throw new Error('更新包正在下载，请稍候');
+    availableUpdate=await checkForUpdate(app.getVersion(),process.platform);
+    downloadedUpdate=null;
+    const {currentVersion,latestVersion,available,downloadable,releaseUrl}=availableUpdate;
+    return {currentVersion,latestVersion,available,downloadable,releaseUrl};
+  });
+  ipcMain.handle('forma:download-update',async()=>{
+    if(updateBusy)throw new Error('更新包正在下载');
+    if(!availableUpdate?.downloadable)throw new Error('请先检查更新');
+    updateBusy=true;
+    try{
+      downloadedUpdate=await downloadUpdate(availableUpdate,app.getPath('downloads'),{
+        onProgress:progress=>mainWindow?.webContents.send('forma:update-progress',progress),
+      });
+      return {version:downloadedUpdate.version,reused:downloadedUpdate.reused};
+    }finally{updateBusy=false;}
+  });
+  ipcMain.handle('forma:open-update-installer',async()=>{
+    if(updateBusy||!downloadedUpdate||downloadedUpdate.version!==availableUpdate?.latestVersion)throw new Error('请先完成更新包下载与校验');
+    if(process.platform==='linux'){
+      shell.showItemInFolder(downloadedUpdate.path);
+      return {message:'已在文件管理器中定位新版 AppImage。退出 Nodus 后用它替换旧文件，再重新启动。'};
+    }
+    const error=await shell.openPath(downloadedUpdate.path);
+    if(error)throw new Error(`无法打开安装包：${error}`);
+    return {message:process.platform==='darwin'?'已打开 DMG。退出 Nodus 后将新版拖入“应用程序”并覆盖旧版。':'安装程序已打开。请退出 Nodus，再按安装向导完成更新。'};
+  });
+  ipcMain.handle('forma:open-update-page',async()=>shell.openExternal('https://github.com/alexwilliamclerk/Nodus/releases'));
+  ipcMain.handle('forma:open-uninstall-help',async()=>shell.openExternal('https://github.com/alexwilliamclerk/Nodus/blob/main/docs/windows-uninstall.zh-CN.md'));
+  ipcMain.handle('forma:uninstall-nodus',async()=>{
+    if(process.platform!=='win32'||!app.isPackaged)throw new Error('此入口只适用于已安装的 Windows 版本');
+    if(pi.activeRuns.size||backupBusy)throw new Error('请先停止正在运行的任务或备份，再卸载应用');
+    const uninstaller=path.join(path.dirname(process.execPath),'Uninstall Nodus.exe');
+    if(!existsSync(uninstaller)){
+      await shell.openExternal('ms-settings:appsfeatures');
+      return {openedSettings:true};
+    }
+    const {response}=await dialog.showMessageBox(mainWindow,{
+      type:'question',buttons:['取消','卸载 Nodus'],defaultId:0,cancelId:0,
+      title:'卸载 Nodus',message:'确认卸载 Nodus？',
+      detail:'应用将退出并启动 Windows 卸载程序。对话、作品和已保存的连接数据会留在本机，以免意外丢失。',
+    });
+    if(response!==1)return {cancelled:true};
+    const error=await shell.openPath(uninstaller);
+    if(error)throw new Error(`无法启动卸载程序：${error}`);
+    setTimeout(()=>app.quit(),250);
+    return {started:true};
+  });
   ipcMain.handle('forma:read-clipboard',()=>clipboard.readText());
   ipcMain.handle('forma:choose-delivery-directory',async(_event,taskId)=>{
     const selection=await dialog.showOpenDialog(mainWindow,{title:'选择作品交付目录',properties:['openDirectory','createDirectory']});

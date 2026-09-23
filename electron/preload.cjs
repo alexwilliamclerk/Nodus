@@ -15,6 +15,17 @@ contextBridge.exposeInMainWorld("forma", {
     return () => ipcRenderer.removeListener("forma:appearance", handler);
   },
   bootstrap: () => ipcRenderer.invoke("forma:bootstrap"),
+  checkUpdate: () => ipcRenderer.invoke('forma:check-update'),
+  downloadUpdate: () => ipcRenderer.invoke('forma:download-update'),
+  openUpdateInstaller: () => ipcRenderer.invoke('forma:open-update-installer'),
+  openUpdatePage: () => ipcRenderer.invoke('forma:open-update-page'),
+  onUpdateProgress: listener => {
+    const handler=(_event,progress)=>listener(progress);
+    ipcRenderer.on('forma:update-progress',handler);
+    return ()=>ipcRenderer.removeListener('forma:update-progress',handler);
+  },
+  uninstallNodus: () => ipcRenderer.invoke('forma:uninstall-nodus'),
+  openUninstallHelp: () => ipcRenderer.invoke('forma:open-uninstall-help'),
   saveState: state => ipcRenderer.invoke("forma:save-state", state),
   exportBackup: () => ipcRenderer.invoke('forma:export-backup'),
   readClipboard: () => ipcRenderer.invoke('forma:read-clipboard'),
