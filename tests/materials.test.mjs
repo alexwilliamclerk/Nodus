@@ -23,7 +23,7 @@ test('local PDF and Word extraction retains known material content and distingui
   assert.equal((await readMaterial(fixture('plain.txt'))).text, '本地材料测试');
 });
 test('image payloads reach Pi request and text-only models cannot silently ignore them', async () => {
-  const material = await readMaterial(path.join(import.meta.dirname, '..', 'docs', 'design', 'nodus-peach-approved.png'));
+  const material = await readMaterial(fixture('sample.png'));
   assert.equal(material.status, 'image');
   const task = { id: 'material-test', requirement: '查看参考图', attachments: [material] };
   assert.throws(() => taskImages(task, { input: ['text'] }), /不支持图片/);
