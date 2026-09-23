@@ -14,4 +14,4 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install and uninstall the published Windows package
         shell: pwsh
-        run: ./tests/windows-uninstall.ps1
+        run: ./tests/windows-uninstall.ps1 -SimulateCorruption
