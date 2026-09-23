@@ -1,129 +1,108 @@
-<div align="center">
-  <img src="docs/assets/banner.svg" alt="Nodus — Your ideas. Your decisions. Real deliverables." width="100%" />
-  <br /><br />
-  <a href="https://github.com/alexwilliamclerk/Nodus/releases"><img src="https://img.shields.io/github/v/release/alexwilliamclerk/Nodus?style=flat-square&amp;color=b57858" alt="Latest release" /></a>
-  <a href="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml"><img src="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml/badge.svg" alt="Checks" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-607d70?style=flat-square" alt="MIT License" /></a>
-  <img src="https://img.shields.io/badge/desktop-macOS%20%7C%20Windows%20%7C%20Linux-72665e?style=flat-square" alt="macOS, Windows and Linux" />
-  <p><a href="README.md">简体中文</a> · <a href="README.en.md">English</a></p>
-</div>
+![Nodus — Your ideas. Your decisions. Real deliverables.](docs/assets/banner.svg)
 
-<div align="center">
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="https://github.com/alexwilliamclerk/Nodus/releases/latest">Download</a> ·
+  <a href="docs/development.md">Development</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
 
-**从一个想法，到一份真正可交付的作品。**
+<p align="center">
+  <a href="https://github.com/alexwilliamclerk/Nodus/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/alexwilliamclerk/Nodus?style=flat-square&color=b57858"></a>
+  <a href="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml"><img alt="Checks" src="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-607d70?style=flat-square"></a>
+  <a href="https://github.com/alexwilliamclerk/Nodus/releases/latest"><img alt="macOS, Windows, Linux" src="https://img.shields.io/badge/desktop-macOS%20%7C%20Windows%20%7C%20Linux-72665e?style=flat-square"></a>
+</p>
 
-先把方向想清楚，再与 AI 一起制作、预览和改进。
+<p align="center">
+  <a href="README.md"><img alt="English README" src="https://img.shields.io/badge/English-b57858?style=flat-square"></a>
+  <a href="README.zh-CN.md"><img alt="简体中文 README" src="https://img.shields.io/badge/简体中文-d9d9d9?style=flat-square"></a>
+</p>
 
-[下载安装](#下载安装) · [快速开始](#快速开始) · [使用手册](docs/guide.md) · [参与贡献](CONTRIBUTING.md) · [反馈问题](https://github.com/alexwilliamclerk/Nodus/issues)
+**Nodus is a desktop workspace for turning an idea into a deliverable you can inspect, revise, and keep.** Describe what you want to make, work through decisions with an AI agent, and review the files it produces. Requirements, choices, versions, and feedback stay together so you can see what was delivered and what still needs your judgment.
 
-</div>
+Nodus currently creates local websites, Markdown research reports, PPTX presentations, Python projects, and descriptive data analyses. It runs on macOS, Windows, and Linux with a model connection you provide.
 
----
+![Nodus showing four directions for a sample portfolio website](docs/assets/workspace.jpg)
 
-Nodus 是一个以**动态选择与持续反馈**为核心的 AI 桌面工作台。你可以用自然语言描述目标，通过选项逐步明确需求，再让 Agent 制作网站、报告、演示文稿、Python 工程或数据分析。
+<sub>Screenshot of the actual application using a synthetic task and a mocked planning response. The application interface is currently in Chinese.</sub>
 
-选择、任务要求、作品版本和反馈保存在同一个工作空间中。你决定方向，也能回看为什么这样做、实际交付了什么，以及哪些要求还需要判断。
+## Quick start
 
-![Nodus 真实桌面界面：需求、任务规则与四种可选方向](docs/assets/workspace.jpg)
+Download the latest package for your platform. Packaged builds include Electron and the Pi SDK; you do not need to install Node.js or the Pi CLI to use the app.
 
-<p align="center"><sub>当前应用的真实界面截图；使用合成示例与模拟规划响应，没有使用私人对话或真实模型凭据。</sub></p>
-
-## 为什么使用 Nodus
-
-<table>
-<tr>
-<td width="50%"><h3>先想清楚，再动手</h3><p>默认 <code>/plan</code> 模式先提供方案。选择、补充、确认之后才制作；也可使用 <code>/goat</code> 在授权范围内自主推进。</p></td>
-<td width="50%"><h3>要求不只留在聊天里</h3><p>已提交要求独立保存，可查看来源、修改、停用与恢复。规则作为用户任务数据参与后续规划和执行。</p></td>
-</tr>
-<tr>
-<td><h3>作品可以预览，也可以反悔</h3><p>查看真实文件、比较版本、评价与修订。回改上游选择会使相关下游决定失效，恢复作品则创建新版本。</p></td>
-<td><h3>看清依据，再接受交付</h3><p>文件检查、模型辅助审查与人工判断分别呈现。没有可靠证据的要求保持待确认，不把生成文件等同于完成目标。</p></td>
-</tr>
-<tr>
-<td><h3>接入自己的模型</h3><p>管理多条模型连接，支持 DeepSeek、Kimi、GLM、MiniMax、Qwen 的已实现入口。凭据默认仅在本次运行中使用。</p></td>
-<td><h3>作品交到你的目录</h3><p>选择本地交付目录，导出具体版本；任务、附件、决定与作品可备份。应用凭据不进入备份包。</p></td>
-</tr>
-</table>
-
-## 下载安装
-
-安装包内置 Electron 与 Pi SDK，**无需先安装 Node.js 或 Pi CLI**。模型调用需要自行配置有效的服务商凭据。
-
-| 平台 | 下载 | 安装 |
+| Platform | Package | One-line download and launch |
 | --- | --- | --- |
-| macOS · Apple Silicon | [下载 DMG](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg) | 打开后将 Nodus 拖入 Applications |
-| Windows · x64 | [下载安装器](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe) | 运行安装向导 |
-| Linux · x64 | [下载 AppImage](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage) | 下载后赋予执行权限并运行 |
-| 其他平台 | [从源码构建](docs/development.md) | 暂无 Intel Mac、Windows ARM 或 Linux ARM 的预构建包 |
+| macOS · Apple Silicon | [DMG](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg) | Terminal command below |
+| Windows · x64 | [Installer](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe) | PowerShell command below |
+| Linux · x64 | [AppImage](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage) | Terminal command below |
 
-也可以复制一行命令，**下载并打开安装器**：
-
-**macOS（终端）**
+**macOS — download and open the disk image:**
 
 ```bash
 curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg' -o "$HOME/Downloads/Nodus.dmg" && open "$HOME/Downloads/Nodus.dmg"
 ```
 
-**Windows（PowerShell）**
+Drag **Nodus** into Applications after opening the image.
+
+**Windows — download and start the installer in PowerShell:**
 
 ```powershell
 $ErrorActionPreference='Stop'; Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe' -OutFile "$env:TEMP\Nodus-Setup.exe"; Start-Process "$env:TEMP\Nodus-Setup.exe"
 ```
 
-**Linux x64（终端）：下载到用户程序目录并启动**
+**Linux — save the AppImage in your user application directory and run it:**
 
 ```bash
 mkdir -p "$HOME/.local/bin" && curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage' -o "$HOME/.local/bin/Nodus.AppImage" && chmod +x "$HOME/.local/bin/Nodus.AppImage" && "$HOME/.local/bin/Nodus.AppImage"
 ```
 
-Linux AppImage 可能需要发行版提供 FUSE 运行库；不同桌面环境的兼容性仍需实机验证。
+Linux AppImage may require a FUSE runtime supplied by your distribution. Intel Mac, Windows ARM, and Linux ARM builds are not available yet. See [Releases](https://github.com/alexwilliamclerk/Nodus/releases) for SHA-256 checksums and version notes.
 
-> 安装包尚未完成正式开发者签名与 macOS 公证，系统可能提示来源验证。Windows 尚未完成干净系统实机验收。首次发布构建期间，下载链接会在 [Release 工作流](https://github.com/alexwilliamclerk/Nodus/actions/workflows/release.yml)成功完成后生效；全部版本与 SHA-256 校验值见 [Releases](https://github.com/alexwilliamclerk/Nodus/releases)。
+Once Nodus opens:
 
-## 快速开始
+1. Add a model connection and verify it. You need valid credentials from your chosen provider.
+2. Describe your goal, add source materials if needed, and choose a local directory for the result.
+3. In the default `/plan` mode, select a direction, refine the requirements, and confirm before production starts.
+4. Preview the files, inspect the checks, request changes, or accept a version.
 
-1. **连接模型。** 打开“模型连接”，添加提供商、模型 ID 和 API Key，验证连接。
-2. **描述目标。** 新建对话，说明想得到的作品，按需添加文件并选择本地交付目录。
-3. **选择方向。** 在默认 `/plan` 模式下选择方案、补充要求，确认后开始制作。
-4. **查看与改进。** 打开预览，查看检查依据、评价或发起修改；满意后接受所选版本。
+> Need help? Read the [user guide](docs/guide.md) or [open an issue](https://github.com/alexwilliamclerk/Nodus/issues) with a reproducible example. Do not include API keys or private task data in an issue.
 
-```text
-/plan 为我的设计作品制作一个简洁的个人网站
-/plan 把这些材料整理成一份调研报告，明确标出尚未核实的内容
-/goat 根据附件 CSV 生成描述统计报告
-```
+## Key features
 
-| | `/plan` · 默认 | `/goat` · 自主执行 |
+**1. Plan first, then build.** `/plan` presents options and waits for your submitted choices before making a deliverable. `/goat` works within an explicit authorization, with up to three production attempts per submission. You can stop a task at any time; restarting Nodus does not resume paid model calls automatically.
+
+**2. Keep requirements editable.** Submitted requirements are stored separately from the conversation. You can inspect their source, edit or retire an item, and see its change history. They remain task data supplied to the agent, not higher-priority system instructions.
+
+**3. Review real files and versions.** Preview the current work, score it, request a revision, or restore an earlier version into a new one. Export a selected version to your own local directory.
+
+**4. See what the checks support.** Nodus keeps file checks, model-assisted requirement review, and your acceptance distinct. A generated file is not proof that every goal was met; requirements without reliable evidence remain open for review.
+
+**5. Connect your own model.** Implemented connection options include DeepSeek, Kimi, GLM, MiniMax, and Qwen. API keys stay in memory unless you explicitly choose encrypted local storage. Availability depends on the provider, account, region, and model.
+
+**6. Keep a portable task backup.** Export conversations, materials, decisions, ratings, and deliverables as a ZIP. Application-saved credentials are excluded; sensitive text you put in a task or deliverable is not automatically removed.
+
+## What Nodus can produce
+
+| Deliverable | Files | Current scope |
 | --- | --- | --- |
-| 何时开始制作 | 选择方案并提交确认后 | 明确提交自主执行请求后 |
-| 如何推进 | 用户逐步决定 | Agent 在授权范围内采用方案、制作与检查 |
-| 如何停止 | 可随时停止、回改或暂存 | 可随时停止；每次提交最多 3 次制作尝试 |
+| Website | HTML, CSS, JavaScript, local assets | Local preview and reference checks; no full backend or automatic deployment |
+| Research report | Markdown and a source list | Structure and source-status checks; no online fact verification |
+| Presentation | PPTX and preview | Primarily titles, bullets, and speaker notes |
+| Python project | Source, dependencies, instructions | Syntax checks; generated code is not run automatically |
+| Data analysis | Input snapshots, code, statistics, explanation | Descriptive statistics; input data and local Python 3 required |
 
-重启应用不会自动恢复付费模型调用。中途预览可设置为每 3、5、8 次已提交修改后生成一版，或保持手动确认。
+PDF and DOCX materials support text extraction, without OCR or layout reconstruction. Image understanding requires a vision-capable model. Arbitrary DOCX/XLSX output and unrestricted media layout are not part of the current product.
 
-## 可以交付什么
+## Using Nodus
 
-| 类型 | 交付文件 | 当前能力范围 |
-| --- | --- | --- |
-| 网站 | HTML、CSS、JavaScript 与本地资源 | 本地预览与资源检查；不包含完整后端或自动部署 |
-| 调研报告 | Markdown 与来源清单 | 结构与来源状态检查；不提供联网事实核实 |
-| 演示文稿 | PPTX 与预览 | 以文字标题、要点和备注为主 |
-| Python 工程 | 源码、依赖文件与说明 | AST 语法检查；不自动安装依赖或执行生成代码 |
-| 数据分析 | 输入快照、代码、统计结果与说明 | 描述统计；需要数据材料与本机 Python 3 |
+Nodus saves tasks and files locally. Materials supplied to a configured model are sent to that model's service, so local storage does not mean offline inference. You can configure multiple model connections and switch between them when no task is running.
 
-PDF/DOCX 材料支持文字提取，不包含 OCR 或版式还原。图片理解需要支持视觉的模型。当前不支持任意 DOCX/XLSX 输出或自由媒体排版。
+The application interface is currently Chinese; this English README describes its current behavior. The [user guide](docs/guide.md) has the full walkthrough, including task requirements, previews, model connections, and backups.
 
-## 本地数据与模型服务
+## Advanced setup
 
-任务和作品保存在本机；**发送给所选模型的材料会离开本机**。本地保存不代表离线推理。
-
-API Key 默认只在内存中使用。主动选择“在本机记住连接”时才加密保存；macOS 已保存连接由用户主动恢复。不同地区、开放平台与 Coding Plan 的凭据不可混用。接入某个提供商不代表该提供商的所有模型、工具或视觉能力都已验证。
-
-更多信息：[模型连接与数据备份](docs/guide.md#模型连接) · [安全说明](SECURITY.md)
-
-## 从源码运行
-
-需要 Node.js 24、pnpm 11.19.0；Python 工程检查与数据分析还需要 Python 3.10+。
+To run the source, install Node.js 24 and pnpm 11.19.0. Python checks and data analysis also need Python 3.10 or newer.
 
 ```bash
 git clone https://github.com/alexwilliamclerk/Nodus.git
@@ -133,19 +112,18 @@ node node_modules/electron/install.js
 pnpm start
 ```
 
-应用需要 Electron 桌面环境，不能直接在浏览器打开根目录 HTML。[开发、测试与构建说明 →](docs/development.md)
+See the [development guide](docs/development.md) for code structure, tests, and building installers. The app needs Electron; opening `index.html` directly in a browser is not supported.
 
-## 文档与贡献
+## Contributing and support
 
-- [使用手册](docs/guide.md)：模式、任务规则、预览、模型连接与备份。
-- [开发指南](docs/development.md)：代码结构、测试、构建与 Release。
-- [版本记录](CHANGELOG.md)：当前版本的功能与验证边界。
-- [贡献指南](CONTRIBUTING.md)：报告问题与提交改进。
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. For a bug, include the Nodus version, operating system, CPU architecture, reproduction steps, and expected versus actual behavior. Use synthetic examples and keep credentials and private files out of public issues.
 
-欢迎提交可复现的问题、文档改进和聚焦的 Pull Request。展示效果之外，我们同样关心要求是否保留、真实文件是否可用，以及未验证事项是否说清楚。
+New versions appear on [GitHub Releases](https://github.com/alexwilliamclerk/Nodus/releases). The [changelog](CHANGELOG.md) records this version's capabilities and verification limits.
 
-## 致谢与许可
+## Security and privacy
 
-Nodus 基于 [Electron](https://www.electronjs.org/) 和 [Pi](https://github.com/earendil-works/pi) 构建。仓库介绍结构参考 [Dify](https://github.com/langgenius/dify)，品牌与产品实现相互独立。
+Report sensitive vulnerabilities through the repository's private reporting channel when available. See [SECURITY.md](SECURITY.md) for reporting guidance and credential handling. Current packages are not formally developer-signed or notarized, and clean-machine Windows and Linux installation has not been validated.
 
-项目源码遵循 [MIT License](LICENSE)。第三方依赖保留各自许可证。
+## License
+
+Nodus is available under the [MIT License](LICENSE). Third-party dependencies retain their own licenses. The application is built with [Electron](https://www.electronjs.org/) and [Pi](https://github.com/earendil-works/pi).
