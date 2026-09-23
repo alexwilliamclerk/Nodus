@@ -4,7 +4,7 @@
   <a href="https://github.com/alexwilliamclerk/Nodus/releases"><img src="https://img.shields.io/github/v/release/alexwilliamclerk/Nodus?style=flat-square&amp;color=b57858" alt="Latest release" /></a>
   <a href="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml"><img src="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml/badge.svg" alt="Checks" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-607d70?style=flat-square" alt="MIT License" /></a>
-  <img src="https://img.shields.io/badge/desktop-macOS%20%7C%20Windows-72665e?style=flat-square" alt="macOS and Windows" />
+  <img src="https://img.shields.io/badge/desktop-macOS%20%7C%20Windows%20%7C%20Linux-72665e?style=flat-square" alt="macOS, Windows and Linux" />
   <p><a href="README.md">简体中文</a> · <a href="README.en.md">English</a></p>
 </div>
 
@@ -53,7 +53,8 @@ Nodus 是一个以**动态选择与持续反馈**为核心的 AI 桌面工作台
 | --- | --- | --- |
 | macOS · Apple Silicon | [下载 DMG](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg) | 打开后将 Nodus 拖入 Applications |
 | Windows · x64 | [下载安装器](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe) | 运行安装向导 |
-| 其他平台 | [从源码构建](docs/development.md) | 暂无 Intel Mac、Windows ARM 或 Linux 的正式预构建包 |
+| Linux · x64 | [下载 AppImage](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage) | 下载后赋予执行权限并运行 |
+| 其他平台 | [从源码构建](docs/development.md) | 暂无 Intel Mac、Windows ARM 或 Linux ARM 的预构建包 |
 
 也可以复制一行命令，**下载并打开安装器**：
 
@@ -68,6 +69,14 @@ curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/do
 ```powershell
 $ErrorActionPreference='Stop'; Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe' -OutFile "$env:TEMP\Nodus-Setup.exe"; Start-Process "$env:TEMP\Nodus-Setup.exe"
 ```
+
+**Linux x64（终端）：下载到用户程序目录并启动**
+
+```bash
+mkdir -p "$HOME/.local/bin" && curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage' -o "$HOME/.local/bin/Nodus.AppImage" && chmod +x "$HOME/.local/bin/Nodus.AppImage" && "$HOME/.local/bin/Nodus.AppImage"
+```
+
+Linux AppImage 可能需要发行版提供 FUSE 运行库；不同桌面环境的兼容性仍需实机验证。
 
 > 安装包尚未完成正式开发者签名与 macOS 公证，系统可能提示来源验证。Windows 尚未完成干净系统实机验收。首次发布构建期间，下载链接会在 [Release 工作流](https://github.com/alexwilliamclerk/Nodus/actions/workflows/release.yml)成功完成后生效；全部版本与 SHA-256 校验值见 [Releases](https://github.com/alexwilliamclerk/Nodus/releases)。
 

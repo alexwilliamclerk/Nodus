@@ -19,6 +19,8 @@ jobs:
             platform: mac
           - os: windows-latest
             platform: win
+          - os: ubuntu-latest
+            platform: linux
     runs-on: ${{ matrix.os }}
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
@@ -41,6 +43,9 @@ jobs:
       - name: Build Windows x64
         if: matrix.platform == 'win'
         run: pnpm exec electron-builder --win nsis --x64 --publish never
+      - name: Build Linux x64
+        if: matrix.platform == 'linux'
+        run: pnpm exec electron-builder --linux AppImage --x64 --publish never
       - run: node scripts/verify-package.mjs ${{ matrix.platform }}
       - name: Prepare stable download filename
         run: node scripts/prepare-release-asset.mjs ${{ matrix.platform }}
@@ -72,7 +77,8 @@ jobs:
           version=$(node -p "require('./package.json').version")
           test -s release-assets/Nodus-mac-arm64.dmg
           test -s release-assets/Nodus-windows-x64.exe
-          (cd release-assets && sha256sum Nodus-mac-arm64.dmg Nodus-windows-x64.exe > SHA256SUMS.txt)
+          test -s release-assets/Nodus-linux-x64.AppImage
+          (cd release-assets && sha256sum Nodus-mac-arm64.dmg Nodus-windows-x64.exe Nodus-linux-x64.AppImage > SHA256SUMS.txt)
           if gh release view "v$version" >/dev/null 2>&1; then
             echo "Release v$version already exists; refusing to overwrite it."
             exit 1

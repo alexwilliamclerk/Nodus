@@ -11,4 +11,4 @@ Initial public source release of the current Nodus desktop application.
 - Multiple model connections, session-only credentials by default, and task backups excluding application credentials.
 - Native file menus, conversation navigation, preview expansion, and configurable preview cadence.
 
-Local source syntax checks and all 87 automated tests passed on September 23, 2026. Mocked-model tests do not establish real-model effectiveness. macOS and Windows packages lack formal developer signing; macOS notarization and clean-machine Windows validation are pending. GitHub-built packages have separate build logs in Actions.
+Local source syntax checks and all 87 automated tests passed on September 23, 2026. Mocked-model tests do not establish real-model effectiveness. macOS, Windows, and Linux packages lack formal developer signing; macOS notarization and clean-machine Windows/Linux validation are pending. GitHub-built packages have separate build logs in Actions.

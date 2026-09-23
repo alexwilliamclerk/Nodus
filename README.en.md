@@ -4,7 +4,7 @@
   <a href="https://github.com/alexwilliamclerk/Nodus/releases"><img src="https://img.shields.io/github/v/release/alexwilliamclerk/Nodus?style=flat-square&amp;color=b57858" alt="Latest release" /></a>
   <a href="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml"><img src="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml/badge.svg" alt="Checks" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-607d70?style=flat-square" alt="MIT License" /></a>
-  <img src="https://img.shields.io/badge/desktop-macOS%20%7C%20Windows-72665e?style=flat-square" alt="macOS and Windows" />
+  <img src="https://img.shields.io/badge/desktop-macOS%20%7C%20Windows%20%7C%20Linux-72665e?style=flat-square" alt="macOS, Windows and Linux" />
   <p><a href="README.md">简体中文</a> · <a href="README.en.md">English</a></p>
 </div>
 
@@ -45,6 +45,7 @@ Requirements, choices, deliverable versions, and feedback stay together. You can
 | --- | --- |
 | macOS · Apple Silicon | [Download DMG](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg) |
 | Windows · x64 | [Download installer](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe) |
+| Linux · x64 | [Download AppImage](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage) |
 
 No separate Node.js or Pi CLI installation is needed for packaged apps. You need valid credentials for your chosen model service. Python checks and data analysis require a local Python 3 installation.
 
@@ -62,7 +63,15 @@ Drag Nodus into Applications after opening the disk image.
 $ErrorActionPreference='Stop'; Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe' -OutFile "$env:TEMP\Nodus-Setup.exe"; Start-Process "$env:TEMP\Nodus-Setup.exe"
 ```
 
-> Builds are not formally developer-signed or notarized. Clean-machine Windows validation is pending. Intel Mac, Windows ARM, and Linux prebuilt releases are not currently provided. During the first publication, downloads become available after the [release workflow](https://github.com/alexwilliamclerk/Nodus/actions/workflows/release.yml) succeeds. See [Releases](https://github.com/alexwilliamclerk/Nodus/releases) for versions and SHA-256 checksums.
+**Linux x64 — download into your user application directory and launch:**
+
+```bash
+mkdir -p "$HOME/.local/bin" && curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage' -o "$HOME/.local/bin/Nodus.AppImage" && chmod +x "$HOME/.local/bin/Nodus.AppImage" && "$HOME/.local/bin/Nodus.AppImage"
+```
+
+AppImage may require a FUSE runtime from your Linux distribution. Desktop compatibility has not yet been tested on a clean Linux installation.
+
+> Builds are not formally developer-signed or notarized. Clean-machine Windows and Linux validation is pending. Intel Mac, Windows ARM, and Linux ARM prebuilt releases are not currently provided. During the first publication, downloads become available after the [release workflow](https://github.com/alexwilliamclerk/Nodus/actions/workflows/release.yml) succeeds. See [Releases](https://github.com/alexwilliamclerk/Nodus/releases) for versions and SHA-256 checksums.
 
 ## Get started
 

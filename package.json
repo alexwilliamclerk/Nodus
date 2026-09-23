@@ -62,7 +62,8 @@
       "backend/**/*",
       "skills/**/*",
       "package.json",
-      "LICENSE"
+      "LICENSE",
+      "skills/nodus-requirement-guardian/SKILL.md"
     ],
     "win": {
       "target": [

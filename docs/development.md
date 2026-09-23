@@ -38,16 +38,17 @@ The first two commands run in CI. Desktop scripts above use synthetic tasks and 
 ```sh
 pnpm run dist:mac
 pnpm run dist:win
+pnpm run dist:linux
 ```
 
-macOS produces an arm64 DMG; Windows produces an x64 NSIS installer. Linux build commands are included for development, but Linux is not part of the current prebuilt release matrix. A successful build does not prove target-system compatibility.
+macOS produces an arm64 DMG, Windows an x64 NSIS installer, and Linux an x64 AppImage. A successful build does not prove target-system compatibility.
 
 ## GitHub releases
 
-The Release workflow builds the committed source on macOS and Windows, checks packaged application files against that source, collects installers, and computes SHA-256 values. It publishes a draft only after both builds succeed, then marks it public.
+The Release workflow builds the committed source on macOS, Windows, and Linux, checks packaged application files against that source, collects installers, and computes SHA-256 values. It publishes a draft only after all three builds succeed, then marks it public.
 
 Run it from **Actions → Release → Run workflow**, or include `[release]` in a main-branch commit message. The tag is read from `package.json`; increment the version before the next release. Existing releases are never overwritten. The workflow uses GitHub's temporary `GITHUB_TOKEN`; no personal token or model credential is needed.
 
-Release assets use stable names `Nodus-mac-arm64.dmg` and `Nodus-windows-x64.exe`, so the README's `releases/latest/download` commands continue to work when versions change.
+Release assets use stable names `Nodus-mac-arm64.dmg`, `Nodus-windows-x64.exe`, and `Nodus-linux-x64.AppImage`, so the README's `releases/latest/download` commands continue to work when versions change.
 
 Keep user data, credentials, `node_modules`, build output, and local test evidence out of Git. See `.gitignore` and `SECURITY.md`.

@@ -4,7 +4,7 @@
 
 **从一个想法出发，改变世界**
 
-Nodus 是以动态选项为核心交互的 AI 桌面工作台，支持 Windows 和 macOS。你可以用自然语言发起任务，通过选项明确需求，或授权 Agent 自主制作；应用将任务规则、执行、作品预览、手动评分和版本管理连接起来。
+Nodus 是以动态选项为核心交互的 AI 桌面工作台，支持 Windows、macOS 和 Linux。你可以用自然语言发起任务，通过选项明确需求，或授权 Agent 自主制作；应用将任务规则、执行、作品预览、手动评分和版本管理连接起来。
 
 产品聚焦两个方向：**用户要求的持续守护**与**有证据的完成验收**。当前提供独立保存的任务规则、内置守护 Skill、执行权限控制、文件验证和模型辅助审查。它帮助用户查看实际交付及未验证事项，不承诺识别模型的主观意图或杜绝遗漏。
 
@@ -45,6 +45,7 @@ Nodus 是以动态选项为核心交互的 AI 桌面工作台，支持 Windows �
 | --- | --- | --- |
 | macOS Apple Silicon（arm64） | [Nodus-1.1.0-arm64.dmg](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg) | 打开镜像，将 Nodus.app 拖入“应用程序” |
 | Windows x64 | [Nodus-Setup-1.1.0-x64.exe](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe) | 运行安装向导并选择安装目录 |
+| Linux x64 | [Nodus-linux-x64.AppImage](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage) | 下载后赋予执行权限并运行 |
 
 安装包内置 Electron 与 Pi SDK，无需另外安装 Node.js 或 Pi CLI。Python 工程与数据分析需要本机 Python 3，建议使用 3.10 或更新版本并加入 PATH。模型调用需要联网和对应服务的有效凭据。
 
@@ -54,7 +55,7 @@ Nodus 是以动态选项为核心交互的 AI 桌面工作台，支持 Windows �
 
 macOS 关闭窗口会隐藏窗口并保留正在执行的任务，点击 Dock 图标可重新打开。需要停止任务时使用应用内“停止”；需要结束应用时使用“退出 Nodus”。
 
-发行包尚未完成正式开发者签名与公证。确认来源后使用操作系统提供的正常允许流程。Windows 安装器尚未完成干净系统实机验收，最低系统版本兼容矩阵尚未建立；目前没有 Intel Mac、Windows ARM 或当前版本 Linux 的预构建安装包。
+发行包尚未完成正式开发者签名与公证。确认来源后使用操作系统提供的正常允许流程。Windows 安装器尚未完成干净系统实机验收，最低系统版本兼容矩阵尚未建立；Linux AppImage 可能需要 FUSE 运行库，尚未完成干净系统实机验收；目前没有 Intel Mac、Windows ARM 或 Linux ARM 的预构建安装包。
 
 ## 快速开始
 
@@ -235,7 +236,7 @@ pnpm run dist:linux:tar
 
 构建配置使用 Electron 44.3.0、Pi SDK 0.85.1、electron-builder 26.15.3，依赖由 `pnpm-lock.yaml` 锁定。跨平台构建成功不等于目标系统运行通过。Linux 构建需要相应平台依赖及桌面环境验证。
 
-`dist:win:zip` 可构建 Windows 应用目录压缩包；公开 Releases 默认提供 DMG 和 EXE。
+`dist:win:zip` 可构建 Windows 应用目录压缩包；公开 Releases 默认提供 DMG、EXE 和 AppImage。
 
 ## 验证边界
 
@@ -245,9 +246,9 @@ pnpm run dist:linux:tar
 | --- | --- |
 | 本地自动化 | 覆盖权限、规则状态、版本、模式、无效产物拒绝等程序行为 |
 | 桌面交互 | 在 macOS 隔离数据目录验证，模型响应使用模拟 |
-| 发布包 | Windows、macOS 构建及 ZIP 完整性检查通过；macOS 安装版启动通过 |
+| 发布包 | Windows、macOS 既有构建已核对；本仓库发布工作流构建 macOS、Windows 和 Linux 包并逐文件核对。macOS 安装版已有启动验证 |
 | 真实模型效果 | 本版任务规则与自主模式未完成真实账户端到端验证，不能据此宣称降低遗忘率或杜绝遗漏 |
-| Windows 实机 | 尚未完成干净系统安装与运行验收 |
+| Windows / Linux 实机 | 尚未完成干净系统安装与运行验收 |
 
 已实现有限的模型辅助语义审查；全面语义判断、前端自动视觉验收、联网事实核实、完整工具审计和全面并行恢复仍需进一步建设。
 
