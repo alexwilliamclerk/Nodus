@@ -10,8 +10,9 @@ permissions:
 jobs:
   installed-app:
     runs-on: windows-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - name: Install and uninstall the published Windows package
         shell: pwsh
-        run: ./tests/windows-uninstall.ps1 -SimulateCorruption
+        run: ./tests/windows-uninstall.ps1 -SimulateCorruption -MoveCorruptUninstaller

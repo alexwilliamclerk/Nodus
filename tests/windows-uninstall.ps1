@@ -1,4 +1,4 @@
-param([string]$InstallerPath = '', [switch]$SimulateCorruption)
+param([string]$InstallerPath = '', [switch]$SimulateCorruption, [switch]$MoveCorruptUninstaller)
 $ErrorActionPreference = 'Stop'
 $installer = if ($InstallerPath) { (Resolve-Path $InstallerPath).Path } else { Join-Path $env:RUNNER_TEMP 'Nodus-Setup.exe' }
 $installDir = Join-Path $env:RUNNER_TEMP 'Nodus-installed'
@@ -34,6 +34,11 @@ if ($SimulateCorruption) {
   $content[[int]($content.Length / 2)] = $content[[int]($content.Length / 2)] -bxor 1
   [System.IO.File]::WriteAllBytes($uninstaller.FullName, $content)
   if ((Get-FileHash $uninstaller.FullName -Algorithm SHA256).Hash -eq $originalHash) { throw 'Corruption simulation did not change the uninstaller' }
+  if ($MoveCorruptUninstaller) {
+    $damagedCopy = Join-Path $env:RUNNER_TEMP 'Uninstall Nodus.damaged.exe'
+    Move-Item -LiteralPath $uninstaller.FullName -Destination $damagedCopy
+    Write-Host 'Moved the damaged uninstaller aside before repair installation.'
+  }
   $repair = Start-Process -FilePath $installer -ArgumentList @('/S', "/D=$installDir") -PassThru -Wait
   if ($repair.ExitCode -ne 0) { throw "Repair installation failed with exit code $($repair.ExitCode)" }
   $uninstaller = Get-ChildItem $installDir -Filter '*uninstall*.exe' -File | Select-Object -First 1
