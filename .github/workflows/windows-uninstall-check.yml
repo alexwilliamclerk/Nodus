@@ -1,0 +1,17 @@
+name: Windows uninstall check
+on:
+  push:
+    paths:
+      - .github/workflows/windows-uninstall-check.yml
+      - tests/windows-uninstall.ps1
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  installed-app:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install and uninstall the published Windows package
+        shell: pwsh
+        run: ./tests/windows-uninstall.ps1
