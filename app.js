@@ -14,6 +14,7 @@ const api = window.forma;
 document.documentElement.dataset.platform = api?.platform || 'browser';
 function applyAppearance(appearance) {
   const root = document.documentElement;
+  root.dataset.theme = appearance.dark ? 'dark' : 'light';
   root.classList.toggle('reduce-transparency', appearance.reducedTransparency);
   root.classList.toggle('increase-contrast', appearance.increasedContrast);
   root.classList.toggle('window-inactive', !appearance.focused);
@@ -788,7 +789,7 @@ function openSettings() {
   $('#rememberConnection').checked=false;
   $('#restoreSavedConnection').disabled=anyBusy();
   $('#providerInput').innerHTML=(model.providers||[]).map(provider=>`<option value="${esc(provider.id)}">${esc(provider.label)}</option>`).join('')||$('#providerInput').innerHTML;
-  showModelPopover(false);$('#providerInput').value=state.settings.provider||model.providerId||'kimi-coding';$('#modelIdInput').value=model.modelId||state.settings.modelId||'';$('#apiKeyInput').value='';$('#settingsError').textContent='';$('#showDialogSetting').checked=state.settings.showTemporaryDialog!==false;$('#connectModel').disabled=anyBusy();updateProviderNote();$('#settingsModal').showModal();
+  showModelPopover(false);$('#providerInput').value=state.settings.provider||model.providerId||'kimi-coding';$('#modelIdInput').value=model.modelId||state.settings.modelId||'';$('#apiKeyInput').value='';$('#settingsError').textContent='';$('#themeSetting').value=state.settings.theme||'light';$('#showDialogSetting').checked=state.settings.showTemporaryDialog!==false;$('#connectModel').disabled=anyBusy();updateProviderNote();$('#settingsModal').showModal();
 }
 function updateProviderNote() { $('#providerNote').textContent=({'minimax-cn':'MiniMax 中国站 API Key，接口 api.minimaxi.com/anthropic；模型须在账户权限内。',minimax:'MiniMax 全球站 API Key，接口 api.minimax.io/anthropic。','qwen-api-cn':'阿里云百炼中国北京普通 API Key；不是 Coding Plan。默认 qwen-plus，支持 qwen-turbo、qwen-max，当前只接入文本。','kimi-coding':'仅适用 Kimi Code 订阅凭据。platform.kimi.com 创建的开放平台 Key 请选中国开放平台，不要选此项。','moonshotai-cn':'platform.kimi.com 中国站 Key；使用 api.moonshot.cn/v1 和 Bearer 认证。先查询账户模型列表，留空优先选择列表中的 kimi-k3。','moonshotai':'platform.kimi.ai 国际站 Key；使用 api.moonshot.ai/v1。与中国站账户和 Key 隔离。','zai-coding-cn':'使用智谱中国区 Coding Plan 凭据；入口 open.bigmodel.cn/api/coding/paas/v4。',zai:'使用智谱全球 Coding Plan 凭据；入口 api.z.ai/api/coding/paas/v4。',deepseek:'DeepSeek 普通 API Key，留空默认 deepseek-flash（V4.1 Flash）。'})[$('#providerInput').value]; }
 async function connectModel() {
@@ -904,6 +905,11 @@ function bindEvents() {
   window.addEventListener('resize',hideModelMenu);
   on('#closeSettings','click',()=>$('#settingsModal').close());on('#cancelSettings','click',()=>$('#settingsModal').close());on('#connectModel','click',connectModel);on('#providerInput','change',()=>{$('#modelIdInput').value='';updateProviderNote();});
   on('#showDialogSetting','change',e=>{state.settings.showTemporaryDialog=e.target.checked;persist();renderAction(activeTask());});
+  on('#themeSetting','change',async e=>{
+    const theme=e.target.value,previous=state.settings.theme||'light';
+    try{applyAppearance(await api.setTheme(theme));state.settings.theme=theme;persist();}
+    catch(error){e.target.value=previous;showToast(`切换主题失败：${error.message}`);}
+  });
   on('#cancelManage','click',()=>$('#manageDialog').close());on('#attachButton','click',attachMaterials);
   document.addEventListener('dragover',event=>{
     if(!Array.from(event.dataTransfer?.types||[]).includes('Files'))return;

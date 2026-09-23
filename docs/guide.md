@@ -39,12 +39,12 @@ Nodus 是以动态选项为核心交互的 AI 桌面工作台，支持 Windows�
 
 ## 下载与安装
 
-当前发行版本：**v1.1.0**。
+当前发行版本：**v1.2.0**。
 
 | 平台 | 安装包 | 安装方法 |
 | --- | --- | --- |
-| macOS Apple Silicon（arm64） | [Nodus-1.1.0-arm64.dmg](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg) | 打开镜像，将 Nodus.app 拖入“应用程序” |
-| Windows x64 | [Nodus-Setup-1.1.0-x64.exe](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe) | 运行安装向导并选择安装目录 |
+| macOS Apple Silicon（arm64） | [Nodus-mac-arm64.dmg](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg) | 打开镜像，将 Nodus.app 拖入“应用程序” |
+| Windows x64 | [Nodus-windows-x64.exe](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe) | 运行安装向导并选择安装目录 |
 | Linux x64 | [Nodus-linux-x64.AppImage](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage) | 下载后赋予执行权限并运行 |
 
 安装包内置 Electron 与 Pi SDK，无需另外安装 Node.js 或 Pi CLI。Python 工程与数据分析需要本机 Python 3，建议使用 3.10 或更新版本并加入 PATH。模型调用需要联网和对应服务的有效凭据。
@@ -134,6 +134,10 @@ Nodus 内置 `nodus-requirement-guardian` 系统 Skill，并在每个 Nodus Agen
 右侧预览栏可展开至整个应用内容区，再通过还原按钮或 Esc 返回。展开不重新加载作品。主对话显示解释与执行信息，底部只保留当前输入、选项、评分和操作控件。
 
 对话默认跟随最新内容，并在消息增长、输入区或窗口尺寸变化后保持到底部。主动上翻阅读历史时暂停跟随，可点击顶部“回到最新”恢复；提交新的用户消息也会恢复跟随。
+
+## 外观主题
+
+在“设置与模型连接”中选择“浅色”“深色”或“跟随系统”。切换后界面和原生菜单立即更新，选择会在重启后保留。已有数据默认沿用浅色；作品预览保留作品自己的配色。
 
 ## 模型连接
 

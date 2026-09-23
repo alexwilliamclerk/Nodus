@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld("forma", {
     return ()=>ipcRenderer.removeListener('forma:menu-command',handler);
   },
   getAppearance: () => ipcRenderer.invoke("forma:appearance"),
+  setTheme: theme => ipcRenderer.invoke("forma:set-theme", theme),
   onAppearance: listener => {
     const handler = (_event, appearance) => listener(appearance);
     ipcRenderer.on("forma:appearance", handler);

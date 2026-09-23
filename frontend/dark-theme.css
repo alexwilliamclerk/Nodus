@@ -1,0 +1,88 @@
+/* Keep the work preview independent: a generated light website should stay light. */
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --paper:#171c24;
+  --rail:#1e252f;
+  --surface:#242c37;
+  --selected:#3d3435;
+  --line:#414b59;
+  --ink:#eef1f5;
+  --muted:#aab5c2;
+  --accent:#e4a77f;
+  background:var(--paper);
+}
+:root[data-theme="dark"] body { background:var(--paper); }
+:root[data-theme="dark"] .app-shell { background:var(--paper); }
+:root[data-theme="dark"] .task-rail { background:linear-gradient(145deg,#242c37,#1b222c);border-right:1px solid var(--line); }
+:root[data-theme="dark"] .workspace { background:#171c24; }
+:root[data-theme="dark"] .workspace-header { background:#1b222c;border-bottom:1px solid var(--line); }
+:root[data-theme="dark"] :is(.nav-button,.task-item,.text-button,.icon-button):hover { background:#35404e; }
+:root[data-theme="dark"] .task-item.active,
+:root[data-theme="dark"] .preview-header .active,
+:root[data-theme="dark"] .preview-toolbar .active,
+:root[data-theme="dark"] .option-row.selected { background:var(--selected); }
+:root[data-theme="dark"] :is(.action-panel,.preview-column,.event.agent,.model-popover,.context-menu,dialog,.toast) { background:var(--surface);border-color:var(--line);box-shadow:0 8px 24px #080b1060; }
+:root[data-theme="dark"] .event.user { background:var(--selected);border-color:var(--line); }
+:root[data-theme="dark"] .action-panel:focus-within { border-color:#a17b6c; }
+:root[data-theme="dark"] :is(.attachment-chip,.delivery-actions .secondary-button) { background:#323b48; }
+:root[data-theme="dark"] :is(.field-label input,.field-label select,.manage-dialog input,.explanation-view textarea) { background:#202733;border-color:var(--line);color:var(--ink); }
+:root[data-theme="dark"] :is(.task-location select,#artifactTypeSelect,#agentModeSelect) { border-color:var(--line);color:var(--ink); }
+:root[data-theme="dark"] :is(input,select,textarea)::placeholder { color:#98a5b3;opacity:1; }
+:root[data-theme="dark"] .primary-button { background:#e2a27d;color:#1b2028; }
+:root[data-theme="dark"] .send-button { background:#e2a27d;color:#1b2028; }
+:root[data-theme="dark"] .send-button:hover { background:#f0bb9a; }
+:root[data-theme="dark"] .menu-button.danger,
+:root[data-theme="dark"] .action-error { color:#ffad9a; }
+:root[data-theme="dark"] .star { color:#6d7682; }
+:root[data-theme="dark"] .star.active { color:var(--accent); }
+:root[data-theme="dark"] .resizer:hover,
+:root[data-theme="dark"] .resizer:focus-visible { background:#e4a77f44; }
+:root[data-theme="dark"] dialog::backdrop { background:#080c12b8; }
+
+/* Match the existing translucent macOS layers without washing out dark text. */
+:root[data-platform="darwin"][data-theme="dark"] {
+  --glass-line:rgba(210,222,237,.16);
+  --glass-edge:rgba(230,238,250,.16);
+  --glass-floating:rgba(31,39,50,.85);
+  --glass-shadow:0 12px 32px -12px rgba(0,0,0,.55);
+  background:#171c24;
+}
+:root[data-platform="darwin"][data-theme="dark"] body { background:transparent; }
+:root[data-platform="darwin"][data-theme="dark"] .app-shell {
+  background:linear-gradient(135deg,rgba(28,35,45,.72),rgba(17,22,30,.82));
+}
+:root[data-platform="darwin"][data-theme="dark"] .app-shell::before {
+  background:radial-gradient(circle at 12% 17%,rgba(127,80,65,.17),transparent 30%),radial-gradient(circle at 85% 5%,rgba(83,112,135,.17),transparent 27%);
+}
+:root[data-platform="darwin"][data-theme="dark"] .task-rail,
+:root[data-platform="darwin"][data-theme="dark"].window-inactive .task-rail { background:linear-gradient(150deg,rgba(39,47,58,.85),rgba(25,33,44,.75));border-right-color:var(--glass-line); }
+:root[data-platform="darwin"][data-theme="dark"] .workspace { background:linear-gradient(155deg,rgba(28,35,45,.92),rgba(22,28,37,.88));border-left-color:var(--glass-edge);box-shadow:none; }
+:root[data-platform="darwin"][data-theme="dark"] .workspace-header { background:rgba(34,41,51,.7);border-bottom-color:var(--glass-line); }
+:root[data-platform="darwin"][data-theme="dark"] :is(.action-panel,.preview-column,.model-popover,.context-menu,dialog,.toast) {
+  background:rgba(37,45,57,.91);
+  border-color:var(--glass-line);
+  box-shadow:inset 0 1px 0 rgba(238,244,255,.06),var(--glass-shadow);
+}
+:root[data-platform="darwin"][data-theme="dark"] .action-panel {
+  --glass-floating:rgba(34,42,53,.88);
+  background:radial-gradient(ellipse at 0 0,rgba(79,103,122,.16),transparent 64%),linear-gradient(140deg,rgba(49,59,72,.92),rgba(31,39,50,.94));
+  border-color:rgba(218,228,242,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 0 1px rgba(0,0,0,.26),var(--glass-shadow);
+}
+:root[data-platform="darwin"][data-theme="dark"] :is(.action-panel,.preview-column)::after { display:none; }
+:root[data-platform="darwin"][data-theme="dark"] .action-panel .option-row:hover { background:rgba(205,222,239,.08); }
+:root[data-platform="darwin"][data-theme="dark"] .action-panel .option-row.selected,
+:root[data-platform="darwin"][data-theme="dark"]:is(.reduce-transparency,.increase-contrast) .action-panel .option-row.selected { background:#493b39;box-shadow:inset 0 0 0 1px #8a6861; }
+:root[data-platform="darwin"][data-theme="dark"] .action-panel:focus-within { border-color:#b78c77;box-shadow:0 0 0 1px #b78c7755,var(--glass-shadow); }
+:root[data-platform="darwin"][data-theme="dark"] .preview-column { border-left-color:var(--glass-line); }
+:root[data-platform="darwin"][data-theme="dark"] .event:is(.user,.agent),
+:root[data-platform="darwin"][data-theme="dark"]:is(.reduce-transparency,.increase-contrast) .event:is(.user,.agent) { background:rgba(43,52,64,.92);border-color:var(--glass-line);box-shadow:0 4px 14px rgba(0,0,0,.22); }
+:root[data-platform="darwin"][data-theme="dark"] .event.user,
+:root[data-platform="darwin"][data-theme="dark"]:is(.reduce-transparency,.increase-contrast) .event.user { background:#493b39; }
+:root[data-platform="darwin"][data-theme="dark"] .task-item.active { background:#3e3940;box-shadow:inset 0 0 0 1px #66708055; }
+:root[data-platform="darwin"][data-theme="dark"] :is(.nav-button,.task-item,.icon-button,.text-button):hover { background:#47515f; }
+:root[data-platform="darwin"][data-theme="dark"] .send-button { box-shadow:0 3px 10px rgba(0,0,0,.3); }
+:root[data-platform="darwin"][data-theme="dark"]:is(.reduce-transparency,.increase-contrast),
+:root[data-platform="darwin"][data-theme="dark"]:is(.reduce-transparency,.increase-contrast) :is(.app-shell,.task-rail,.workspace,.workspace-header,.action-panel,.preview-column,.model-popover,.context-menu,dialog,.toast) { background:#242c37; }
+:root[data-platform="darwin"][data-theme="dark"].increase-contrast { --glass-line:#aab5c2;--line:#aab5c2;--muted:#c3cbd5; }
+:root[data-platform="darwin"][data-theme="dark"] dialog::backdrop { background:rgba(5,9,14,.7); }

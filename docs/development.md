@@ -29,6 +29,7 @@ pnpm run check
 pnpm test
 node tests/delivery-desktop.mjs
 node tests/agent-modes-desktop.mjs
+node tests/theme-desktop.mjs
 ```
 
 The first two commands run in CI. Desktop scripts above use synthetic tasks and mocked model responses. Some other historical scripts require prior local tasks or installed applications; `test:desktop` is not a self-contained CI entry point. Real-account scripts may call a paid model and should only be run with intentionally configured test credentials.

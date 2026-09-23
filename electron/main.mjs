@@ -37,6 +37,8 @@ app.whenReady().then(async () => {
   const dataDir = process.env.NODUS_DATA_DIR || process.env.FORMA_DATA_DIR || path.join(app.getPath("userData"), "forma-data");
   storage = new StorageService(dataDir);
   await storage.initialize();
+  const savedState = await storage.loadState();
+  nativeTheme.themeSource = ['light','dark','system'].includes(savedState.settings?.theme) ? savedState.settings.theme : 'light';
   pi = new PiService({
     piDir: storage.piDir,
     emit: (taskId, event) => mainWindow?.webContents.send("forma:execution-event", { taskId, event }),
@@ -84,6 +86,7 @@ app.on("activate", () => {
 function windowAppearance() {
   return {
     platform: process.platform,
+    dark: nativeTheme.shouldUseDarkColors,
     reducedTransparency: nativeTheme.prefersReducedTransparency,
     increasedContrast: nativeTheme.shouldUseHighContrastColors,
     focused: mainWindow?.isFocused() ?? true,
@@ -96,7 +99,9 @@ function syncWindowAppearance() {
   if (process.platform === "darwin") {
     const opaque = appearance.reducedTransparency || appearance.increasedContrast;
     mainWindow.setVibrancy(opaque ? null : "under-window");
-    mainWindow.setBackgroundColor(opaque ? "#fffcfa" : "#00000000");
+    mainWindow.setBackgroundColor(opaque ? (appearance.dark ? "#171c24" : "#fffcfa") : "#00000000");
+  } else {
+    mainWindow.setBackgroundColor(appearance.dark ? "#171c24" : "#fffcfa");
   }
   mainWindow.webContents.send("forma:appearance", appearance);
 }
@@ -108,7 +113,7 @@ function createWindow() {
     height: 960,
     minWidth: 1280,
     minHeight: 720,
-    backgroundColor: "#fffcfa",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#171c24" : "#fffcfa",
     ...(process.platform === "darwin" ? {
       titleBarStyle: "hiddenInset",
       trafficLightPosition: { x: 20, y: 20 },
@@ -174,6 +179,12 @@ function registerIpc() {
   ipcMain.handle('forma:activate-connection',(_event,id)=>connections.activate(id));
   ipcMain.handle('forma:remove-connection',(_event,id)=>connections.remove(id));
   ipcMain.handle("forma:appearance", () => windowAppearance());
+  ipcMain.handle("forma:set-theme", (_event, theme) => {
+    if(!['light','dark','system'].includes(theme))throw new Error('无效的主题设置');
+    nativeTheme.themeSource = theme;
+    syncWindowAppearance();
+    return windowAppearance();
+  });
   ipcMain.handle("forma:bootstrap", async () => {
     const state = await storage.loadState();
     for (const task of state.tasks) {

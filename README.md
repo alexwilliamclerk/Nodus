@@ -82,6 +82,8 @@ Once Nodus opens:
 
 **6. Keep a portable task backup.** Export conversations, materials, decisions, ratings, and deliverables as a ZIP. Application-saved credentials are excluded; sensitive text you put in a task or deliverable is not automatically removed.
 
+**7. Choose your appearance.** Switch between light, dark, and system themes in Settings. Your choice is saved across restarts; website previews keep their own colors.
+
 ## What Nodus can produce
 
 | Deliverable | Files | Current scope |

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0
+
+- Added Light, Dark, and Follow system options in Settings. The chosen theme applies immediately, survives restarts, and also themes native menus and dialogs.
+- Kept generated website previews visually independent of the application theme.
+
+The theme was checked in an isolated desktop session across switching, restart, and system preference behavior. Existing unit checks also passed. Platform packages and clean-machine behavior are tracked by the release workflow.
+
 ## 1.1.0
 
 Initial public source release of the current Nodus desktop application.
