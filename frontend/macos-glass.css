@@ -1,0 +1,168 @@
+/* macOS: native backdrop → navigation → content sheet → floating controls.
+   Keep the document transparent so NSVisualEffectView can show through. */
+:root[data-platform="darwin"] {
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  background:transparent;
+  --glass-line:rgba(123,98,80,.16);
+  --glass-edge:rgba(255,255,255,.88);
+  --glass-floating:rgba(255,253,250,.78);
+  --glass-shadow:0 12px 32px -16px rgba(70,48,32,.23),0 2px 7px rgba(70,48,32,.04);
+}
+:root[data-platform="darwin"] body { background:transparent; }
+:root[data-platform="darwin"] .app-shell {
+  position:relative;
+  isolation:isolate;
+  padding:0;
+  background:linear-gradient(135deg,rgba(255,237,220,.16),rgba(255,255,255,.04) 55%,rgba(234,221,207,.12));
+}
+:root[data-platform="darwin"] .app-shell::before {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:-18%;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 12% 17%,rgba(255,201,156,.3),transparent 27%),
+    radial-gradient(circle at 85% 5%,rgba(210,224,232,.26),transparent 25%),
+    radial-gradient(circle at 69% 91%,rgba(255,224,197,.28),transparent 30%);
+  filter:blur(32px) saturate(1.15);
+}
+:root[data-platform="darwin"] .task-rail {
+  z-index:3;
+  padding-top:56px;
+  background:linear-gradient(150deg,rgba(255,248,240,.38),rgba(250,239,227,.15));
+  border-right:1px solid rgba(255,255,255,.35);
+}
+:root[data-platform="darwin"] .task-rail::before {
+  content:""; position:absolute; top:0; left:0; right:0; height:52px;
+  -webkit-app-region:drag;
+}
+:root[data-platform="darwin"] .brand { margin-bottom:12px; }
+:root[data-platform="darwin"] .workspace {
+  position:relative; z-index:1;
+  margin:0;
+  border:0;
+  border-left:1px solid var(--glass-edge);
+  border-radius:0;
+  background:linear-gradient(155deg,rgba(255,255,255,.78),rgba(255,250,245,.64));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 3px 18px rgba(67,46,29,.055);
+}
+:root[data-platform="darwin"] .workspace-header {
+  -webkit-app-region:drag;
+  border-radius:0;
+  border-bottom:1px solid rgba(133,102,77,.065);
+  background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,.16));
+}
+:root[data-platform="darwin"] :is(button,input,textarea,select,a,.resizer) { -webkit-app-region:no-drag; }
+:root[data-platform="darwin"] .rail-hidden .workspace { margin-left:0; border-left:0; }
+:root[data-platform="darwin"] .rail-hidden .workspace-header { padding-left:98px; }
+:root[data-platform="darwin"] :is(.action-panel,.preview-column,.model-popover,.context-menu,dialog,.toast) {
+  border:1px solid var(--glass-line);
+  background:linear-gradient(150deg,rgba(255,255,255,.5),rgba(255,248,239,.12)),var(--glass-floating);
+  box-shadow:inset 0 1px 0 var(--glass-edge),var(--glass-shadow);
+  -webkit-backdrop-filter:blur(24px) saturate(1.35);
+  backdrop-filter:blur(24px) saturate(1.35);
+}
+:root[data-platform="darwin"] :is(.action-panel,.preview-column)::after {
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  inset:1px;
+  border-radius:inherit;
+  background:linear-gradient(115deg,rgba(255,255,255,.24),transparent 34% 73%,rgba(255,241,229,.12));
+  mask:linear-gradient(#000,transparent 24%);
+}
+:root[data-platform="darwin"] :is(.action-panel,.preview-column) > :not(.resizer) { position:relative; z-index:1; }
+:root[data-platform="darwin"] .action-panel {
+  position:relative;
+  border-radius:24px;
+  --glass-floating:rgba(255,253,250,.36);
+  --glass-shadow:0 8px 22px -8px rgba(61,48,39,.22),0 2px 5px rgba(61,48,39,.06);
+  border-color:rgba(255,255,255,.82);
+  background:
+    radial-gradient(ellipse at 0 0,rgba(220,233,239,.42),transparent 65%),
+    radial-gradient(ellipse at 100% 100%,rgba(255,223,198,.32),transparent 62%),
+    linear-gradient(140deg,rgba(255,255,255,.64),rgba(255,255,255,.18) 48%,rgba(255,255,255,.42)),var(--glass-floating);
+  box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.65),0 0 0 1px rgba(109,95,82,.1),var(--glass-shadow);
+  -webkit-backdrop-filter:blur(30px) saturate(1.55);
+  backdrop-filter:blur(30px) saturate(1.55);
+  transition:border-color .18s ease,box-shadow .18s ease;
+}
+:root[data-platform="darwin"] .action-panel::after {
+  inset:0;
+  border:1px solid transparent;
+  background:linear-gradient(125deg,rgba(255,255,255,.98),rgba(255,255,255,.1) 40%,rgba(173,191,199,.25) 70%,rgba(255,255,255,.85)) border-box;
+  mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);
+  mask-composite:exclude;
+}
+:root[data-platform="darwin"] .action-panel .option-row {
+  border-radius:10px;
+  transition:background .16s ease,box-shadow .16s ease;
+}
+:root[data-platform="darwin"] .action-panel .option-row:hover {
+  background:rgba(255,255,255,.32);
+}
+:root[data-platform="darwin"] .action-panel .option-row.selected {
+  background:linear-gradient(120deg,rgba(255,255,255,.72),rgba(255,228,207,.48));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 1px rgba(255,255,255,.7),0 2px 5px rgba(78,61,46,.07);
+}
+:root[data-platform="darwin"] .action-panel :is(.freeform-input,.rating-comment) { border-top-color:rgba(127,108,94,.13); }
+:root[data-platform="darwin"] .action-panel:focus-within {
+  border-color:rgba(255,255,255,.98);
+  box-shadow:inset 0 1px 0 white,inset 0 -1px 0 rgba(255,255,255,.7),0 0 0 1px rgba(162,105,77,.24),var(--glass-shadow);
+}
+:root[data-platform="darwin"] .preview-column { z-index:2; margin:0; border:0; border-left:1px solid var(--glass-line); border-radius:0; --glass-floating:rgba(255,253,250,.72); }
+:root[data-platform="darwin"] .preview-stage { border-radius:0; }
+:root[data-platform="darwin"] .preview-header { padding-inline:10px; gap:2px; }
+:root[data-platform="darwin"] .preview-header .text-button { flex:0 0 auto; }
+:root[data-platform="darwin"] .event:is(.user,.agent) {
+  border-color:rgba(255,255,255,.82);
+  background:linear-gradient(135deg,rgba(255,255,255,.52),rgba(242,248,249,.2)),rgba(255,253,250,.38);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.36),0 0 0 1px rgba(101,96,90,.07),0 5px 14px -6px rgba(69,58,49,.18);
+  -webkit-backdrop-filter:blur(20px) saturate(1.35);
+  backdrop-filter:blur(20px) saturate(1.35);
+}
+:root[data-platform="darwin"] .event.user {
+  background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,226,204,.22)),rgba(255,238,225,.48);
+}
+:root[data-platform="darwin"]:is(.reduce-transparency,.increase-contrast) .event:is(.user,.agent) {
+  background:#fffdfa;backdrop-filter:none;-webkit-backdrop-filter:none;border-color:var(--glass-line);
+}
+:root[data-platform="darwin"]:is(.reduce-transparency,.increase-contrast) .event.user { background:#fff0e5; }
+@media (prefers-reduced-transparency:reduce) {
+  :root[data-platform="darwin"] .event:is(.user,.agent) { background:#fffdfa;backdrop-filter:none;-webkit-backdrop-filter:none; }
+  :root[data-platform="darwin"] .event.user { background:#fff0e5; }
+}
+:root[data-platform="darwin"] .preview-expanded .preview-header { padding-left:98px;-webkit-app-region:drag; }
+:root[data-platform="darwin"] :is(.model-popover,.context-menu,dialog,.toast) { --glass-floating:rgba(255,253,250,.9); }
+:root[data-platform="darwin"] .task-item.active {
+  background:linear-gradient(135deg,rgba(255,255,255,.73),rgba(255,230,209,.6));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.65),0 2px 5px rgba(82,58,37,.06);
+}
+:root[data-platform="darwin"] :is(.nav-button,.task-item,.icon-button,.text-button) { transition:background-color .15s ease; }
+:root[data-platform="darwin"] :is(.nav-button,.task-item,.icon-button,.text-button):hover { background-color:rgba(233,213,194,.36); }
+:root[data-platform="darwin"] .send-button { box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 3px 8px rgba(55,42,33,.15); }
+:root[data-platform="darwin"] dialog::backdrop { background:rgba(65,52,41,.15); backdrop-filter:blur(5px); }
+:root[data-platform="darwin"].window-inactive { --glass-shadow:0 4px 14px rgba(70,48,32,.065); }
+:root[data-platform="darwin"].window-inactive .task-rail { background:rgba(250,242,234,.68); }
+
+/* Respond both to Electron's native preference and to Chromium media queries. */
+:root[data-platform="darwin"]:is(.reduce-transparency,.increase-contrast) { --glass-floating:#fffdfa; --glass-edge:#fff; background:#f7eee5; }
+:root[data-platform="darwin"]:is(.reduce-transparency,.increase-contrast) :is(.app-shell,.task-rail,.workspace,.workspace-header) { background:#fffcfa; }
+:root[data-platform="darwin"]:is(.reduce-transparency,.increase-contrast) .task-rail { background:#f7eee5; }
+:root[data-platform="darwin"]:is(.reduce-transparency,.increase-contrast) :is(.action-panel,.preview-column,.model-popover,.context-menu,dialog,.toast) { background:#fffdfa; backdrop-filter:none; -webkit-backdrop-filter:none; }
+:root[data-platform="darwin"]:is(.reduce-transparency,.increase-contrast) dialog::backdrop { backdrop-filter:none; background:#44382d55; }
+:root[data-platform="darwin"].increase-contrast { --glass-line:#827367; --line:#827367; --muted:#62584f; }
+:root[data-platform="darwin"]:is(.reduce-transparency,.increase-contrast) .action-panel::after { display:none; }
+:root[data-platform="darwin"]:is(.reduce-transparency,.increase-contrast) .action-panel .option-row.selected { background:#f5e4d6;box-shadow:inset 0 0 0 1px #a48772; }
+@media (prefers-reduced-transparency:reduce) {
+  :root[data-platform="darwin"] { --glass-floating:#fffdfa; background:#f7eee5; }
+  :root[data-platform="darwin"] :is(.app-shell,.task-rail,.workspace,.workspace-header) { background:#fffcfa; }
+  :root[data-platform="darwin"] :is(.action-panel,.preview-column,.model-popover,.context-menu,dialog,.toast) { backdrop-filter:none; -webkit-backdrop-filter:none; }
+  :root[data-platform="darwin"] dialog::backdrop { backdrop-filter:none; }
+  :root[data-platform="darwin"] .action-panel { background:#fffdfa; }
+  :root[data-platform="darwin"] .action-panel::after { display:none; }
+}
+@media (prefers-reduced-motion:reduce) {
+  :root[data-platform="darwin"] *, :root[data-platform="darwin"] *::before { transition:none !important; }
+}

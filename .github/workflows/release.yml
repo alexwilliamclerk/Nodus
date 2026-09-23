@@ -1,0 +1,81 @@
+name: Release
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: nodus-release
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: windows-latest
+            platform: win
+    runs-on: ${{ matrix.os }}
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --global pnpm@11.19.0
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node node_modules/electron/install.js
+      - run: pnpm run check
+      - run: pnpm test
+      - name: Build macOS arm64
+        if: matrix.platform == 'mac'
+        run: pnpm exec electron-builder --mac dmg --arm64 --publish never
+      - name: Build Windows x64
+        if: matrix.platform == 'win'
+        run: pnpm exec electron-builder --win nsis --x64 --publish never
+      - run: node scripts/verify-package.mjs ${{ matrix.platform }}
+      - name: Prepare stable download filename
+        run: node scripts/prepare-release-asset.mjs ${{ matrix.platform }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.platform }}
+          path: release-assets/*
+          if-no-files-found: error
+          retention-days: 7
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installer-*
+          merge-multiple: true
+          path: release-assets
+      - name: Validate files and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(node -p "require('./package.json').version")
+          test -s release-assets/Nodus-mac-arm64.dmg
+          test -s release-assets/Nodus-windows-x64.exe
+          (cd release-assets && sha256sum Nodus-mac-arm64.dmg Nodus-windows-x64.exe > SHA256SUMS.txt)
+          if gh release view "v$version" >/dev/null 2>&1; then
+            echo "Release v$version already exists; refusing to overwrite it."
+            exit 1
+          fi
+          gh release create "v$version" release-assets/* --target "$GITHUB_SHA" --title "Nodus v$version" --notes-file "docs/releases/v$version.md" --draft
+          gh release edit "v$version" --draft=false --latest

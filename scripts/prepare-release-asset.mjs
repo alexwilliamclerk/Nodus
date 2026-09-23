@@ -1,0 +1,10 @@
+import {copyFile, mkdir} from 'node:fs/promises';
+import {readFileSync} from 'node:fs';
+const {version}=JSON.parse(readFileSync('package.json','utf8'));
+const platform=process.argv[2];
+if(!['mac','win'].includes(platform))throw new Error('Expected mac or win');
+const source=platform==='mac'?`dist/Nodus-${version}-arm64.dmg`:`dist/Nodus-Setup-${version}-x64.exe`;
+const target=platform==='mac'?'Nodus-mac-arm64.dmg':'Nodus-windows-x64.exe';
+await mkdir('release-assets',{recursive:true});
+await copyFile(source,`release-assets/${target}`);
+console.log(`Prepared ${target}`);

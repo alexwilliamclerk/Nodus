@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Nodus · Agent 工作台</title><link rel="stylesheet" href="./styles.css" /><link rel="stylesheet" href="./frontend/macos-glass.css" /></head>
+<body>
+<div id="appShell" class="app-shell">
+  <aside id="taskRail" class="task-rail" aria-label="对话导航">
+    <div class="brand"><span data-icon="brand"></span><strong>Nodus</strong><button id="collapseRail" class="icon-button" aria-label="收起侧栏" data-icon="panel"></button></div>
+    <button id="newTaskButton" class="nav-button"><span data-icon="edit"></span>新对话</button>
+    <button id="pluginButton" class="nav-button"><span data-icon="plugin"></span>添加插件<span data-icon="external"></span></button>
+    <nav id="taskList" class="task-list" aria-label="对话列表"></nav>
+    <div class="rail-bottom">
+      <button id="archiveButton" class="nav-button"><span data-icon="archive"></span>已归档对话</button>
+      <div id="modelConnection" class="model-connection">
+        <button id="modelConnectionButton" class="nav-button" aria-expanded="false" aria-controls="modelPopover"><span data-icon="model"></span><span>模型连接<small id="accountModelStatus">模型未配置</small></span></button>
+        <section id="modelPopover" class="model-popover" hidden aria-label="模型连接管理"><strong id="connectedModel">尚未连接</strong><p id="modelUsage"></p><button id="settingsButton" class="menu-button"><span data-icon="settings"></span>设置与模型</button><button id="disconnectButton" class="menu-button"><span data-icon="disconnect"></span>断开连接</button></section>
+      </div>
+    </div>
+    <div id="railResizer" class="resizer rail-resizer" role="separator" aria-label="调整侧栏宽度" aria-orientation="vertical" tabindex="0"></div>
+  </aside>
+  <main class="workspace">
+    <header class="workspace-header"><button id="restoreRail" class="icon-button" aria-label="展开侧栏" data-icon="panel" hidden></button><span data-icon="document"></span><span id="taskTitle">新对话</span><button id="taskMenuButton" class="icon-button" aria-label="管理当前对话" data-icon="more"></button><span id="saveState" class="save-state" aria-live="polite"></span><button id="jumpToLatest" class="text-button" hidden>回到最新</button><button id="togglePreview" class="text-button" aria-expanded="false"><span data-icon="preview"></span>预览</button></header>
+    <section id="recordPanel" class="record-panel" aria-label="对话记录" tabindex="0"><div id="timeline" class="content-column timeline"></div></section>
+    <div class="composer-row"><section id="actionPanel" class="action-panel content-column" aria-label="当前操作">
+      <div class="action-head"><h2 id="actionTitle"></h2><select id="artifactTypeSelect" aria-label="主产物类型" hidden></select><div id="decisionTools" class="decision-tools" hidden><button id="regenerateButton" class="text-button"><span data-icon="refresh"></span>换一组</button><button id="recommendButton" class="text-button"><span data-icon="bulb"></span>帮我推荐</button></div></div>
+      <div id="dynamicAction" class="action-content"></div><div id="attachmentList" class="attachment-list"></div>
+      <div class="task-location"><select id="taskProjectSelect" aria-label="任务所属项目"></select><button id="chooseDeliveryDirectory" class="text-button" title="选择作品保存的本地目录">选择本地目录…</button></div>
+      <div class="action-footer"><button id="attachButton" class="icon-button" aria-label="添加材料" data-icon="plus"></button><div class="composer-model-controls"><button id="modelButton" class="text-button composer-model"><span data-icon="model"></span><span id="modelLabel">连接模型</span><span data-icon="chevron"></span></button><select id="agentModeSelect" aria-label="Agent 模式" title="/plan：先规划，确认后执行；/goat：提交即授权自主制作，单次最多3次尝试，可随时停止"><option value="plan">/plan</option><option value="goat">/goat</option></select></div><div class="footer-spacer"></div><button id="dialogLauncher" class="text-button"><span data-icon="chat"></span>临时对话</button><div id="actionSubmitSlot" class="submit-slot"></div></div>
+      <p id="actionError" class="action-error" role="alert" hidden></p>
+    </section></div>
+  </main>
+  <aside id="previewColumn" class="preview-column" hidden aria-label="作品与方案">
+    <div id="previewResizer" class="resizer preview-resizer" role="separator" aria-label="调整预览宽度" aria-orientation="vertical" tabindex="0"></div>
+    <header class="preview-header"><button id="previewTab" class="text-button active">作品预览</button><button id="explainTab" class="text-button">方案说明</button><button id="expandPreview" class="icon-button" aria-label="展开预览" title="展开预览" aria-pressed="false" data-icon="expand"></button><button id="collapsePreview" class="icon-button" aria-label="收起预览" data-icon="close"></button></header>
+    <div id="previewToolbar" class="preview-toolbar"><label>版本 <select id="versionSelect" aria-label="选择作品版本"></select></label><button id="restoreVersion" class="text-button" hidden>恢复此版本</button><button class="icon-button device-button active" data-device="desktop" data-icon="preview" aria-label="桌面预览"></button><button class="icon-button device-button" data-device="mobile" data-icon="mobile" aria-label="手机预览"></button><button id="refreshPreview" class="icon-button" data-icon="refresh" aria-label="刷新预览"></button></div>
+    <div class="preview-stage"><p id="emptyPreview" class="empty-preview">生成作品后，可在这里查看和比较版本。</p><iframe id="sitePreview" title="作品预览" sandbox="allow-scripts allow-downloads" hidden></iframe><section id="explanationView" class="explanation-view" hidden></section></div>
+  </aside>
+</div>
+<div id="taskContextMenu" class="context-menu" role="menu" hidden></div>
+<dialog id="manageDialog" class="manage-dialog"><form id="manageForm"><h2 id="manageTitle"></h2><p id="manageDescription"></p><input id="manageInput" autocomplete="off" /><div class="dialog-actions"><button type="button" id="cancelManage" class="secondary-button">取消</button><button id="confirmManage" type="submit" class="primary-button">确认</button></div></form></dialog>
+<dialog id="settingsModal" class="settings-modal"><header><h2>设置与模型连接</h2><button id="closeSettings" class="icon-button" aria-label="关闭设置" data-icon="close"></button></header><label class="toggle-setting"><input type="checkbox" id="showDialogSetting" />显示临时对话按钮</label><p class="muted">凭据仅在本机加密保存。任务材料会发送给你配置的模型服务。</p><label class="field-label">提供商入口<select id="providerInput"><option value="kimi-coding">Kimi Coding Plan</option><option value="zai-coding-cn">智谱 Coding Plan（中国）</option><option value="zai">智谱 Coding Plan（全球）</option><option value="deepseek">DeepSeek 普通 API</option></select></label><label class="field-label">模型 ID<input id="modelIdInput" placeholder="留空使用此入口的可用模型" /></label><label class="field-label">API Key / Coding Plan 凭据<input id="apiKeyInput" type="password" autocomplete="new-password" /></label><p id="providerNote" class="muted"></p><p id="settingsError" class="action-error" role="alert"></p><div class="dialog-actions"><button id="cancelSettings" class="secondary-button">关闭</button><button id="connectModel" class="primary-button">连接并验证</button></div></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<script type="module" src="./app.js"></script>
+</body></html>

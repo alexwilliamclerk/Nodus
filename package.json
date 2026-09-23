@@ -1,0 +1,121 @@
+{
+  "name": "nodus",
+  "productName": "Nodus",
+  "version": "1.1.0",
+  "description": "Cross-platform structured human-agent workspace powered by embedded Pi",
+  "author": "Nodus",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.mjs",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check app.js && node --check frontend/components.js && node --check frontend/requirements.js && node --check electron/main.mjs && node --check electron/preload.cjs && node --check backend/pi-service.mjs && node --check backend/storage.mjs && node --check backend/artifacts.mjs && node --check backend/artifact-service.mjs && node --check backend/requirement-audit.mjs && node --check backend/prompts.mjs && node --check frontend/artifact-types.js",
+    "test": "node --test tests/*.test.mjs",
+    "test:desktop": "node tests/peach-desktop-check.mjs",
+    "test:macos": "node tests/macos-glass-check.mjs",
+    "test:macos:packaged": "node tests/packaged-macos-smoke.mjs",
+    "test:live": "node tests/peach-live-check.mjs",
+    "dist:mac:dir": "electron-builder --mac dir --arm64",
+    "dist:mac": "electron-builder --mac dmg --arm64",
+    "dist:win:dir": "electron-builder --win dir --x64",
+    "dist:win:zip": "electron-builder --win zip --x64",
+    "dist:win": "electron-builder --win nsis --x64",
+    "dist:linux": "electron-builder --linux AppImage --x64",
+    "dist:linux:tar": "electron-builder --linux tar.gz --x64",
+    "test:artifacts:desktop": "node tests/artifact-desktop-check.mjs",
+    "test:artifacts:live": "node tests/artifact-live-check.mjs"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "0.85.1",
+    "csv-parse": "^7.0.2",
+    "fast-xml-parser": "^5.11.1",
+    "jszip": "^3.10.2",
+    "mammoth": "1.12.2",
+    "marked": "^18.0.12",
+    "parse5": "^8.0.1",
+    "pdfjs-dist": "6.3.289",
+    "pptxgenjs": "^4.0.1",
+    "sanitize-html": "^2.17.7"
+  },
+  "devDependencies": {
+    "electron": "44.3.0",
+    "electron-builder": "26.15.3",
+    "playwright": "1.63.0"
+  },
+  "build": {
+    "appId": "com.nodus.desktop",
+    "productName": "Nodus",
+    "asar": true,
+    "toolsets": {
+      "appimage": "1.0.3",
+      "nsis": "1.2.1"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "app.js",
+      "frontend/**/*",
+      "electron/**/*",
+      "backend/**/*",
+      "skills/**/*",
+      "package.json",
+      "LICENSE"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Nodus-Setup-${version}-x64.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "artifactName": "Nodus-${version}-${arch}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "artifactName": "Nodus-${version}-linux-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Nodus",
+      "uninstallDisplayName": "Nodus"
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexwilliamclerk/Nodus.git"
+  },
+  "homepage": "https://github.com/alexwilliamclerk/Nodus#readme",
+  "bugs": {
+    "url": "https://github.com/alexwilliamclerk/Nodus/issues"
+  }
+}

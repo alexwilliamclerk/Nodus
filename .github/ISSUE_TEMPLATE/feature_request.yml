@@ -1,0 +1,16 @@
+name: Feature request / 功能建议
+description: Describe the user problem and a focused improvement.
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem / 用户问题
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior / 期望行为
+    validations:
+      required: true

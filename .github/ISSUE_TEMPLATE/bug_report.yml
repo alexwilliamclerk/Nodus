@@ -1,0 +1,26 @@
+name: Bug report / 问题反馈
+description: Report a reproducible problem without private data.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "请勿上传 API Key、私人对话、用户数据目录或含敏感内容的截图。"
+  - type: input
+    id: environment
+    attributes:
+      label: Environment / 环境
+      description: Nodus version, OS, and CPU architecture.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction / 复现步骤
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual behavior / 预期与实际行为
+    validations:
+      required: true

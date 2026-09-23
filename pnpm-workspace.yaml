@@ -1,0 +1,15 @@
+allowBuilds:
+  '@google/genai': set this to true or false
+  electron-winstaller: set this to true or false
+  esbuild: set this to true or false
+  protobufjs: set this to true or false
+minimumReleaseAgeExclude:
+  - electron@44.3.0
+supportedArchitectures:
+  os:
+    - current
+    - win32
+    - linux
+  cpu:
+    - arm64
+    - x64

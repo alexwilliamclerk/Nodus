@@ -1,0 +1,53 @@
+import { _electron as electron } from 'playwright';
+import assert from 'node:assert/strict';
+import { mkdir, mkdtemp, readFile, writeFile, cp } from 'node:fs/promises';
+import path from 'node:path';
+import { electronExecutable, savedLiveData } from './helpers/electron-path.mjs';
+const root=process.cwd();
+const data=await mkdtemp(path.join(root,'.forma-data','input-live-'));
+const evidence=path.join(root,'test-results',path.basename(data));await mkdir(evidence,{recursive:true});
+const profile=path.join(data,'browser-profile');await mkdir(profile,{recursive:true});
+if(process.platform==='win32')await cp(path.join(process.env.APPDATA,'forma-agent-workspace','Local State'),path.join(profile,'Local State'));
+const source=path.join(savedLiveData(root),'credentials.json');
+const launch=()=>electron.launch({executablePath:electronExecutable(root),args:['.',`--user-data-dir=${profile}`],cwd:root,env:{...process.env,NODUS_DATA_DIR:data,FORMA_DATA_DIR:data}});
+let app=await launch(),page=await app.firstWindow();
+const results=[];const record=step=>{results.push(step);console.log(step);};
+try {
+ await page.locator('#requirementInput').waitFor();assert.match(await page.locator('#accountModelStatus').innerText(),/尚未连接/);
+ await page.locator('#modelButton').click();await page.locator('#connectModel').click();assert.match(await page.locator('#settingsError').innerText(),/填写/);
+ await page.locator('#modelIdInput').fill('previous-provider-model');await page.locator('#providerInput').selectOption('deepseek');assert.equal(await page.locator('#modelIdInput').inputValue(),'');
+ record('首次空白配置与切换提供商清空旧模型 ID');
+ // Decrypt the existing authorized test credential only in memory. Never log the value or save plaintext.
+ const credential=await app.evaluate(({safeStorage},saved)=>{return {providerId:saved.providerId,modelId:saved.modelId,apiKey:safeStorage.decryptString(Buffer.from(saved.encryptedKey,'base64'))};},JSON.parse(await readFile(source,'utf8')));
+ await page.locator('#providerInput').selectOption(credential.providerId);await page.locator('#modelIdInput').fill(credential.modelId);await page.locator('#apiKeyInput').fill(credential.apiKey);credential.apiKey='';
+ await page.locator('#connectModel').click();
+ await page.waitForFunction(()=>!document.querySelector('#settingsModal').open || (document.querySelector('#settingsError').textContent && !document.querySelector('#connectModel').disabled),null,{timeout:180000});
+ assert(!(await page.locator('#settingsModal').isVisible()),await page.locator('#settingsError').innerText());
+ assert.match(await page.locator('#accountModelStatus').innerText(),/已连接/);record('首次填写凭据通过真实模型验证并保存加密连接');
+ const connected=await page.evaluate(()=>window.forma.bootstrap());
+ await page.locator('#modelButton').click();await page.locator('#apiKeyInput').fill('invalid-nodus-isolated-test');await page.locator('#connectModel').click();
+ await page.waitForFunction(()=>document.querySelector('#settingsError').textContent && !document.querySelector('#connectModel').disabled,null,{timeout:180000});
+ const retained=await page.evaluate(()=>window.forma.bootstrap());assert.equal(retained.model.modelId,connected.model.modelId);assert(retained.model.configured);
+ await page.locator('#cancelSettings').click();record('失败连接不会覆盖上一条已验证连接');
+ const files=['brief.docx','brief.pdf'].map(name=>path.join(root,'tests','fixtures','materials',name));
+ await app.evaluate(({dialog},filePaths)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths});},files);
+ await page.locator('#attachButton').click();await page.waitForFunction(()=>document.querySelectorAll('.attachment-chip').length===2);
+ assert.equal(await page.locator('.attachment-chip').filter({hasText:'已读取'}).count(),2);
+ await page.locator('#requirementInput').fill('为附件中的企业制作介绍页。先生成四个方案，并在方案背景 context 中准确写出 Word 中的企业名称及 PDF 中的 Delivery code；不要猜测未提供的事实。');
+ await page.locator('#submitRequirement').click();
+ await page.waitForFunction(()=>document.querySelector('#submitDecision')||document.querySelector('.error-panel'),null,{timeout:180000});
+ assert.equal(await page.locator('[data-choice]').count(),4,await page.locator('#actionError').textContent());
+ const saved=await page.evaluate(()=>window.forma.bootstrap());const task=saved.state.tasks.find(t=>t.id===saved.state.activeTaskId);
+ assert.match(task.decisionContext,/梅杉精密/);assert.match(task.decisionContext,/PEACH-472/);
+ record('真实模型从 DOCX 与 PDF 读取指定内容并生成四方案，失败配置回滚后的旧连接可继续调用');
+ await page.screenshot({path:path.join(evidence,'options-with-materials.png')});
+ await app.close();app=await launch();page=await app.firstWindow();await page.locator('#submitDecision').waitFor();
+ assert.match(await page.locator('#accountModelStatus').innerText(),/已连接/);assert.equal(await page.locator('.attachment-chip').count(),2);
+ assert(await page.locator('#previewColumn').isHidden());record('重启后新连接、附件和真实方案恢复');
+ await page.locator('#modelConnection').hover();await page.screenshot({path:path.join(evidence,'model-connected.png')});
+ await writeFile(path.join(evidence,'results.json'),JSON.stringify({passed:true,data,results,supportsImages:connected.model.supportsImages},null,2));console.log(JSON.stringify({passed:true,evidence}));
+} catch(error) {
+ await page.locator('#apiKeyInput').fill('').catch(()=>{});
+ await page.screenshot({path:path.join(evidence,'failure.png')}).catch(()=>{});
+ await writeFile(path.join(evidence,'results.json'),JSON.stringify({passed:false,data,results,error:error.message},null,2));throw error;
+} finally {await app.close();}

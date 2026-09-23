@@ -1,0 +1,39 @@
+# Nodus fixed descriptive-statistics reproducer. Never imports generated modules.
+import csv
+import hashlib
+import json
+import math
+import re
+import io
+from pathlib import Path
+
+root = Path(__file__).resolve().parent
+baseline = json.loads((root / 'results.json').read_text(encoding='utf-8'))
+verified = []
+for item in baseline['inputs']:
+    file = (root / item['file']).resolve()
+    if not file.is_relative_to(root / 'inputs'):
+        raise ValueError('Input path is outside inputs/')
+    raw = file.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != item['sha256']:
+        raise ValueError('Input bytes changed')
+    content = raw.decode('utf-8-sig')
+    rows = list(csv.DictReader(io.StringIO(content))) if file.suffix == '.csv' else json.loads(content)
+    numeric = {}
+    for key in dict.fromkeys(key for row in rows for key in row):
+        values = [row.get(key) for row in rows if row.get(key) is not None and row.get(key) != '']
+        try:
+            if any(isinstance(value, bool) or not isinstance(value, (int, float, str)) for value in values):
+                continue
+            if any(isinstance(value, str) and not re.fullmatch(r"[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?", value.strip()) for value in values):
+                continue
+            numbers = [float(value) for value in values]
+            if numbers and all(math.isfinite(value) for value in numbers):
+                numeric[key] = dict(count=len(numbers), min=min(numbers), max=max(numbers), mean=sum(numbers)/len(numbers))
+        except (ValueError, TypeError):
+            continue
+    result = dict(name=item['name'], rows=len(rows), numeric=numeric)
+    if result['rows'] != item['rows'] or result['numeric'] != item['numeric']:
+        raise ValueError('Statistics differ from recorded results')
+    verified.append(result)
+print(json.dumps(verified, ensure_ascii=False, indent=2))
