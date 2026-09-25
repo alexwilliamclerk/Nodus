@@ -5,10 +5,11 @@ import {promisify} from 'node:util';
 import {mkdtemp,mkdir,readFile,writeFile} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {releaseAssetName,legacyAssetName} from '../backend/release-names.mjs';
 
 const run=promisify(execFile);
-const script=new URL('../scripts/prepare-release-asset.mjs',import.meta.url).pathname;
+const script=fileURLToPath(new URL('../scripts/prepare-release-asset.mjs',import.meta.url));
 const config=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
 
 test('builder names include release version, platform and supported architecture',()=>{

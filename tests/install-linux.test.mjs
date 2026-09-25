@@ -46,7 +46,7 @@ esac
   return {root,programs,launched,env};
 }
 
-test('verified Linux install offers per-file cleanup only after the new app exits',async()=>{
+test('verified Linux install offers per-file cleanup only after the new app exits',{skip:process.platform==='win32'},async()=>{
   const {programs,launched,env}=await setup();
   const older=path.join(programs,'Nodus-v1.3.0-Linux-x86_64.AppImage');
   const newer=path.join(programs,'Nodus-v2.0.0-Linux-x86_64.AppImage');
@@ -63,7 +63,7 @@ test('verified Linux install offers per-file cleanup only after the new app exit
   assert((await readdir(programs)).includes('Nodus-v1.3.1-Linux-x86_64.AppImage'));
 });
 
-test('checksum failure preserves old AppImage; older releases can use the stable alias',async()=>{
+test('checksum failure preserves old AppImage; older releases can use the stable alias',{skip:process.platform==='win32'},async()=>{
   const bad=await setup({goodChecksum:false});
   const old=path.join(bad.programs,'Nodus.AppImage');await writeFile(old,'keep');
   const failed=await run(bad.env);assert.notEqual(failed.code,0);assert.match(failed.stderr,/checksum mismatch/i);
