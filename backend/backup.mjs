@@ -6,7 +6,7 @@ import {randomUUID} from 'node:crypto';
 import path from 'node:path';
 import {fileList,safePath} from './artifacts.mjs';
 
-const secretKeys=new Set(['apikey','encryptedkey','authorization','accesstoken','refreshtoken','password']);
+const secretKeys=new Set(['apikey','searchapikey','encryptedkey','authorization','accesstoken','refreshtoken','password']);
 export function backupState(value){
   if(Array.isArray(value))return value.map(backupState);
   if(!value||typeof value!=='object')return value;

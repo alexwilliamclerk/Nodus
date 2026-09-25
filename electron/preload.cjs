@@ -9,14 +9,20 @@ contextBridge.exposeInMainWorld("forma", {
   },
   getAppearance: () => ipcRenderer.invoke("forma:appearance"),
   setTheme: theme => ipcRenderer.invoke("forma:set-theme", theme),
+  setLanguage: language => ipcRenderer.invoke('forma:set-language',language),
   onAppearance: listener => {
     const handler = (_event, appearance) => listener(appearance);
     ipcRenderer.on("forma:appearance", handler);
     return () => ipcRenderer.removeListener("forma:appearance", handler);
   },
   bootstrap: () => ipcRenderer.invoke("forma:bootstrap"),
+  searchStatus: () => ipcRenderer.invoke('forma:search-status'),
+  configureSearch: config => ipcRenderer.invoke('forma:configure-search',config),
+  restoreSearch: () => ipcRenderer.invoke('forma:restore-search'),
+  webSearch: query => ipcRenderer.invoke('forma:web-search',{query}),
   checkUpdate: () => ipcRenderer.invoke('forma:check-update'),
   downloadUpdate: () => ipcRenderer.invoke('forma:download-update'),
+  installUpdate: config => ipcRenderer.invoke('forma:install-update',config),
   openUpdateInstaller: () => ipcRenderer.invoke('forma:open-update-installer'),
   openUpdatePage: () => ipcRenderer.invoke('forma:open-update-page'),
   onUpdateProgress: listener => {

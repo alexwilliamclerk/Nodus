@@ -1,6 +1,8 @@
-export function applicationMenu(platform,send){
-  const action=(id,label,accelerator)=>({id,label,accelerator,click:()=>send(id)});
-  return [
+import {translateUiText} from '../frontend/i18n.js';
+
+export function applicationMenu(platform,send,language='zh-CN'){
+  const action=(id,label,accelerator)=>({id,label:translateUiText(label,language),accelerator,click:()=>send(id)});
+  const menu=[
     ...(platform==='darwin'?[{label:'Nodus',submenu:[{role:'about',label:'关于 Nodus'},action('settings','设置…','CmdOrCtrl+,'),{type:'separator'},{role:'hide',label:'隐藏 Nodus'},{role:'hideOthers',label:'隐藏其他应用'},{role:'unhide',label:'显示全部'},{type:'separator'},{role:'quit',label:'退出 Nodus'}]}]:[]),
     {label:'文件',submenu:[
       action('new-task','新建对话','CmdOrCtrl+N'),
@@ -18,4 +20,6 @@ export function applicationMenu(platform,send){
     {label:'窗口',submenu:[{role:'minimize',label:'最小化'},{role:'zoom',label:'缩放窗口'},...(platform==='darwin'?[{role:'front',label:'全部置于前面'}]:[])]},
     ...(platform==='darwin'?[]:[{label:'设置',submenu:[action('settings','模型与应用设置…','CmdOrCtrl+,')]}]),
   ];
+  const localize=items=>items.map(item=>({...item,...(item.label?{label:translateUiText(item.label,language)}:{}),...(item.submenu?{submenu:localize(item.submenu)}:{})}));
+  return localize(menu);
 }

@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, safeStorage, shell, dialog, nativeTheme, Menu, clipboard } from "electron";
 import {applicationMenu} from './application-menu.mjs';
+import {translateUiText} from '../frontend/i18n.js';
 import { createServer } from "node:http";
 import { existsSync, mkdirSync } from "node:fs";
 import { readFile, unlink } from "node:fs/promises";
@@ -15,7 +16,8 @@ import {executeGoat} from '../backend/goat-service.mjs';
 import {exportVersion,validateDeliveryDirectory} from '../backend/delivery-service.mjs';
 import { PiService } from "../backend/pi-service.mjs";
 import { StorageService } from "../backend/storage.mjs";
-import {checkForUpdate,downloadUpdate} from '../backend/update-service.mjs';
+import {WebSearchService} from '../backend/web-search.mjs';
+import {UpdateInstallService} from '../backend/update-install-service.mjs';
 
 import { ArtifactService, readArtifact, withVersionContext, artifactUrl as previewUrl } from "../backend/artifact-service.mjs";
 
@@ -24,14 +26,16 @@ let mainWindow;
 let storage;
 let pi;
 let connections;
+let webSearch;
 let previewServer;
 let previewOrigin;
 let bootstrapped=false;
 let backupBusy=false;
 let quitting=false;
-let availableUpdate=null;
-let downloadedUpdate=null;
+let updateInstaller;
 let updateBusy=false;
+let uiLanguage='zh-CN';
+const nativeText=text=>translateUiText(text,uiLanguage);
 const deliveryDirectories=new Map();
 
 app.setName("Nodus");
@@ -42,6 +46,7 @@ app.whenReady().then(async () => {
   storage = new StorageService(dataDir);
   await storage.initialize();
   const savedState = await storage.loadState();
+  uiLanguage=savedState.settings?.language==='en-US'?'en-US':'zh-CN';
   nativeTheme.themeSource = ['light','dark','system'].includes(savedState.settings?.theme) ? savedState.settings.theme : 'light';
   pi = new PiService({
     piDir: storage.piDir,
@@ -51,14 +56,27 @@ app.whenReady().then(async () => {
   connections=new ModelConnections(pi,safeStorage,storage.credentialPath);
   // macOS Keychain access must be user initiated, including existing credentials.
   if(process.platform!=='darwin')await restoreCredential();
+  webSearch=new WebSearchService({pi,safeStorage,file:path.join(dataDir,'search-credentials.json')});
+  if(savedState.settings?.searchMode==='current')webSearch.restoreCurrentMode();
+  else if(process.platform!=='darwin')await webSearch.restore().catch(()=>{});
+  let nativeUpdater=null;
+  if(app.isPackaged&&['win32','linux'].includes(process.platform)){
+    try{const module=await import('electron-updater');nativeUpdater=module.autoUpdater||module.default?.autoUpdater;}
+    catch(error){console.error('Automatic updater unavailable:',error.message);}
+  }
+  updateInstaller=new UpdateInstallService({platform:process.platform,appVersion:app.getVersion(),packaged:app.isPackaged,downloadsDir:app.getPath('downloads'),updater:nativeUpdater,onProgress:progress=>mainWindow?.webContents.send('forma:update-progress',progress)});
   previewOrigin = await startPreviewServer();
   registerIpc();
   createWindow();
+  rebuildMenu();
+});
+
+function rebuildMenu(){
   Menu.setApplicationMenu(Menu.buildFromTemplate(applicationMenu(process.platform,command=>{
     if(!mainWindow||mainWindow.isDestroyed())return;
     mainWindow.show();mainWindow.focus();mainWindow.webContents.send('forma:menu-command',command);
-  })));
-});
+  },uiLanguage)));
+}
 
 function configureUserDataPath() {
   if (process.env.NODUS_DATA_DIR || process.env.FORMA_DATA_DIR) return;
@@ -133,6 +151,10 @@ function createWindow() {
     },
   });
   mainWindow.on("focus", syncWindowAppearance);
+  mainWindow.webContents.setWindowOpenHandler(({url})=>{
+    try{const parsed=new URL(url);if(['https:','http:'].includes(parsed.protocol))void shell.openExternal(parsed.href);}catch{}
+    return {action:'deny'};
+  });
   // Keep the renderer's pending IPC callbacks alive when closing a macOS window.
   mainWindow.on('close',event=>{if(process.platform==='darwin'&&!quitting){event.preventDefault();mainWindow.hide();}});
   mainWindow.on("blur", syncWindowAppearance);
@@ -143,36 +165,48 @@ function createWindow() {
 }
 
 function registerIpc() {
-  ipcMain.handle('forma:check-update',async()=>{
-    if(updateBusy)throw new Error('更新包正在下载，请稍候');
-    availableUpdate=await checkForUpdate(app.getVersion(),process.platform);
-    downloadedUpdate=null;
-    const {currentVersion,latestVersion,available,downloadable,releaseUrl}=availableUpdate;
-    return {currentVersion,latestVersion,available,downloadable,releaseUrl};
+  ipcMain.handle('forma:search-status',()=>webSearch.status());
+  ipcMain.handle('forma:configure-search',(_event,config)=>webSearch.configure(config));
+  ipcMain.handle('forma:restore-search',()=>webSearch.restore());
+  ipcMain.handle('forma:web-search',(_event,{query})=>webSearch.search(query));
+  ipcMain.handle('forma:set-language',(_event,language)=>{
+    if(!['zh-CN','en-US'].includes(language))throw new Error('Unsupported interface language');
+    uiLanguage=language;rebuildMenu();
+    return {language};
   });
-  ipcMain.handle('forma:download-update',async()=>{
-    if(updateBusy)throw new Error('更新包正在下载');
-    if(!availableUpdate?.downloadable)throw new Error('请先检查更新');
+  ipcMain.handle('forma:check-update',async()=>{
+    if(updateBusy)throw new Error('更新操作正在进行，请稍候');
     updateBusy=true;
     try{
-      downloadedUpdate=await downloadUpdate(availableUpdate,app.getPath('downloads'),{
-        onProgress:progress=>mainWindow?.webContents.send('forma:update-progress',progress),
-      });
-      return {version:downloadedUpdate.version,reused:downloadedUpdate.reused};
+      const {currentVersion,latestVersion,available,downloadable,releaseUrl,installMode}=await updateInstaller.check();
+      return {currentVersion,latestVersion,available,downloadable,releaseUrl,installMode};
     }finally{updateBusy=false;}
   });
+  ipcMain.handle('forma:download-update',async()=>{
+    if(updateBusy)throw new Error('更新操作正在进行');
+    updateBusy=true;
+    try{return await updateInstaller.download();}finally{updateBusy=false;}
+  });
   ipcMain.handle('forma:open-update-installer',async()=>{
-    if(updateBusy||!downloadedUpdate||downloadedUpdate.version!==availableUpdate?.latestVersion)throw new Error('请先完成更新包下载与校验');
+    const downloadedUpdate=updateInstaller.downloaded;
+    if(updateBusy||!downloadedUpdate||downloadedUpdate.installMode!=='guided'||downloadedUpdate.version!==updateInstaller.release?.latestVersion)throw new Error('请先完成引导更新包下载与校验');
     if(process.platform==='linux'){
       shell.showItemInFolder(downloadedUpdate.path);
-      return {message:'已在文件管理器中定位新版 AppImage。退出 Nodus 后用它替换旧文件，再重新启动。'};
+      return {message:nativeText('已在文件管理器中定位新版 AppImage。退出 Nodus 后用它替换旧文件，再重新启动。')};
     }
     const error=await shell.openPath(downloadedUpdate.path);
     if(error)throw new Error(`无法打开安装包：${error}`);
-    return {message:process.platform==='darwin'?'已打开 DMG。退出 Nodus 后将新版拖入“应用程序”并覆盖旧版。':'安装程序已打开。请退出 Nodus，再按安装向导完成更新。'};
+    return {message:nativeText(process.platform==='darwin'?'已打开 DMG。退出 Nodus 后将新版拖入“应用程序”并覆盖旧版。':'安装程序已打开。请退出 Nodus，再按安装向导完成更新。')};
   });
-  ipcMain.handle('forma:open-update-page',async()=>shell.openExternal('https://github.com/alexwilliamclerk/Nodus/releases'));
-  ipcMain.handle('forma:open-uninstall-help',async()=>shell.openExternal('https://github.com/alexwilliamclerk/Nodus/blob/main/docs/windows-uninstall.zh-CN.md'));
+  ipcMain.handle('forma:install-update',async(_event,{removeOldProgram=true}={})=>{
+    if(updateBusy||pi.activeRuns.size)throw new Error('请先等待或停止正在运行的任务，再安装更新。');
+    updateBusy=true;
+    try{await updateInstaller.installAutomatically({removeOldProgram});}
+    finally{updateBusy=false;}
+    return {started:true};
+  });
+  ipcMain.handle('forma:open-update-page',async()=>shell.openExternal(updateInstaller.release?.releaseUrl||'https://github.com/alexwilliamclerk/Nodus/releases/latest'));
+  ipcMain.handle('forma:open-uninstall-help',async()=>shell.openExternal(`https://github.com/alexwilliamclerk/Nodus/blob/main/docs/windows-uninstall${uiLanguage==='en-US'?'':'.zh-CN'}.md`));
   ipcMain.handle('forma:uninstall-nodus',async()=>{
     if(process.platform!=='win32'||!app.isPackaged)throw new Error('此入口只适用于已安装的 Windows 版本');
     if(pi.activeRuns.size||backupBusy)throw new Error('请先停止正在运行的任务或备份，再卸载应用');
@@ -182,9 +216,9 @@ function registerIpc() {
       return {openedSettings:true};
     }
     const {response}=await dialog.showMessageBox(mainWindow,{
-      type:'question',buttons:['取消','卸载 Nodus'],defaultId:0,cancelId:0,
-      title:'卸载 Nodus',message:'确认卸载 Nodus？',
-      detail:'应用将退出并启动 Windows 卸载程序。对话、作品和已保存的连接数据会留在本机，以免意外丢失。',
+      type:'question',buttons:[nativeText('取消'),nativeText('卸载 Nodus')],defaultId:0,cancelId:0,
+      title:nativeText('卸载 Nodus'),message:nativeText('确认卸载 Nodus？'),
+      detail:nativeText('应用将退出并启动 Windows 卸载程序。对话、作品和已保存的连接数据会留在本机，以免意外丢失。'),
     });
     if(response!==1)return {cancelled:true};
     const error=await shell.openPath(uninstaller);
@@ -194,14 +228,14 @@ function registerIpc() {
   });
   ipcMain.handle('forma:read-clipboard',()=>clipboard.readText());
   ipcMain.handle('forma:choose-delivery-directory',async(_event,taskId)=>{
-    const selection=await dialog.showOpenDialog(mainWindow,{title:'选择作品交付目录',properties:['openDirectory','createDirectory']});
+    const selection=await dialog.showOpenDialog(mainWindow,{title:nativeText('选择作品交付目录'),properties:['openDirectory','createDirectory']});
     if(selection.canceled||!selection.filePaths.length)return {canceled:true};
     const directory=await validateDeliveryDirectory(storage,selection.filePaths[0]);deliveryDirectories.set(taskId,directory);return {directory};
   });
   ipcMain.handle('forma:export-version',async(_event,{taskId,versionId})=>{
     const task=(await storage.loadState()).tasks.find(t=>t.id===taskId);
     if(!task?.versions?.some(v=>v.id===versionId))throw new Error('只能导出已生成的作品版本');
-    const selection=await dialog.showOpenDialog(mainWindow,{title:'导出作品到文件夹',properties:['openDirectory','createDirectory']});
+    const selection=await dialog.showOpenDialog(mainWindow,{title:nativeText('导出作品到文件夹'),properties:['openDirectory','createDirectory']});
     if(selection.canceled||!selection.filePaths.length)return {canceled:true};
     return exportVersion(storage,{taskId,versionId,directory:selection.filePaths[0]});
   });
@@ -215,7 +249,7 @@ function registerIpc() {
     if(backupBusy||pi.activeRuns.size)throw new Error('请等待当前操作结束，再导出备份');
     backupBusy=true;
     try{
-      const selection=await dialog.showSaveDialog(mainWindow,{title:'备份对话并导出',defaultPath:path.join(app.getPath('downloads'),`Nodus-备份-${new Date().toISOString().replace(/[:.]/g,'-')}.zip`),filters:[{name:'ZIP 备份',extensions:['zip']}]});
+      const selection=await dialog.showSaveDialog(mainWindow,{title:nativeText('备份对话并导出'),defaultPath:path.join(app.getPath('downloads'),`Nodus-备份-${new Date().toISOString().replace(/[:.]/g,'-')}.zip`),filters:[{name:nativeText('ZIP 备份'),extensions:['zip']}]});
       if(selection.canceled||!selection.filePath)return {canceled:true};
       return await exportBackup(storage,selection.filePath,{version:app.getVersion()});
     }finally{backupBusy=false;}
@@ -267,7 +301,7 @@ function registerIpc() {
     }
     await storage.saveState(state);
     bootstrapped=true;
-    return { state, model: connections.status(), previewOrigin, desktop: true };
+    return { state, model: connections.status(), search:webSearch.status(),previewOrigin, desktop: true };
   });
   ipcMain.handle("forma:save-state", async (_event, state) => storage.saveState(state));
   ipcMain.handle("forma:stop-task", (_event, { taskId }) => {artifacts.cancel(taskId);return pi.stop(taskId);});
@@ -283,7 +317,7 @@ function registerIpc() {
     return { url };
   });
   ipcMain.handle("forma:select-materials", async () => {
-    const selection = await dialog.showOpenDialog(mainWindow, { title: "添加任务材料", properties: ["openFile", "multiSelections"] });
+    const selection = await dialog.showOpenDialog(mainWindow, { title: nativeText('添加任务材料'), properties: ["openFile", "multiSelections"] });
     if (selection.canceled) return [];
     return Promise.all(selection.filePaths.map(readMaterial));
   });

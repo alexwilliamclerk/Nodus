@@ -1,6 +1,6 @@
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { finalizeArtifact, safePath, fileList } from './artifacts.mjs';
+import { finalizeArtifact, safePath, fileList, assertWebsiteInteractionsPreserved } from './artifacts.mjs';
 import { legacyArtifact, typeInfo, artifactRequirements } from '../frontend/artifact-types.js';
 import { completionContract, assessCompletion, saveCompletion, loadCompletion } from './completion.mjs';
 import {confirmedInterview} from '../frontend/revision-interview.js';
@@ -65,6 +65,11 @@ export class ArtifactService {
     for(let attempt=0;attempt<=repairs;attempt++) {
       if(this.cancelled.has(task.id))throw new Error('NODUS_STOPPED: 操作已停止');
       artifact=await this.pi.executeArtifact(effective,workDir,versionLabel,attempt?{suggestion:'仅修复以下已确认完成条件，不修改验收标准',scope:JSON.stringify(completion.results.filter(r=>r.status==='failed')),preserve:'其他要求与产物保持'}:proposal);
+      const areaChoices=(flow?.history||[]).filter(item=>item.node?.kind==='area').flatMap(item=>item.answer?.selectedOptionIds||[]);
+      const reportedInteractionProblem=/(交互|导航|跳转|按钮|链接|菜单|表单|点击).{0,10}(失效|坏了|不能|无法|没反应|修复)|修复.{0,10}(交互|导航|跳转|按钮|链接|菜单|表单|点击)/i.test(flow?.evaluation?.comment||'');
+      if(baseVersionId&&effective.artifactType==='website'&&flow&&!areaChoices.includes('interaction')&&!reportedInteractionProblem){
+        await assertWebsiteInteractionsPreserved(this.storage.versionDir(task.id,baseVersionId),workDir);
+      }
       completion=contract?await assessCompletion(workDir,contract,versionId):null;
       if(completion)attempts.push({attempt,...completion});
       if(!completion||completion.status!=='gaps')break;

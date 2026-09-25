@@ -31,6 +31,8 @@ node tests/delivery-desktop.mjs
 node tests/agent-modes-desktop.mjs
 node tests/theme-desktop.mjs
 node tests/update-desktop.mjs
+node tests/language-desktop.mjs
+node tests/language-decision-desktop.mjs
 ```
 
 The first two commands run in CI. Desktop scripts above use synthetic tasks and mocked model responses. Some other historical scripts require prior local tasks or installed applications; `test:desktop` is not a self-contained CI entry point. Real-account scripts may call a paid model and should only be run with intentionally configured test credentials.
@@ -52,6 +54,6 @@ On Windows, the release workflow also silently installs and uninstalls the just-
 
 Run it from **Actions → Release → Run workflow**, or include `[release]` in a main-branch commit message. The tag is read from `package.json`; increment the version before the next release. Existing releases are never overwritten. The workflow uses GitHub's temporary `GITHUB_TOKEN`; no personal token or model credential is needed.
 
-Release assets use stable names `Nodus-mac-arm64.dmg`, `Nodus-windows-x64.exe`, and `Nodus-linux-x64.AppImage`, so the README's `releases/latest/download` commands continue to work when versions change.
+Release assets use versioned canonical names: `Nodus-v{version}-macOS-arm64.dmg`, `Nodus-v{version}-Windows-x64.exe`, and `Nodus-v{version}-Linux-x86_64.AppImage`. The workflow also uploads byte-identical compatibility aliases `Nodus-mac-arm64.dmg`, `Nodus-windows-x64.exe`, and `Nodus-linux-x64.AppImage` so existing in-app updaters and one-line `releases/latest/download` commands keep working. `SHA256SUMS.txt` covers both names for every platform. Windows and Linux releases include `latest.yml` and `latest-linux.yml`; the workflow verifies each metadata SHA-512 and size against its installer before publishing. The macOS app remains unsigned, so it uses the guided DMG update flow until signing is available.
 
 Keep user data, credentials, `node_modules`, build output, and local test evidence out of Git. See `.gitignore` and `SECURITY.md`.

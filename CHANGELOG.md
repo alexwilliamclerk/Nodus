@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1
+
+- Added explicit install-and-restart updates for packaged Windows NSIS and Linux AppImage builds, with release metadata and SHA-256 verification. Linux can preserve a backup of the old AppImage; macOS opens the matching GitHub release for a user-selected Finder replacement because automatic updates require a signed app.
+- Versioned installer filenames now identify the release, platform, and architecture; stable aliases keep older in-app updaters and one-line download links working.
+- Added a Simplified Chinese / English interface switch that persists across restarts while preserving existing conversation and work content.
+- Added direct chat, manual deliverable-type recognition, basic Word/Excel and code outputs, optional web search, and OpenAI/Anthropic API connections.
+- Shortened ordinary revision decisions and strengthened website navigation and interaction-preservation checks.
+
 ## 1.3.0
 
 - Added an in-app update check that downloads the platform installer from Nodus GitHub Releases, verifies its SHA-256, and opens the installer or locates the Linux AppImage.

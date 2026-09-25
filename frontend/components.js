@@ -31,7 +31,8 @@ export function brief(description = '') {
   return clause.split(/[，,：:]/).find(part=>part.length>=7 && part.length<=36) || `${clause.slice(0,32)}…`;
 }
 export const dimensions = ['需求符合度','视觉表现','信息清晰度','交互可用性'];
-export function providerLabel(id) { return ({'minimax-cn':'MiniMax 中国 API',minimax:'MiniMax 全球 API','qwen-api-cn':'Qwen 百炼 API','kimi-coding':'Kimi Coding Plan','moonshotai-cn':'Moonshot 中国 API','moonshotai':'Moonshot 全球 API','zai':'智谱全球 Coding Plan','zai-coding-cn':'智谱中国 Coding Plan',deepseek:'DeepSeek API'})[id] || id || '模型'; }
+import {translateUiText,uiLanguage} from './i18n.js';
+export function providerLabel(id) { return translateUiText(({openai:'OpenAI API（GPT）',anthropic:'Anthropic API（Claude）','minimax-cn':'MiniMax 中国 API',minimax:'MiniMax 全球 API','qwen-api-cn':'Qwen 百炼 API','kimi-coding':'Kimi Coding Plan','moonshotai-cn':'Moonshot 中国 API','moonshotai':'Moonshot 全球 API','zai':'智谱全球 Coding Plan','zai-coding-cn':'智谱中国 Coding Plan',deepseek:'DeepSeek API'})[id] || id || '模型',uiLanguage()); }
 export function optionsView(task) {
   return `<div class="option-grid">${task.options.map(option=>`<div class="option-row ${task.selectedOptionIds.includes(option.id)?'selected':''}" data-option="${escapeHtml(option.id)}"><label class="option-choice"><input type="checkbox" data-choice="${escapeHtml(option.id)}" ${task.selectedOptionIds.includes(option.id)?'checked':''}/><span class="option-copy"><strong>${escapeHtml(option.title)}</strong><span>${escapeHtml(brief(option.description))}</span></span></label>${task.optionNotes[option.id]?'<span class="option-note-mark">已补充</span>':''}<button class="icon-button option-detail" data-detail="${escapeHtml(option.id)}" aria-label="${escapeHtml(option.title)}：详情与补充" title="完整说明与补充">${icon('more')}</button></div>`).join('')}</div><textarea id="freeformInput" class="freeform-input" aria-label="补充自己的方向" placeholder="补充自己的方向或具体要求…">${escapeHtml(task.freeform)}</textarea>`;
 }

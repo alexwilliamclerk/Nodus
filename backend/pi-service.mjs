@@ -6,7 +6,7 @@ import {nextDecisionPrompt} from './prompts.mjs';
 import { discoverMoonshotModels, selectMoonshotModel } from './moonshot-models.mjs';
 import { checkToolBoundary } from './execution-boundary.mjs';
 import { finalizeArtifact, dataInputs, prepareAnalysis } from "./artifacts.mjs";
-import { typeInfo } from "../frontend/artifact-types.js";
+import {typeInfo,recognizableTypes,normalizeRecognizedType} from "../frontend/artifact-types.js";
 import path from "node:path";
 import {readFile} from 'node:fs/promises';
 import {artifactTextSnapshot,validateRequirementAudit} from './requirement-audit.mjs';
@@ -26,6 +26,8 @@ import {
 } from "./prompts.mjs";
 
 const PROVIDERS = {
+  "openai": { label: "OpenAI API（GPT）", env: "OPENAI_API_KEY" },
+  "anthropic": { label: "Anthropic API（Claude）", env: "ANTHROPIC_API_KEY" },
   "kimi-coding": { label: "Kimi Coding Plan", env: "KIMI_API_KEY" },
   "moonshotai-cn": { label: "Kimi 开放平台（中国 · platform.kimi.com）", env: "MOONSHOT_API_KEY" },
   "moonshotai": { label: "Kimi 开放平台（全球 · platform.kimi.ai）", env: "MOONSHOT_API_KEY" },
@@ -117,7 +119,7 @@ export class PiService {
         available = (await this.modelRuntime.getAvailable()).filter(model => model.provider === providerId);
       }
       if (!available.length) throw new Error("凭据已读取，但没有发现这个入口下可用的模型");
-      const preferred = providerId === 'kimi-coding' ? 'kimi-for-coding' : providerId==='deepseek'?'deepseek-flash':providerId==='qwen-api-cn'?'qwen-plus':null;
+      const preferred = providerId === 'kimi-coding' ? 'kimi-for-coding' : providerId==='deepseek'?'deepseek-flash':providerId==='qwen-api-cn'?'qwen-plus':providerId==='openai'?'gpt-4.1':providerId==='anthropic'?'claude-sonnet-4-6':null;
       let selected = modelId ? available.find(model => model.id === modelId) : available.find(model => model.id === preferred) || available[0];
       if(verify&&['moonshotai-cn','moonshotai'].includes(providerId)) {
         const ids=await this.discoverModels(providerId,apiKey);
@@ -138,7 +140,7 @@ export class PiService {
   }
 
   requireModel() {
-    if (!this.model) throw new Error("尚未配置真实模型。请在应用设置中配置 Kimi、智谱或 DeepSeek 凭据。");
+    if (!this.model) throw new Error("尚未配置真实模型。请在应用设置中添加模型 API 连接。");
   }
 
   async generateOptions(task, previousOptions = []) {
@@ -152,11 +154,15 @@ export class PiService {
       tools: [],
     });
     const parsed = parseJson(text);
-    if (parsed.clarification) return { clarification: parsed.clarification, artifactType: task.artifactType || (typeInfo(parsed.artifactType) ? parsed.artifactType : null), options: [] };
-    if (!typeInfo(parsed.artifactType) || (task.artifactType && parsed.artifactType !== task.artifactType)) {
-      return { clarification: "请明确主产物与交付格式：网站、Markdown 报告、PPTX、Python 工程或 CSV/JSON 描述统计。", artifactType: task.artifactType || null, options: [] };
+    const recognized=normalizeRecognizedType(parsed.artifactType);
+    if (parsed.clarification) return { clarification: parsed.clarification, recognizedType:recognized, artifactType: task.artifactType || (typeInfo(recognized) ? recognized : null), options: [] };
+    if (!typeInfo(recognized)) {
+      return {clarification:`已识别为${recognizableTypes[recognized].label}。当前版本不能可靠交付该类型；可以继续聊天、补充要求，或选择已支持的类型。`,recognizedType:recognized,artifactType:task.artifactType||null,options:[]};
     }
-    if (parsed.artifactType === 'analysis') {
+    if (task.artifactType && recognized !== task.artifactType) {
+      return { clarification: "已选择的主产物类型与当前需求不一致，请明确要保留哪一种。", recognizedType:recognized,artifactType:task.artifactType,options:[] };
+    }
+    if (recognized === 'analysis') {
       try { dataInputs(task); } catch (error) { return { artifactType:'analysis', clarification:error.message, options:[] }; }
     }
     if (!Array.isArray(parsed.options) || parsed.options.length !== 4) {
@@ -171,7 +177,7 @@ export class PiService {
         parsed.recommendation.optionIds.some(id => !parsed.options.some(option => option.id === id)))) {
       throw new Error('推荐引用了不存在的方案，请重新生成');
     }
-    return parsed;
+    return {...parsed,artifactType:recognized,recognizedType:recognized};
   }
 
   async oneShotChat(task, message) {

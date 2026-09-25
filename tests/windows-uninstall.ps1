@@ -1,14 +1,35 @@
-param([string]$InstallerPath = '', [switch]$SimulateCorruption, [switch]$MoveCorruptUninstaller)
+param([string]$InstallerPath = '', [switch]$SimulateCorruption, [switch]$MoveCorruptUninstaller, [switch]$UpgradeFromPublished)
 $ErrorActionPreference = 'Stop'
 $installer = if ($InstallerPath) { (Resolve-Path $InstallerPath).Path } else { Join-Path $env:RUNNER_TEMP 'Nodus-Setup.exe' }
 $installDir = Join-Path $env:RUNNER_TEMP 'Nodus-installed'
 $url = 'https://github.com/alexwilliamclerk/Nodus/releases/download/v1.2.0/Nodus-windows-x64.exe'
 if (-not $InstallerPath) { Invoke-WebRequest $url -OutFile $installer }
 
+$priorHash = $null
+$dataSentinel = $null
+if ($UpgradeFromPublished) {
+  if (-not $InstallerPath) { throw 'Upgrade test requires the newly built installer path.' }
+  $previous = Join-Path $env:RUNNER_TEMP 'Nodus-v1.3.0-Windows-x64.exe'
+  Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/download/v1.3.0/Nodus-windows-x64.exe' -OutFile $previous
+  $oldInstall = Start-Process -FilePath $previous -ArgumentList @('/S', "/D=$installDir") -PassThru -Wait
+  if ($oldInstall.ExitCode -ne 0) { throw "Previous-version install failed with exit code $($oldInstall.ExitCode)" }
+  $priorExe = Join-Path $installDir 'Nodus.exe'
+  if (-not (Test-Path $priorExe)) { throw 'Previous-version executable missing before upgrade.' }
+  $priorHash = (Get-FileHash $priorExe -Algorithm SHA256).Hash
+  $dataDirectory = Join-Path $env:APPDATA 'Nodus\forma-data'
+  New-Item -ItemType Directory -Path $dataDirectory -Force | Out-Null
+  $dataSentinel = Join-Path $dataDirectory 'upgrade-preserve-test.txt'
+  Set-Content -LiteralPath $dataSentinel -Value 'keep task data' -Encoding UTF8
+}
+
 $install = Start-Process -FilePath $installer -ArgumentList @('/S', "/D=$installDir") -PassThru -Wait
 if ($install.ExitCode -ne 0) { throw "Installer failed with exit code $($install.ExitCode)" }
 $appExe = Join-Path $installDir 'Nodus.exe'
 if (-not (Test-Path $appExe)) { throw "Nodus.exe was not installed at $installDir" }
+if ($UpgradeFromPublished) {
+  if ((Get-FileHash $appExe -Algorithm SHA256).Hash -eq $priorHash) { throw 'Upgrade left the old executable in place.' }
+  if ((Get-Content -LiteralPath $dataSentinel -Raw).Trim() -ne 'keep task data') { throw 'Upgrade changed user data.' }
+}
 
 $registryPaths = @(
   'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
@@ -50,4 +71,5 @@ $remove = Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -Pass
 if ($remove.ExitCode -ne 0) { throw "Uninstaller failed with exit code $($remove.ExitCode)" }
 if (Test-Path $appExe) { throw 'Nodus.exe remains after uninstall' }
 if (@(Get-NodusUninstallEntries).Count -ne 0) { throw 'Windows Apps uninstall entry remains after uninstall' }
+if ($UpgradeFromPublished -and (Get-Content -LiteralPath $dataSentinel -Raw).Trim() -ne 'keep task data') { throw 'Uninstall removed user data.' }
 Write-Host 'Windows installer, Apps entry, and uninstaller all passed.'

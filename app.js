@@ -7,10 +7,13 @@ import {recoverLegacyDecision} from './frontend/decision-recovery.js';
 import {createTranscriptFollower} from './frontend/transcript-follow.js';
 import {previewIntervals,modificationCount,previewCheckpointDue} from './frontend/preview-cadence.js';
 import {sameEvaluation} from './frontend/evaluation-state.js';
+import {createUiTranslator,translateUiText} from './frontend/i18n.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const api = window.forma;
+const translator=createUiTranslator(document);
+const ui=text=>translateUiText(text,state?.settings?.language||'zh-CN');
 document.documentElement.dataset.platform = api?.platform || 'browser';
 function applyAppearance(appearance) {
   const root = document.documentElement;
@@ -22,6 +25,8 @@ function applyAppearance(appearance) {
 api?.onAppearance?.(applyAppearance);
 api?.getAppearance?.().then(applyAppearance).catch(console.error);
 let state, model;
+let updateInstallMode='guided';
+let searchStatus={mode:'off',configured:false,currentSupported:false};
 let saveTimer, toastTimer, popoverTimer;
 let saveQueue = Promise.resolve();
 const layout = { railOpen:true, previewOpen:false, railWidth:210, previewWidth:370, view:'preview', detail:null };
@@ -144,7 +149,7 @@ function renderTimeline(task) {
   const panel=$('#recordPanel');
   const changed=lastRecordTask!==task.id;
   const position=panel.scrollTop;
-  $('#timeline').innerHTML=task.timeline.length?task.timeline.map(event=>`<article class="event ${event.type==='user'?'user':'agent'}">${event.meta?.includes('评价')||event.meta?.includes('修改')?`<div class="event-meta">${esc(event.meta)}</div>`:''}<p>${esc(event.text)}</p></article>`).join(''):'<div class="welcome"><strong>从一个想法出发，改变世界</strong><p>描述你的任务目标和交付格式，我们一起确定方向。</p></div>';
+  $('#timeline').innerHTML=task.timeline.length?task.timeline.map(event=>`<article class="event ${event.type==='user'?'user':'agent'}">${event.meta?.includes('评价')||event.meta?.includes('修改')?`<div class="event-meta">${esc(event.meta)}</div>`:''}<p>${esc(event.text)}</p>${event.sources?.length?`<ul class="search-sources">${event.sources.map(source=>`<li><a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title)}</a>${source.snippet?`<p>${esc(source.snippet)}</p>`:''}</li>`).join('')}</ul>`:''}</article>`).join(''):'<div class="welcome"><strong>从一个想法出发，改变世界</strong><p>描述你的任务目标和交付格式，我们一起确定方向。</p></div>';
   if(task.versions.length||task.requirementLedger?.items?.length)$('#timeline').insertAdjacentHTML('beforeend',`<div class="event-actions">${task.versions.length?`<button id="viewWorkButton" class="text-button">${icon('preview')}查看作品 · ${esc(task.currentVersionId?.toUpperCase())}</button>`:''}<button id="understandingButton" class="text-button">任务要求</button></div>`);
   on('#viewWorkButton','click',()=>{layout.view='preview';setPreview(true);});
   if(task.versions.length){
@@ -191,10 +196,11 @@ function renderAction(task) {
   const selector=$('#artifactTypeSelect');
   selector.hidden=!['input','options'].includes(task.stage)||Boolean(task.archivedAt);
   selector.disabled=isBusy(task)||Boolean(task.versions.length);
-  selector.innerHTML='<option value="">自动识别类型</option>'+Object.entries(artifactTypes).map(([id,info])=>`<option value="${id}">${esc(info.label)}</option>`).join('');
+  selector.innerHTML='<option value="">自动识别类型</option>'+Object.entries(artifactTypes).map(([id,info])=>`<option value="${id}">${esc(info.label)}</option>`).join('')+'<option value="__other__">其他类型，先讨论…</option>';
   selector.value=task.artifactType||'';
   selector.title=task.deliverySummary||'主产物类型；项目仅用于对话分组';
   selector.onchange=async()=>{
+    if(selector.value==='__other__'){selector.value=task.artifactType||'';detectTypeOnDemand();return;}
     task.artifactType=selector.value||null;task.typeConfirmed=Boolean(selector.value);task.clarification=null;
     task.deliverySummary='';task.decisionContext='';task.recommendation=null;
     task.options=[];task.selectedOptionIds=[];task.optionNotes={};task.decisionQuestion='';task.stage='input';persist(task);renderAction(task);
@@ -202,6 +208,7 @@ function renderAction(task) {
   };
   $('#dialogLauncher').hidden=state.settings.showTemporaryDialog===false;
   $('#dialogLauncher').disabled=isBusy(task)||task.temporaryOpen||Boolean(task.archivedAt);
+  $('#webSearchButton').disabled=isBusy(task)||Boolean(task.archivedAt);
   $('#attachButton').disabled=isBusy(task)||!['input','options','decision'].includes(task.stage)||Boolean(task.archivedAt);
   $('#modelButton').disabled=anyBusy();
   renderAttachments(task);
@@ -217,10 +224,11 @@ function renderAction(task) {
     $('#actionTitle').textContent='';footerAction('resumeDecision','继续选择',()=>{task.stage='decision';task.decisionFlow.status='answering';persist(task);render();});footerAction('reviewPausedPath','查看已选',()=>showDecisionPath(task));return;
   }
   if(task.stage==='input'){
-    $('#actionTitle').textContent='你想完成什么任务？';
-    $('#dynamicAction').innerHTML=`<textarea id="requirementInput" class="requirement-input" aria-label="任务需求" placeholder="描述任务目标、交付格式和已有材料…">${esc(task.requirement)}</textarea>`;
+    $('#actionTitle').textContent='想聊什么，或想制作什么？';
+    $('#dynamicAction').innerHTML=`<textarea id="requirementInput" class="requirement-input" aria-label="消息或任务需求" placeholder="直接聊天；需要制作作品时点击“制作作品”…">${esc(task.requirement)}</textarea>`;
     on('#requirementInput','input',e=>{task.requirement=e.target.value;if(!task.typeConfirmed&&!task.versions.length)task.artifactType=null;persist(task);});
-    submitButton('submitRequirement','提交需求',()=>submitRequirement(task));return;
+    footerAction('submitRequirement','制作作品',()=>submitRequirement(task));
+    submitButton('sendChat','发送消息',()=>sendInitialChat(task));return;
   }
   if(task.stage==='options'){
     $('#actionTitle').textContent=task.decisionQuestion||'选择制作方向';$('#decisionTools').hidden=false;
@@ -279,6 +287,11 @@ async function beginDecision(task,trigger,evaluation=null,baseVersionId=null){
   task.decisionFlow={schemaVersion:3,id:crypto.randomUUID(),trigger,evaluation,baseVersionId:pending?pending.baseVersionId:(baseVersionId||(['pause','failure'].includes(trigger)?previous?.baseVersionId:null)||task.currentVersionId||null),pendingId:pending?.pendingId||null,artifactType:pending?.artifactType||task.artifactType,
     returnStage:['pause','failure'].includes(trigger)?(task.retryStage||task.stage):task.stage,retryPhase:task.operation?.phase,errorMessage:task.error?.message||task.operation?.lastActivity||'',resumeFlow:['pause','failure'].includes(trigger)&&previous?structuredClone(previous):null,
     history:[],invalidated:[],current:localNode(trigger==='pause'?'pause':trigger==='failure'?'failure':'area',pending?.artifactType||task.artifactType),draft:emptyAnswer(),status:'answering',summary:null};
+  if(task.versions.length&&['rating','adjust'].includes(trigger)){
+    const current=task.previewVersionId||task.currentVersionId;
+    addRecord(task,'agent',state.settings.language==='en-US'?`The preview currently shows ${current?.toUpperCase()||'the existing version'}. Your choices will appear there only after you confirm and create a new version. You can finish questions early with “Confirm selected changes and preview”.`:`右侧目前显示 ${current?.toUpperCase()||'现有版本'}。选择方向不会立刻改变预览；确认并制作新版本后才会更新。可随时点“确认已选修改并预览…”提前结束提问。`);
+    layout.view='preview';layout.detail=null;setPreview(true);
+  }
   task.temporaryOpen=false;task.stage='decision';task.status='待选择';persist(task);renderCurrent(task);
   if(trigger==='rating')await requestDecision(task);
 }
@@ -289,7 +302,7 @@ function renderDecisionFlow(task){
     f.status='parked';task.stage=f.returnStage==='accepted'?'accepted':'rating';task.temporaryOpen=false;
     layout.view='preview';layout.detail=null;persist(task);setPreview(true);renderCurrent(task);
   });
-  if(['area','question'].includes(f.current.kind)||f.awaitingNext)footerAction('finishQuestions','结束提问',()=>confirmCurrentChoices(task));
+  if((['area','question'].includes(f.current.kind)||f.awaitingNext)&&(f.history.length||f.draft?.selectedOptionIds?.length||f.draft?.freeform?.trim()))footerAction('finishQuestions','确认已选修改并预览…',()=>confirmCurrentChoices(task));
   if(f.awaitingNext){$('#actionTitle').textContent='';footerAction('previousFlowDecision','上一题',()=>{backDecision(f);persist(task);renderCurrent(task);});submitButton('requestNextDecision','生成下一题',()=>requestDecision(task));return;}
   $('#actionTitle').textContent=f.current.question;
   $('#dynamicAction').innerHTML=optionsView({...f.draft,options:f.current.options});
@@ -317,7 +330,8 @@ async function requestDecision(task){
     await executeDecisionFlow(task);return;
   }
   f.awaitingNext=true;persist(task);
-  if(f.history.length>=50&&!f.refine){confirmCurrentChoices(task);return;}
+  const shortRevision=['rating','adjust'].includes(f.trigger)&&Number(task.previewEvery||0)===0;
+  if((shortRevision&&f.history.length>=2||f.history.length>=50)&&!f.refine){confirmCurrentChoices(task);return;}
   if(!model.configured){renderCurrent(task);openSettings();return;}
   await perform(task,'decision','正在生成下一问题',()=>api.nextDecision({task:modelTask(task),flow:f}),result=>{
     if(result.explanation)addRecord(task,'agent',result.explanation,'决策说明');
@@ -370,6 +384,7 @@ async function submitFlowDecision(task){
   }
   commitDecision(f);
   addRecord(task,'user',`${decision.question}\n${decision.selected.map(o=>o.title+(o.note?`：${o.note}`:'')).join('；')}${decision.supplement?`\n${decision.supplement}`:''}`,'已选决定');
+  if(task.versions.length){layout.view='preview';layout.detail=null;renderPreview(task);}
   if(['pause','failure'].includes(kind)&&action==='adjust'){
     f.current=localNode('area',f.artifactType);persist(task);renderCurrent(task);return;
   }
@@ -399,6 +414,14 @@ async function confirmCurrentChoices(task,message=''){
   if(!typeInfo(task.artifactType)){addRecord(task,'agent','请先确定主产物类型，再确认执行。');persist(task);renderCurrent(task);return false;}
   if(!task.decisionFlow||!['decision','paused'].includes(task.stage))await beginDecision(task,'adjust');
   const f=task.decisionFlow;
+  if(['area','question'].includes(f.current?.kind)&&(f.draft?.selectedOptionIds?.length||f.draft?.freeform?.trim())){
+    try{commitDecision(f);}catch(error){showError(error.message);return false;}
+  }
+  if(!f.history.length&&!message){showToast('请先选择至少一个修改方向。');return false;}
+  if(!f.summary&&f.history.length){
+    const choices=f.history.map(item=>item.decision||selectedDecision(item.node,item.answer));
+    f.summary={changes:`仅修改已选范围：${choices.map(choice=>[...choice.selected.map(item=>item.title+(item.note?`：${item.note}`:'')),choice.supplement].filter(Boolean).join('；')).filter(Boolean).join('；')}`,preserve:f.artifactType==='website'?'保留未选范围的页面内容、导航、按钮和可用交互。':'保留未选范围的内容及已确认要求。',verification:'制作后打开新版本预览，并检查产物文件与已确认要求。'};
+  }
   prepareFlowConfirmation(f,message);task.temporaryOpen=false;task.stage='decision';
   if(message)addRecord(task,'user',message,'你 · 执行要求');
   addRecord(task,'agent',`将按任务目标及 ${f.history.length} 项已提交选择执行。请确认范围后开始；未提交的草稿不作为要求。`,'待确认范围');
@@ -452,6 +475,7 @@ function addRecord(task,type,text,meta='') { if(type==='user'&&activeTask()?.id=
 function nextVersionId(task) { return `v${Math.max(0,...task.versions.map(v=>Number(v.id.replace(/^v/,''))||0))+1}`; }
 function modelTask(task) {
   const copy=structuredClone(task);
+  copy.uiLanguage=state.settings.language||'zh-CN';
   if(['decision','paused'].includes(task.stage)&&task.decisionFlow)copy.taskRules=extractTaskRules({...copy,options:[],freeform:'',completionContract:null},copy.decisionFlow,copy.taskRules||copy.requirementLedger);
   copy.requirementLedger=copy.taskRules||copy.requirementLedger;
   return copy;
@@ -503,11 +527,33 @@ async function submitRequirement(task) {
   await requestOptions(task,false);
   if(task.agentMode==='goat'&&task.operation?.status==='success'&&task.stage==='options')await runGoat(task);
 }
+async function sendInitialChat(task){
+  const message=task.requirement.trim();
+  if(!message)return showError('请先输入消息。');
+  if(parseModeCommand(message))return submitRequirement(task);
+  if(!model.configured){openSettings();return;}
+  task.requirement='';
+  if(!task.customTitle&&!task.timeline.length)task.title=message.replace(/\s+/g,' ').slice(0,24);
+  persist(task);renderCurrent(task);
+  await answerMessage(task,message);
+}
+function detectTypeOnDemand(){
+  let task=activeTask();
+  if(isBusy(task))return showToast('请先停止当前操作，再识别产物类型。');
+  if(task.archivedAt||task.versions.length||task.stage!=='input'){createTask();task=activeTask();}
+  if(!model.configured){openSettings();return;}
+  manage({title:'识别产物类型',description:'描述你要制作的作品。普通聊天不会自动识别类型；确认后才会生成方案。',value:task.requirement||'',submit:value=>{
+    const requirement=value.trim();if(!requirement)return false;
+    task.requirement=requirement;task.artifactType=null;task.typeConfirmed=false;task.stage='input';persist(task);renderCurrent(task);
+    setTimeout(()=>submitRequirement(task),0);return true;
+  }});
+}
 async function requestOptions(task,regenerate) {
   if(!model.configured){await persistNow();render();openSettings();return;}
   const previous=regenerate?structuredClone(task.options):[];
   await perform(task,'options','正在生成方案',()=>api.generateOptions({task:modelTask(task),previousOptions:previous}),result=>{
     task.artifactType=result.artifactType||task.artifactType||null;
+    task.recognizedType=result.recognizedType||null;
     task.deliverySummary=result.deliverySummary||'';
     task.clarification=result.clarification||null;
     if(result.clarification){task.stage='input';task.status='待澄清';task.options=[];task.selectedOptionIds=[];addRecord(task,'agent',result.clarification,'需要补充');return;}
@@ -515,7 +561,7 @@ async function requestOptions(task,regenerate) {
     task.options=result.options;task.decisionQuestion=result.question;task.decisionContext=result.context;task.recommendation=result.recommendation;
     if(regenerate){const notes=previous.filter(o=>task.optionNotes[o.id]).map(o=>`${o.title}：${task.optionNotes[o.id]}`);if(notes.length)task.freeform=[task.freeform,...notes].filter(Boolean).join('\n');}
     task.selectedOptionIds=[];task.optionNotes={};task.stage='options';task.status='待选择';
-    addRecord(task,'agent',`${result.deliverySummary?`主产物：${typeInfo(task.artifactType)?.label}。${result.deliverySummary}\n`:''}${result.context||result.question} 你可以组合选择，也可以补充自己的想法。`);
+    addRecord(task,'agent',`${result.deliverySummary?`${ui('主产物：')}${ui(typeInfo(task.artifactType)?.label||'')}${state.settings.language==='en-US'?'.':'。'}${result.deliverySummary}\n`:''}${result.context||result.question} ${ui('你可以组合选择，也可以补充自己的想法。')}`);
   });
 }
 async function executeV1(task) {
@@ -744,35 +790,57 @@ function renderConnections(){
   };});
 }
 function showModelPopover(open) { clearTimeout(popoverTimer);$('#modelPopover').hidden=!open;$('#modelConnectionButton').setAttribute('aria-expanded',String(open));if(open)renderModel(); }
+function showOldVersionChoice(show){
+  if(api.platform!=='linux')return;
+  if(!$('#oldVersionChoice'))$('#updatePanel').insertAdjacentHTML('beforeend','<label id="oldVersionChoice" class="toggle-setting"><input id="removeOldProgram" type="checkbox" checked>安装后删除旧版 AppImage（仅程序文件；任务与作品保留）</label>');
+  $('#oldVersionChoice').hidden=!show;
+}
 async function checkUpdates(){
   const button=$('#checkUpdateButton');button.disabled=true;
+  updateInstallMode='guided';
+  showOldVersionChoice(false);
   $('#updateStatus').textContent='正在检查 GitHub 最新版本…';
   $('#downloadUpdateButton').hidden=true;$('#openUpdateInstallerButton').hidden=true;$('#updateProgress').hidden=true;
   try{
     const result=await api.checkUpdate();
+    updateInstallMode=result.installMode||'guided';
     if(result.available){
-      $('#updateStatus').textContent=result.downloadable?`当前 v${result.currentVersion}，发现新版 v${result.latestVersion}。可下载并校验安装包。`:`发现新版 v${result.latestVersion}，但此平台的安装包或校验文件尚未备齐。`;
+      $('#updateStatus').textContent=api.platform==='darwin'?`当前 v${result.currentVersion}，发现新版 v${result.latestVersion}。前往 GitHub 下载 DMG，安装时可选择替换旧应用。`:result.downloadable?`当前 v${result.currentVersion}，发现新版 v${result.latestVersion}。${updateInstallMode==='automatic'?'下载后可在应用内安装并重启。':'可下载并校验安装包，再按安装向导更新。'}`:`发现新版 v${result.latestVersion}，但此平台的安装包或校验文件尚未备齐。`;
     }else{
       $('#updateStatus').textContent=result.downloadable?`当前已是最新版本 v${result.currentVersion}。如本机安装文件损坏，可重新下载安装包；若卸载程序报完整性错误，请先阅读下方“卸载报错怎么办？”。`:`当前已是最新版本 v${result.currentVersion}。`;
     }
-    $('#downloadUpdateButton').hidden=!result.downloadable;
-    $('#downloadUpdateButton').textContent=result.available?'下载更新':'重新下载安装包';
+    $('#downloadUpdateButton').hidden=api.platform==='darwin'?!result.available&&!result.downloadable:!result.downloadable;
+    $('#downloadUpdateButton').textContent=api.platform==='darwin'?'前往 GitHub 下载':result.available?'下载更新':'重新下载安装包';
+    showOldVersionChoice(api.platform==='linux'&&result.available&&result.downloadable&&updateInstallMode==='automatic');
   }catch(error){$('#updateStatus').textContent=`检查更新失败：${error.message}`;}
   finally{button.disabled=false;}
 }
 async function downloadAppUpdate(){
+  if(api.platform==='darwin'){
+    try{await api.openUpdatePage();$('#updateStatus').textContent='已打开对应版本的 GitHub 发布页。下载 DMG 后，将 Nodus 拖入“应用程序”；选择“替换”会删除旧程序文件，任务与作品数据保留。';}
+    catch(error){$('#updateStatus').textContent=`无法打开发布页：${error.message}`;}
+    return;
+  }
   const button=$('#downloadUpdateButton');button.disabled=true;$('#checkUpdateButton').disabled=true;
   $('#updateProgress').hidden=false;$('#updateProgress').value=0;$('#updateStatus').textContent='正在下载并校验安装包…';
   try{
     const result=await api.downloadUpdate();
+    updateInstallMode=result.installMode||'guided';
     $('#updateStatus').textContent=`v${result.version} 安装包已下载并通过 SHA-256 校验。${result.reused?'使用了已校验的本地文件。':''}`;
     $('#openUpdateInstallerButton').hidden=false;
-    $('#openUpdateInstallerButton').textContent=api.platform==='linux'?'定位 AppImage':'打开安装包';
+    $('#openUpdateInstallerButton').textContent=updateInstallMode==='automatic'?'安装并重启':api.platform==='linux'?'定位 AppImage':'打开安装包';
     $('#updateProgress').value=100;
   }catch(error){$('#updateStatus').textContent=`下载更新失败：${error.message}`;$('#updateProgress').hidden=true;}
   finally{button.disabled=false;$('#checkUpdateButton').disabled=false;}
 }
 function openSettings() {
+  if(!$('#searchMode')){
+    $('#showDialogSetting').insertAdjacentHTML('beforebegin',`<section class="update-panel" aria-label="联网搜索"><strong>联网搜索</strong><label class="field-label">搜索连接方式<select id="searchMode"><option value="off">关闭</option><option value="current">复用当前模型 API Key</option><option value="separate">独立搜索 API Key</option></select></label><label class="field-label">搜索服务<select id="searchProvider"><option value="brave">Brave Search</option><option value="tavily">Tavily</option><option value="qwen">Qwen 百炼</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></label><label class="field-label">搜索 API Key<input id="searchApiKey" type="password" autocomplete="new-password" spellcheck="false"></label><label class="toggle-setting"><input id="rememberSearch" type="checkbox">在本机加密记住搜索 Key</label><p id="searchStatus" class="muted" role="status"></p><div class="update-actions"><button id="saveSearch" type="button" class="secondary-button">保存搜索设置</button><button id="restoreSearch" type="button" class="text-button">恢复已保存搜索连接</button></div></section>`);
+    on('#searchMode','change',showSearchConfig);
+    on('#saveSearch','click',saveSearchConfig);
+    on('#restoreSearch','click',async()=>{try{searchStatus=await api.restoreSearch();$('#searchMode').value=searchStatus.mode;$('#searchProvider').value=searchStatus.provider;showSearchConfig();}catch(error){$('#searchStatus').textContent=error.message.replace(/^Error invoking remote method '[^']+': Error: /,'');}});
+  }
+  api.searchStatus().then(status=>{searchStatus=status;$('#searchMode').value=status.mode;$('#searchProvider').value=status.provider||'brave';$('#searchApiKey').value='';$('#rememberSearch').checked=false;showSearchConfig();}).catch(error=>{$('#searchStatus').textContent=error.message;});
   if(!$('#previewEveryInput')){
     $('#settingsModal header').insertAdjacentHTML('afterend','<label class="field-label">当前任务的预览节奏<select id="previewEveryInput"><option value="0">手动确认后生成</option><option value="3">每 3 次修改生成预览</option><option value="5">每 5 次修改生成预览</option><option value="8">每 8 次修改生成预览</option></select></label><p class="muted">选择次数即授权按之后提交的修改自动制作新版本（消耗模型用量）。只用于已有作品的修改；普通答疑不计数，每版完成后停在评分处。可随时改回手动。</p>');
     on('#previewEveryInput','change',event=>{
@@ -818,9 +886,48 @@ function openSettings() {
   $('#restoreSavedConnection').disabled=anyBusy();
   $('#uninstallPanel').hidden=api.platform!=='win32';
   $('#providerInput').innerHTML=(model.providers||[]).map(provider=>`<option value="${esc(provider.id)}">${esc(provider.label)}</option>`).join('')||$('#providerInput').innerHTML;
-  showModelPopover(false);$('#providerInput').value=state.settings.provider||model.providerId||'kimi-coding';$('#modelIdInput').value=model.modelId||state.settings.modelId||'';$('#apiKeyInput').value='';$('#settingsError').textContent='';$('#themeSetting').value=state.settings.theme||'light';$('#showDialogSetting').checked=state.settings.showTemporaryDialog!==false;$('#connectModel').disabled=anyBusy();updateProviderNote();$('#settingsModal').showModal();
+  showModelPopover(false);$('#providerInput').value=state.settings.provider||model.providerId||'kimi-coding';$('#modelIdInput').value=model.modelId||state.settings.modelId||'';$('#apiKeyInput').value='';$('#settingsError').textContent='';$('#themeSetting').value=state.settings.theme||'light';$('#languageSetting').value=state.settings.language||'zh-CN';$('#showDialogSetting').checked=state.settings.showTemporaryDialog!==false;$('#connectModel').disabled=anyBusy();updateProviderNote();$('#settingsModal').showModal();
 }
-function updateProviderNote() { $('#providerNote').textContent=({'minimax-cn':'MiniMax 中国站 API Key，接口 api.minimaxi.com/anthropic；模型须在账户权限内。',minimax:'MiniMax 全球站 API Key，接口 api.minimax.io/anthropic。','qwen-api-cn':'阿里云百炼中国北京普通 API Key；不是 Coding Plan。默认 qwen-plus，支持 qwen-turbo、qwen-max，当前只接入文本。','kimi-coding':'仅适用 Kimi Code 订阅凭据。platform.kimi.com 创建的开放平台 Key 请选中国开放平台，不要选此项。','moonshotai-cn':'platform.kimi.com 中国站 Key；使用 api.moonshot.cn/v1 和 Bearer 认证。先查询账户模型列表，留空优先选择列表中的 kimi-k3。','moonshotai':'platform.kimi.ai 国际站 Key；使用 api.moonshot.ai/v1。与中国站账户和 Key 隔离。','zai-coding-cn':'使用智谱中国区 Coding Plan 凭据；入口 open.bigmodel.cn/api/coding/paas/v4。',zai:'使用智谱全球 Coding Plan 凭据；入口 api.z.ai/api/coding/paas/v4。',deepseek:'DeepSeek 普通 API Key，留空默认 deepseek-flash（V4.1 Flash）。'})[$('#providerInput').value]; }
+function updateProviderNote() { $('#providerNote').textContent=({openai:'使用 OpenAI Platform 的 API Key；ChatGPT 订阅不是 API Key。留空优先使用 gpt-4.1，可填写账户可用的完整 GPT 模型 ID。',anthropic:'使用 Anthropic Console 的 API Key；Claude 订阅不是 API Key。留空优先使用 claude-sonnet-4-6，可填写账户可用的完整 Claude 模型 ID。','minimax-cn':'MiniMax 中国站 API Key，接口 api.minimaxi.com/anthropic；模型须在账户权限内。',minimax:'MiniMax 全球站 API Key，接口 api.minimax.io/anthropic。','qwen-api-cn':'阿里云百炼中国北京普通 API Key；不是 Coding Plan。默认 qwen-plus，支持 qwen-turbo、qwen-max，当前只接入文本。','kimi-coding':'仅适用 Kimi Code 订阅凭据。platform.kimi.com 创建的开放平台 Key 请选中国开放平台，不要选此项。','moonshotai-cn':'platform.kimi.com 中国站 Key；使用 api.moonshot.cn/v1 和 Bearer 认证。先查询账户模型列表，留空优先选择列表中的 kimi-k3。','moonshotai':'platform.kimi.ai 国际站 Key；使用 api.moonshot.ai/v1。与中国站账户和 Key 隔离。','zai-coding-cn':'使用智谱中国区 Coding Plan 凭据；入口 open.bigmodel.cn/api/coding/paas/v4。',zai:'使用智谱全球 Coding Plan 凭据；入口 api.z.ai/api/coding/paas/v4。',deepseek:'DeepSeek 普通 API Key，留空默认 deepseek-flash（V4.1 Flash）。'})[$('#providerInput').value]; }
+function showSearchConfig(){
+  const mode=$('#searchMode').value;
+  $('#searchProvider').closest('label').hidden=mode!=='separate';
+  $('#searchApiKey').closest('label').hidden=mode!=='separate';
+  $('#rememberSearch').closest('label').hidden=mode!=='separate';
+  $('#searchStatus').textContent=mode==='current'&&!searchStatus.currentSupported?'当前模型不支持复用 Key 搜索。可连接 OpenAI、Anthropic 或 Qwen 百炼，或选择独立搜索服务。':searchStatus.configured?'搜索服务已连接。':'选择搜索方式后保存。';
+}
+async function saveSearchConfig(){
+  const button=$('#saveSearch');button.disabled=true;$('#searchStatus').textContent='正在保存搜索设置…';
+  try{
+    const mode=$('#searchMode').value;
+    searchStatus=await api.configureSearch({mode,provider:$('#searchProvider').value,apiKey:$('#searchApiKey').value,remember:$('#rememberSearch').checked});
+    state.settings.searchMode=mode;await persistNow();$('#searchApiKey').value='';
+    $('#searchStatus').textContent=mode==='off'?'联网搜索已关闭。':'联网搜索已配置。';
+  }catch(error){$('#searchStatus').textContent=error.message.replace(/^Error invoking remote method '[^']+': Error: /,'');}
+  finally{button.disabled=false;}
+}
+async function searchCurrentMessage(){
+  const task=activeTask();if(!task||isBusy(task)||task.archivedAt)return;
+  if(!searchStatus.configured){openSettings();$('#searchStatus').textContent='请先配置联网搜索。';return;}
+  const query=($('#requirementInput')?.value||'').trim();
+  if(!query)return manage({title:'联网搜索',description:'输入要搜索的问题；来源会加入当前对话，供后续答复参考。',value:'',submit:async value=>{
+    if(!value.trim())return false;
+    return runWebSearch(task,value.trim());
+  }});
+  await runWebSearch(task,query);
+}
+async function runWebSearch(task,query){
+  if(!searchStatus.configured){openSettings();$('#searchStatus').textContent='请先配置联网搜索。';return;}
+  const button=$('#webSearchButton');button.disabled=true;button.textContent='搜索中…';
+  try{
+    const sources=await api.webSearch(query);
+    if(!sources.length)throw new Error('搜索服务没有返回可引用的网页来源。');
+    task.webSearchResults=sources;
+    task.timeline.push({type:'agent',text:`已搜索「${query}」。以下是外部网页来源，内容尚未独立核实；发送消息后模型可参考这些来源。`,meta:'联网来源',sources});
+    persist(task);renderCurrent(task);return true;
+  }catch(error){showToast(error.message.replace(/^Error invoking remote method '[^']+': Error: /,''));return false;}
+  finally{button.disabled=false;button.textContent='联网搜索';}
+}
 async function connectModel() {
   if(anyBusy())return;
   const apiKey=$('#apiKeyInput').value.trim();if(!apiKey){$('#settingsError').textContent='请在本机填写此入口的凭据。';return;}
@@ -915,6 +1022,7 @@ function bindEvents() {
   hydrateIcons();
   on('#newTaskButton','click',()=>createTask());on('#collapseRail','click',()=>setRail(false));on('#restoreRail','click',()=>setRail(true));
   on('#togglePreview','click',()=>setPreview(!layout.previewOpen));on('#collapsePreview','click',()=>setPreview(false));
+  on('#detectTypeButton','click',detectTypeOnDemand);
   on('#expandPreview','click',()=>setPreviewExpanded(!layout.previewExpanded));
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&layout.previewExpanded&&!$('dialog[open]')){setPreviewExpanded(false);$('#expandPreview').focus();}});
   on('#previewTab','click',()=>{layout.view='preview';renderPreview(activeTask());});on('#explainTab','click',showRecommendation);
@@ -929,6 +1037,7 @@ function bindEvents() {
   on('#modelConnectionButton','click',()=>{showModelPopover(true);$('#settingsButton').focus();});on('#modelConnectionButton','keydown',e=>{if(e.key==='ArrowUp'){showModelPopover(true);$('#settingsButton').focus();}});
   on('#modelConnection','focusout',e=>{if(!$('#modelConnection').contains(e.relatedTarget))showModelPopover(false);});
   on('#settingsButton','click',openSettings);on('#modelButton','click',openModelMenu);on('#disconnectButton','click',disconnectModel);
+  on('#webSearchButton','click',searchCurrentMessage);
   on('#modelButton','keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();openModelMenu();}});
   document.addEventListener('pointerdown',event=>{if(!event.target.closest('#modelPicker,#modelButton'))hideModelMenu();});
   window.addEventListener('resize',hideModelMenu);
@@ -937,6 +1046,15 @@ function bindEvents() {
   on('#checkUpdateButton','click',checkUpdates);
   on('#downloadUpdateButton','click',downloadAppUpdate);
   on('#openUpdateInstallerButton','click',async()=>{
+    if(updateInstallMode==='automatic'){
+      const removeOldProgram=api.platform==='linux'?$('#removeOldProgram')?.checked!==false:true;
+      const oldVersionNote=api.platform==='linux'?removeOldProgram?'旧版 AppImage 程序文件将被替换；任务与作品保留。':'旧版 AppImage 会先备份在原目录，任务与作品保留。':'';
+      manage({title:'安装更新并重启？',description:`将先保存当前对话，再退出 Nodus 并安装已校验的更新。请先完成或停止正在运行的任务。${oldVersionNote}`,submit:async()=>{
+        if(anyBusy()){$('#manageDescription').textContent='请先完成或停止正在运行的任务。';return false;}
+        try{await persistNow();$('#updateStatus').textContent='正在退出并安装更新…';await api.installUpdate({removeOldProgram});}
+        catch(error){$('#manageDescription').textContent=`无法安装更新：${error.message}`;return false;}
+      }});return;
+    }
     try{const result=await api.openUpdateInstaller();$('#updateStatus').textContent=result.message;}
     catch(error){$('#updateStatus').textContent=`无法打开安装包：${error.message}`;}
   });
@@ -958,6 +1076,12 @@ function bindEvents() {
     const theme=e.target.value,previous=state.settings.theme||'light';
     try{applyAppearance(await api.setTheme(theme));state.settings.theme=theme;persist();}
     catch(error){e.target.value=previous;showToast(`切换主题失败：${error.message}`);}
+  });
+  on('#languageSetting','change',async event=>{
+    const next=event.target.value,previous=state.settings.language||'zh-CN';
+    state.settings.language=next;translator.set(next);render();translator.refresh();
+    try{await api.setLanguage(next);persist();}
+    catch(error){state.settings.language=previous;event.target.value=previous;translator.set(previous);render();translator.refresh();showToast(`切换语言失败：${error.message}`);}
   });
   on('#cancelManage','click',()=>$('#manageDialog').close());on('#attachButton','click',attachMaterials);
   document.addEventListener('dragover',event=>{
@@ -981,7 +1105,8 @@ function bindEvents() {
 
 async function initialize() {
   if(!api)throw new Error('请通过 Nodus 桌面应用打开；此界面需要本机任务与模型接口。');
-  const bootstrap=await api.bootstrap();state=bootstrap.state;model=bootstrap.model;state.settings ||= {};
+  const bootstrap=await api.bootstrap();state=bootstrap.state;model=bootstrap.model;searchStatus=bootstrap.search||searchStatus;state.settings ||= {};
+  translator.set(state.settings.language||'zh-CN');translator.start();
   $('#saveState').textContent='已保存';
   state.tasks.forEach(normalizeTask);
   if(state.settings.panelWidths){layout.railWidth=Math.min(280,Math.max(180,state.settings.panelWidths.rail||210));layout.previewWidth=Math.min(480,Math.max(300,state.settings.panelWidths.preview||370));}

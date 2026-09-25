@@ -33,14 +33,16 @@ Download the latest package for your platform. Packaged builds include Electron 
 
 | Platform | Package | One-line download and launch |
 | --- | --- | --- |
-| macOS · Apple Silicon | [DMG](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg) | Terminal command below |
-| Windows · x64 | [Installer](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe) | PowerShell command below |
-| Linux · x64 | [AppImage](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage) | Terminal command below |
+| macOS · Apple Silicon | `Nodus-v{version}-macOS-arm64.dmg` | [Latest release](https://github.com/alexwilliamclerk/Nodus/releases/latest) or Terminal command below |
+| Windows · x64 | `Nodus-v{version}-Windows-x64.exe` | [Latest release](https://github.com/alexwilliamclerk/Nodus/releases/latest) or PowerShell command below |
+| Linux · x64 | `Nodus-v{version}-Linux-x86_64.AppImage` | [Latest release](https://github.com/alexwilliamclerk/Nodus/releases/latest) or Terminal command below |
+
+New releases display the version in each installer filename, following the platform-specific pattern used by [CC Switch](https://github.com/farion1231/cc-switch/releases). The commands below use stable compatibility download links and save files under versioned names, so they also work with earlier Nodus releases.
 
 **macOS — download and open the disk image:**
 
 ```bash
-curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg' -o "$HOME/Downloads/Nodus.dmg" && open "$HOME/Downloads/Nodus.dmg"
+tag=$(curl -fsSL -o /dev/null -w '%{url_effective}' 'https://github.com/alexwilliamclerk/Nodus/releases/latest' | sed 's#.*/##') && file="$HOME/Downloads/Nodus-$tag-macOS-arm64.dmg" && curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg' -o "$file" && open "$file"
 ```
 
 Drag **Nodus** into Applications after opening the image.
@@ -48,13 +50,13 @@ Drag **Nodus** into Applications after opening the image.
 **Windows — download and start the installer in PowerShell:**
 
 ```powershell
-$ErrorActionPreference='Stop'; Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe' -OutFile "$env:TEMP\Nodus-Setup.exe"; Start-Process "$env:TEMP\Nodus-Setup.exe"
+$ErrorActionPreference='Stop'; $release=Invoke-RestMethod 'https://api.github.com/repos/alexwilliamclerk/Nodus/releases/latest'; $file=Join-Path $env:TEMP "Nodus-$($release.tag_name)-Windows-x64.exe"; Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe' -OutFile $file; Start-Process $file
 ```
 
-**Linux — save the AppImage in your user application directory and run it:**
+**Linux — install and choose whether to remove older AppImages after testing the new app:**
 
 ```bash
-mkdir -p "$HOME/.local/bin" && curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage' -o "$HOME/.local/bin/Nodus.AppImage" && chmod +x "$HOME/.local/bin/Nodus.AppImage" && "$HOME/.local/bin/Nodus.AppImage"
+mkdir -p "$HOME/.local/bin" && curl -fL --retry 3 'https://raw.githubusercontent.com/alexwilliamclerk/Nodus/main/scripts/install-linux.sh' -o "$HOME/.local/bin/Nodus-install-linux.sh" && bash "$HOME/.local/bin/Nodus-install-linux.sh"
 ```
 
 Linux AppImage may require a FUSE runtime supplied by your distribution. Intel Mac, Windows ARM, and Linux ARM builds are not available yet. See [Releases](https://github.com/alexwilliamclerk/Nodus/releases) for SHA-256 checksums and version notes.
@@ -78,31 +80,38 @@ Once Nodus opens:
 
 **4. See what the checks support.** Nodus keeps file checks, model-assisted requirement review, and your acceptance distinct. A generated file is not proof that every goal was met; requirements without reliable evidence remain open for review.
 
-**5. Connect your own model.** Implemented connection options include DeepSeek, Kimi, GLM, MiniMax, and Qwen. API keys stay in memory unless you explicitly choose encrypted local storage. Availability depends on the provider, account, region, and model.
+**5. Connect your own model.** Implemented connection options include OpenAI (GPT), Anthropic (Claude), DeepSeek, Kimi, GLM, MiniMax, and Qwen. API keys stay in memory unless you explicitly choose encrypted local storage. Availability depends on the provider, account, region, and model.
 
-**6. Keep a portable task backup.** Export conversations, materials, decisions, ratings, and deliverables as a ZIP. Application-saved credentials are excluded; sensitive text you put in a task or deliverable is not automatically removed.
+**6. Search when you need current sources.** Configure a compatible current model API key or a separate Brave, Tavily, Qwen, OpenAI, or Anthropic search key. Search results appear as clickable sources in the chat and are available to later answers as unverified external material. Search remains off until configured.
 
-**7. Choose your appearance.** Switch between light, dark, and system themes in Settings. Your choice is saved across restarts; website previews keep their own colors.
+**7. Keep a portable task backup.** Export conversations, materials, decisions, ratings, and deliverables as a ZIP. Application-saved credentials are excluded; sensitive text you put in a task or deliverable is not automatically removed.
 
-**8. Check for updates.** Settings can check GitHub Releases, download the package for your platform, verify its SHA-256, and open the installer. Windows builds also provide a direct uninstall entry and [recovery steps for a damaged uninstaller](docs/windows-uninstall.md).
+**8. Choose your appearance.** Switch between light, dark, and system themes in Settings. Your choice is saved across restarts; website previews keep their own colors.
+
+**9. Check for updates.** Settings can check GitHub Releases. Installed Windows and Linux AppImage builds can verify an update, then install and restart after your confirmation; Linux lets you keep a backup of the previous AppImage. On macOS, the update button opens the matching GitHub release so you can download the DMG and choose whether to replace the old app in Finder. Chats and work files are retained. Windows also provides a direct uninstall entry and [recovery steps for a damaged uninstaller](docs/windows-uninstall.md).
+
+**10. Switch interface language.** Choose Simplified Chinese or English in Settings. The interface and native menus change immediately, and the choice survives restarts. Existing conversations and work files keep their original language; new AI-generated choices follow the selected interface language unless your task requests otherwise.
 
 ## What Nodus can produce
 
 | Deliverable | Files | Current scope |
 | --- | --- | --- |
 | Website | HTML, CSS, JavaScript, local assets | Local preview and reference checks; no full backend or automatic deployment |
-| Research report | Markdown and a source list | Structure and source-status checks; no online fact verification |
+| Research report | Markdown and a source list | Structure and source-status checks; search results are not independent fact verification |
 | Presentation | PPTX and preview | Primarily titles, bullets, and speaker notes |
 | Python project | Source, dependencies, instructions | Syntax checks; generated code is not run automatically |
 | Data analysis | Input snapshots, code, statistics, explanation | Descriptive statistics; input data and local Python 3 required |
+| Word document | DOCX and editable JSON source | Text blocks and basic tables |
+| Excel workbook | XLSX and editable JSON source | Basic sheets, text, numbers, and Boolean cells |
+| Source code | Source files and README | File checks; generated code is not executed |
 
-PDF and DOCX materials support text extraction, without OCR or layout reconstruction. Image understanding requires a vision-capable model. Arbitrary DOCX/XLSX output and unrestricted media layout are not part of the current product.
+PDF and DOCX materials support text extraction, without OCR or layout reconstruction. Image understanding requires a vision-capable model. Complex Word/Excel layout and unrestricted media layout are not part of the current product.
 
 ## Using Nodus
 
 Nodus saves tasks and files locally. Materials supplied to a configured model are sent to that model's service, so local storage does not mean offline inference. You can configure multiple model connections and switch between them when no task is running.
 
-The application interface is currently Chinese; this English README describes its current behavior. The [user guide](docs/guide.md) has the full walkthrough, including task requirements, previews, model connections, and backups.
+The application interface can be switched between Chinese and English in Settings. The [user guide](docs/guide.md) has the full walkthrough, including task requirements, previews, model connections, and backups.
 
 ## Advanced setup
 

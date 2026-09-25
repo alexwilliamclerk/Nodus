@@ -53,6 +53,8 @@ test('provider credentials select distinct Moonshot, Coding and GLM endpoints; u
   const service=new PiService({piDir:path.join(testRoot,'provider-routing'),emit:()=>{}});
   await mkdir(service.piDir,{recursive:true});
   const cases=[
+    ['openai','https://api.openai.com/v1','openai-responses'],
+    ['anthropic','https://api.anthropic.com','anthropic-messages'],
     ['moonshotai-cn','https://api.moonshot.cn/v1','openai-completions'],
     ['moonshotai','https://api.moonshot.ai/v1','openai-completions'],
     ['kimi-coding','https://api.kimi.com/coding','anthropic-messages'],
@@ -67,6 +69,8 @@ test('provider credentials select distinct Moonshot, Coding and GLM endpoints; u
     await service.configure({providerId,apiKey:'local-test-not-a-real-key',verify:false});
     assert.equal(service.model.baseUrl,baseUrl);assert.equal(service.model.api,api);
     if(providerId==='kimi-coding')assert.equal(service.modelId,'kimi-for-coding');
+    if(providerId==='openai')assert.equal(service.modelId,'gpt-4.1');
+    if(providerId==='anthropic')assert.equal(service.modelId,'claude-sonnet-4-6');
     if(providerId==='qwen-api-cn')assert.equal(service.modelId,'qwen-plus');
     if(providerId==='deepseek') {
       assert.equal(service.modelId,'deepseek-flash');

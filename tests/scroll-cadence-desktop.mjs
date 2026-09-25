@@ -44,7 +44,12 @@ try{
  assert(!String(await readFile(path.join(dir,'index.html'))).includes('CHECKPOINT'));
  await page.locator('#adjustWithoutRating').click();assert.equal(await app.evaluate(()=>globalThis.writes),1);
  await page.locator('#modelButton').click();await page.locator('#manageConnections').click();await page.locator('#previewEveryInput').selectOption('0');await page.locator('#closeSettings').click();
- for(let i=0;i<3;i++){await page.locator('[data-choice="visual"]').check();await page.locator('#submitFlowDecision').click();await page.getByText('继续修改哪一项？',{exact:true}).waitFor();}
+ for(let i=0;i<2;i++){await page.locator('[data-choice="visual"]').check();await page.locator('#submitFlowDecision').click();if(i===0)await page.getByText('继续修改哪一项？',{exact:true}).waitFor();else await page.locator('[data-choice="execute"]').waitFor();}
  assert.equal(await app.evaluate(()=>globalThis.writes),1);
- console.log(JSON.stringify({passed:true,followLayout:true,historyNotInterrupted:true,jumpToLatest:true,thirdModificationCreatesRealPreview:true,reloadSafe:true,disabledDoesNotWrite:true,model:'mocked'}));
+ assert.match(await page.locator('#timeline').innerText(),/右侧目前显示 V2/);
+ await page.locator('[data-choice="execute"]').check();await page.locator('#submitFlowDecision').click();await page.locator('#submitRating').waitFor();
+ assert.equal(await app.evaluate(()=>globalThis.writes),2);assert.match(await page.locator('#sitePreview').getAttribute('src'),/\/v3\/index\.html/);
+ await page.locator('#adjustWithoutRating').click();await page.locator('[data-choice="visual"]').check();await page.locator('#finishQuestions').click();await page.locator('[data-choice="execute"]').waitFor();
+ assert.equal(await app.evaluate(()=>globalThis.writes),2,'the shortcut must still require final confirmation');
+ console.log(JSON.stringify({passed:true,followLayout:true,historyNotInterrupted:true,jumpToLatest:true,thirdModificationCreatesRealPreview:true,reloadSafe:true,shortRevision:true,earlyPreviewShortcut:true,disabledDoesNotWrite:true,model:'mocked'}));
 }finally{await app.close();}

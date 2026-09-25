@@ -5,9 +5,10 @@ import {mkdtemp,readFile,readdir} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {compareVersions,checkForUpdate,downloadUpdate} from '../backend/update-service.mjs';
+import {releaseAssetName,legacyAssetName} from '../backend/release-names.mjs';
 
 const repo='https://github.com/alexwilliamclerk/Nodus/releases/download/v1.3.0/';
-const name='Nodus-windows-x64.exe';
+const name='Nodus-v1.3.0-Windows-x64.exe';
 const bytes=Buffer.from('synthetic installer payload');
 const digest=createHash('sha256').update(bytes).digest('hex');
 const asset=(file,size)=>({name:file,size,browser_download_url:repo+file});
@@ -18,6 +19,9 @@ function mockResponse(url,content){
 const release={tag_name:'v1.3.0',draft:false,prerelease:false,assets:[asset(name,bytes.length),asset('SHA256SUMS.txt',100)]};
 
 test('update check compares semantic versions and selects only the matching platform asset',async()=>{
+  assert.equal(releaseAssetName('darwin','v1.3.0'),'Nodus-v1.3.0-macOS-arm64.dmg');
+  assert.equal(releaseAssetName('win32','v1.3.0'),name);
+  assert.equal(releaseAssetName('linux','v1.3.0'),'Nodus-v1.3.0-Linux-x86_64.AppImage');
   assert.equal(compareVersions('1.3.0','1.2.9'),1);
   assert.equal(compareVersions('v1.2.0','1.2.0'),0);
   assert.equal(compareVersions('1.2.0','1.3.0'),-1);
@@ -30,6 +34,10 @@ test('update check compares semantic versions and selects only the matching plat
   assert.equal(current.downloadable,true,'the current installer remains available to repair a broken local install');
   assert.equal((await checkForUpdate('1.2.0','darwin',request)).downloadable,false);
   await assert.rejects(()=>checkForUpdate('1.2.0','freebsd',request),/不支持/);
+  const older={...release,assets:[asset(legacyAssetName('win32'),bytes.length),asset('SHA256SUMS.txt',100)]};
+  assert.equal((await checkForUpdate('1.2.0','win32',async url=>mockResponse(url,JSON.stringify(older)))).assetName,'Nodus-windows-x64.exe','old releases remain updatable');
+  const mixed={...release,assets:[asset(legacyAssetName('win32'),bytes.length),...release.assets]};
+  assert.equal((await checkForUpdate('1.2.0','win32',async url=>mockResponse(url,JSON.stringify(mixed)))).assetName,name,'versioned installer is preferred');
 });
 
 test('download verifies published checksum and size, and reuses a verified file',async()=>{
@@ -48,6 +56,15 @@ test('download verifies published checksum and size, and reuses a verified file'
   assert.equal(second.reused,true);
   assert.equal(downloads,1);
 });
+test('an older release with only the stable alias remains downloadable',async()=>{
+  const oldName=legacyAssetName('win32');
+  const oldRelease={...release,assets:[asset(oldName,bytes.length),asset('SHA256SUMS.txt',100)]};
+  const info=await checkForUpdate('1.2.0','win32',async url=>mockResponse(url,JSON.stringify(oldRelease)));
+  const directory=await mkdtemp(path.join(os.tmpdir(),'nodus-update-legacy-'));
+  const result=await downloadUpdate(info,directory,{request:async url=>url.endsWith('SHA256SUMS.txt')?mockResponse(url,`${digest}  ${oldName}\n`):mockResponse(url,bytes)});
+  assert.equal(path.basename(result.path),oldName);
+  assert((await readFile(result.path)).equals(bytes));
+});
 
 test('corrupt downloads are rejected and no partial installer remains',async()=>{
   const directory=await mkdtemp(path.join(os.tmpdir(),'nodus-update-bad-'));
@@ -63,4 +80,9 @@ test('GitHub asset digest must agree with the release checksum file',async()=>{
   const info=await checkForUpdate('1.2.0','win32',async url=>mockResponse(url,JSON.stringify(release)));
   const request=async url=>url.endsWith('SHA256SUMS.txt')?mockResponse(url,`${digest}  ${name}\n`):mockResponse(url,bytes);
   await assert.rejects(()=>downloadUpdate({...info,assetDigest:`sha256:${'0'.repeat(64)}`},directory,{request}),/摘要/);
+});
+test('download rejects a filename from another version or platform',async()=>{
+  const info=await checkForUpdate('1.2.0','win32',async url=>mockResponse(url,JSON.stringify(release)));
+  await assert.rejects(downloadUpdate({...info,assetName:'Nodus-v1.4.0-Windows-x64.exe'},os.tmpdir(),{request:async()=>{throw Error('should not fetch');}}),/信息无效/);
+  await assert.rejects(downloadUpdate({...info,assetName:'Nodus-v1.3.0-macOS-arm64.dmg'},os.tmpdir(),{request:async()=>{throw Error('should not fetch');}}),/信息无效/);
 });

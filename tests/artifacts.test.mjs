@@ -9,10 +9,11 @@ import { StorageService } from '../backend/storage.mjs';
 import { ArtifactService, readArtifact, artifactUrl } from '../backend/artifact-service.mjs';
 import { finalizeArtifact, validatePptx, prepareAnalysis } from '../backend/artifacts.mjs';
 import { artifactTypes } from '../frontend/artifact-types.js';
+import {localNode,emptyAnswer} from '../frontend/decision-flow.js';
 import JSZip from 'jszip';
 const options=[1,2,3,4].map(n=>({id:String(n),title:`方案${n}`,description:'具体方法',effect:'效果',tradeoff:'取舍',condition:'条件'}));
 async function setup(){const dir=await mkdtemp(path.join(os.tmpdir(),'nodus-types-'));const storage=new StorageService(dir);await storage.initialize();const pi=new PiService({piDir:storage.piDir,emit:()=>{}});pi.model={id:'mock'};return {dir,storage,pi,service:new ArtifactService(storage,pi)};}
-const cases=[['AI 行业市场调研报告','report'],['季度复盘演示文稿','presentation'],['Python 数据清洗脚本','python'],['企业官网','website']];
+const cases=[['AI 行业市场调研报告','report'],['季度复盘演示文稿','presentation'],['Python 数据清洗脚本','python'],['企业官网','website'],['正式 Word 文件','word'],['真实 Excel 工作簿','excel'],['JavaScript 代码工程','code']];
 test('malformed decisions cannot expose duplicate choices or invalid recommendations',async()=>{
   const {pi}=await setup();
   for(const malformed of [
@@ -24,14 +25,40 @@ test('malformed decisions cannot expose duplicate choices or invalid recommendat
     await assert.rejects(pi.generateOptions({requirement:'AI 行业市场调研报告'}),/方案/);
   }
 });
-test('website validates navigation and inline module dependencies without rejecting external links',async()=>{
+test('website validates navigation targets and inline module dependencies without rejecting external links',async()=>{
   const dir=await mkdtemp(path.join(os.tmpdir(),'nodus-website-links-'));
-  for(const body of ['<a href="missing.html">下一页</a>','<script type="module">import "./missing.js";</script>']) {
+  for(const body of ['<a href="missing.html">下一页</a>','<a href="#missing">不存在的区块</a>','<a href="javascript:void(0)">无效跳转</a>','<a href="https://example.com" target="_top">预览中受限的跳转</a>','<script>function broken( {</script>','<script type="module">import "./missing.js";</script>']) {
     await writeFile(path.join(dir,'index.html'),`<html><body>${body}</body></html>`);
     await assert.rejects(finalizeArtifact({artifactType:'website'},dir));
   }
-  await writeFile(path.join(dir,'index.html'),'<html><body><a href="https://example.com">来源</a><a href="#here">目录</a></body></html>');
+  await writeFile(path.join(dir,'index.html'),'<html><body><a href="https://example.com" target="_blank">来源</a><a href="#here">目录</a><section id="here">内容</section></body></html>');
   assert.equal((await finalizeArtifact({artifactType:'website'},dir)).verification.localResources,'passed');
+});
+test('broken navigation in a revision cannot replace the working website version',async()=>{
+  const {storage,pi,service}=await setup();
+  pi.runText=async args=>{
+    await writeFile(path.join(args.cwd,'index.html'),`<html><body><a href="${args.phase==='revision'?'#missing':'#works'}">Go</a><section id="works">Working</section></body></html>`);
+    return 'written';
+  };
+  const task={id:'navigation',artifactType:'website',requirement:'A website with working navigation'};
+  await service.execute({task,versionId:'v1'});
+  const original=await readFile(path.join(storage.versionDir(task.id,'v1'),'index.html'),'utf8');
+  await assert.rejects(service.execute({task,versionId:'v2',baseVersionId:'v1',proposal:{suggestion:'Change appearance only'}}),/跳转目标不存在/);
+  assert.equal(await storage.artifactExists(task.id,'v2'),false);
+  assert.equal(await readFile(path.join(storage.versionDir(task.id,'v1'),'index.html'),'utf8'),original);
+});
+test('visual-only revision cannot silently remove working interaction controls',async()=>{
+  const {storage,pi,service}=await setup();
+  pi.runText=async args=>{
+    const old=args.phase!=='revision';
+    await writeFile(path.join(args.cwd,'index.html'),`<html><body>${old?'<a href="#works">Go</a><button id="open" type="button">Open</button>':''}<section id="works">Working</section></body></html>`);
+    return 'written';
+  };
+  const task={id:'preservation',artifactType:'website',requirement:'Keep working navigation'};
+  await service.execute({task,versionId:'v1'});
+  const flow={schemaVersion:3,status:'confirmed',baseVersionId:'v1',artifactType:'website',current:localNode('confirm','website'),draft:{...emptyAnswer(),selectedOptionIds:['execute']},history:[{node:localNode('area','website'),answer:{...emptyAnswer(),selectedOptionIds:['visual']}}],summary:{changes:'Change colors',preserve:'Keep navigation',verification:'Preview'}};
+  await assert.rejects(service.execute({task,versionId:'v2',baseVersionId:'v1',proposal:flow}),/交互入口/);
+  assert.equal(await storage.artifactExists(task.id,'v2'),false);
 });
 test('PPTX rejects slides missing from the presentation relationship graph',async()=>{
   const dir=await mkdtemp(path.join(os.tmpdir(),'nodus-pptx-rels-'));await fixture('presentation',dir);
@@ -73,7 +100,7 @@ for(const [requirement,type] of cases)test(`${type}: mocked routing, real files,
 test('unknown, mixed, unsupported format and correction never silently select website',async()=>{
   const {pi}=await setup();const calls=[];
   pi.runText=async args=>{calls.push(args);return JSON.stringify(args.prompt.includes('用户已指定当前类型')?{artifactType:'python',options}:{clarification:'请明确主交付物',options:[]});};
-  for(const requirement of ['帮我做一个项目','同时做网站和PPT','必须交付DOCX'])assert((await pi.generateOptions({requirement})).clarification);
+  for(const requirement of ['帮我做一个项目','同时做网站和PPT','必须交付PDF'])assert((await pi.generateOptions({requirement})).clarification);
   const decision=await pi.generateOptions({requirement:'不要网站，交付Python脚本',artifactType:'python'});assert.equal(decision.artifactType,'python');assert.match(calls.at(-1).prompt,/实际 .py 源文件/);
   pi.runText=async()=>JSON.stringify({artifactType:'website',options});assert((await pi.generateOptions({requirement:'交付Python',artifactType:'python'})).clarification);
 });

@@ -52,8 +52,8 @@ jobs:
         shell: pwsh
         run: |
           $version = node -p "require('./package.json').version"
-          ./tests/windows-uninstall.ps1 -InstallerPath "dist/Nodus-Setup-${version}-x64.exe"
-      - name: Prepare stable download filename
+          ./tests/windows-uninstall.ps1 -InstallerPath "dist/Nodus-v${version}-Windows-x64.exe" -UpgradeFromPublished
+      - name: Prepare versioned packages and compatibility aliases
         run: node scripts/prepare-release-asset.mjs ${{ matrix.platform }}
       - uses: actions/upload-artifact@v4
         with:
@@ -68,6 +68,9 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - uses: actions/download-artifact@v4
         with:
           pattern: installer-*
@@ -81,10 +84,23 @@ jobs:
         run: |
           set -euo pipefail
           version=$(node -p "require('./package.json').version")
-          test -s release-assets/Nodus-mac-arm64.dmg
-          test -s release-assets/Nodus-windows-x64.exe
-          test -s release-assets/Nodus-linux-x64.AppImage
-          (cd release-assets && sha256sum Nodus-mac-arm64.dmg Nodus-windows-x64.exe Nodus-linux-x64.AppImage > SHA256SUMS.txt)
+          test -s "release-assets/Nodus-v${version}-macOS-arm64.dmg"
+          test -s "release-assets/Nodus-v${version}-Windows-x64.exe"
+          test -s "release-assets/Nodus-v${version}-Linux-x86_64.AppImage"
+          test -s release-assets/latest.yml
+          test -s release-assets/latest-linux.yml
+          test -s "release-assets/Nodus-v${version}-Linux-install.sh"
+          cmp "release-assets/Nodus-v${version}-Linux-install.sh" release-assets/Nodus-linux-install.sh
+          bash -n "release-assets/Nodus-v${version}-Linux-install.sh"
+          grep -F "Nodus-v${version}-Windows-x64.exe" release-assets/latest.yml
+          grep -F "Nodus-v${version}-Linux-x86_64.AppImage" release-assets/latest-linux.yml
+          grep -q 'sha512:' release-assets/latest.yml
+          grep -q 'sha512:' release-assets/latest-linux.yml
+          cmp "release-assets/Nodus-v${version}-macOS-arm64.dmg" release-assets/Nodus-mac-arm64.dmg
+          cmp "release-assets/Nodus-v${version}-Windows-x64.exe" release-assets/Nodus-windows-x64.exe
+          cmp "release-assets/Nodus-v${version}-Linux-x86_64.AppImage" release-assets/Nodus-linux-x64.AppImage
+          node scripts/verify-update-metadata.mjs
+          (cd release-assets && sha256sum "Nodus-v${version}-macOS-arm64.dmg" "Nodus-v${version}-Windows-x64.exe" "Nodus-v${version}-Linux-x86_64.AppImage" "Nodus-v${version}-Linux-install.sh" Nodus-mac-arm64.dmg Nodus-windows-x64.exe Nodus-linux-x64.AppImage Nodus-linux-install.sh > SHA256SUMS.txt)
           if gh release view "v$version" >/dev/null 2>&1; then
             echo "Release v$version already exists; refusing to overwrite it."
             exit 1

@@ -165,7 +165,7 @@ h2,p { margin:0; }
 dialog { background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 12px 45px #49332420; }
 dialog::backdrop { background:#44382d25; }
 dialog h2 { font-size:16px; font-weight:500; }
-.settings-modal { width:430px; }
+.settings-modal { width:430px; max-height:calc(100vh - 48px); overflow-y:auto; }
 .settings-modal header { display:flex; justify-content:space-between; align-items:center; }
 .update-panel { margin-top:16px; padding:13px 0; border-top:1px solid var(--line); }
 .update-panel strong { font-size:12px; font-weight:600; }
@@ -174,6 +174,7 @@ dialog h2 { font-size:16px; font-weight:500; }
 .update-actions { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
 .update-actions .text-button { color:var(--muted); }
 .toggle-setting { display:flex; gap:8px; align-items:center; margin:18px 0; }
+.field-label[hidden],.toggle-setting[hidden] { display:none; }
 .field-label { display:grid; gap:5px; font-size:12px; margin-top:13px; }
 .credential-paste { justify-self:start; padding:3px 7px; color:var(--muted); border:1px solid var(--line); }
 .field-label input,.field-label select,.manage-dialog input { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px; background:white; }
@@ -190,3 +191,8 @@ dialog h2 { font-size:16px; font-weight:500; }
 /* Type correction shares the existing compact action header. */
 #artifactTypeSelect{max-width:112px;min-width:82px;font:inherit;font-size:11px;color:var(--muted,#78695e);border:1px solid #e8ddd5;border-radius:7px;background:transparent;padding:3px}.action-head h2{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #agentModeSelect{font:inherit;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:7px;background:transparent;padding:3px;max-width:78px;flex-shrink:0}
+:root[lang="en-US"] #artifactTypeSelect{max-width:160px}
+.search-sources { margin:9px 0 0; padding-left:17px; }
+.search-sources li { margin:5px 0; overflow-wrap:anywhere; }
+.search-sources a { color:var(--accent); text-decoration:underline; }
+.search-sources p { color:var(--muted); margin:3px 0 0; }

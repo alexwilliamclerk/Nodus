@@ -5,6 +5,9 @@ export const decisionAreas={
   presentation:[['story','叙事结构','页面顺序和整体逻辑'],['content','页面内容','标题和文字要点'],['density','信息密度','拆页、合页和要点长度'],['notes','演讲备注','补充讲稿和待补充材料']],
   python:[['input','数据读取','文件解析和输入格式'],['logic','处理逻辑','算法、清洗与异常处理'],['output','输出结果','输出格式和文件组织'],['usage','依赖与说明','环境要求、运行方法和限制']],
   analysis:[['input','输入材料','数据来源和字段含义'],['metrics','统计指标','描述统计和数值列'],['explanation','结果解读','假设、限制与说明'],['delivery','交付内容','代码、复现说明和结果呈现']],
+  word:[['structure','文档结构','标题、段落与表格顺序'],['content','文档内容','事实、措辞与篇幅'],['tables','表格','行列和单元格内容'],['delivery','交付内容','DOCX 与同源预览']],
+  excel:[['sheets','工作表','工作表名称与分组'],['columns','列与字段','表头、列顺序与含义'],['rows','数据行','数值与文本内容'],['delivery','交付内容','XLSX 与同源预览']],
+  code:[['structure','工程结构','源文件与目录'],['logic','实现逻辑','功能与边界条件'],['usage','运行说明','依赖和使用方法'],['delivery','交付内容','源代码与说明']],
 };
 export function localNode(kind,type){
   const sets={

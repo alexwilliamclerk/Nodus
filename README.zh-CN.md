@@ -40,14 +40,16 @@ Nodus 是一个以**动态选择与持续反馈**为核心的 AI 桌面工作台
 <td><h3>看清依据，再接受交付</h3><p>文件检查、模型辅助审查与人工判断分别呈现。没有可靠证据的要求保持待确认，不把生成文件等同于完成目标。</p></td>
 </tr>
 <tr>
-<td><h3>接入自己的模型</h3><p>管理多条模型连接，支持 DeepSeek、Kimi、GLM、MiniMax、Qwen 的已实现入口。凭据默认仅在本次运行中使用。</p></td>
+<td><h3>接入自己的模型</h3><p>管理多条模型连接，支持 OpenAI（GPT）、Anthropic（Claude）、DeepSeek、Kimi、GLM、MiniMax、Qwen 的已实现入口。凭据默认仅在本次运行中使用。</p></td>
 <td><h3>作品交到你的目录</h3><p>选择本地交付目录，导出具体版本；任务、附件、决定与作品可备份。应用凭据不进入备份包。</p></td>
 </tr>
 </table>
 
 在“设置与模型连接”的“外观主题”中，可选浅色、深色或跟随系统。选择会在重启后保留；作品预览保持作品原有配色。
 
-同一设置页新增“检查更新”：从 GitHub Releases 下载本平台安装包并核对 SHA-256，然后打开安装程序。Windows 版还提供卸载入口；如果 `Uninstall Nodus.exe` 报完整性错误，请按 [Windows 卸载修复说明](docs/windows-uninstall.zh-CN.md)处理。
+在同一设置页的“界面语言”中，可选简体中文或 English。切换后界面和系统菜单立即更新，重启后保留选择；已有对话和作品保留原文。新生成的动态问题与选项会尽量使用所选界面语言，交付文件仍按任务要求。
+
+同一设置页可以“检查更新”：Windows 安装版和 Linux AppImage 版在校验后可经确认安装并重启；Linux 可选择删除旧 AppImage，或备份旧程序。macOS 的更新按钮会打开对应版本的 GitHub 发布页，下载 DMG 后可在 Finder 选择替换旧应用。更新只处理程序文件，保留任务、作品与连接数据。Windows 版还提供卸载入口；如果 `Uninstall Nodus.exe` 报完整性错误，请按 [Windows 卸载修复说明](docs/windows-uninstall.zh-CN.md)处理。
 
 ## 下载安装
 
@@ -55,29 +57,31 @@ Nodus 是一个以**动态选择与持续反馈**为核心的 AI 桌面工作台
 
 | 平台 | 下载 | 安装 |
 | --- | --- | --- |
-| macOS · Apple Silicon | [下载 DMG](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg) | 打开后将 Nodus 拖入 Applications |
-| Windows · x64 | [下载安装器](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe) | 运行安装向导 |
-| Linux · x64 | [下载 AppImage](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage) | 下载后赋予执行权限并运行 |
+| macOS · Apple Silicon | `Nodus-v{版本}-macOS-arm64.dmg` | [最新发布页](https://github.com/alexwilliamclerk/Nodus/releases/latest)，打开后拖入 Applications |
+| Windows · x64 | `Nodus-v{版本}-Windows-x64.exe` | [最新发布页](https://github.com/alexwilliamclerk/Nodus/releases/latest)，运行安装向导 |
+| Linux · x64 | `Nodus-v{版本}-Linux-x86_64.AppImage` | [最新发布页](https://github.com/alexwilliamclerk/Nodus/releases/latest)，赋予执行权限后运行 |
 | 其他平台 | [从源码构建](docs/development.md) | 暂无 Intel Mac、Windows ARM 或 Linux ARM 的预构建包 |
+
+新发布的安装包文件名会写明版本、系统和架构；下方一句话命令使用兼容旧版的固定下载链接，但保存到本机时会带上版本号。
 
 也可以复制一行命令，**下载并打开安装器**：
 
 **macOS（终端）**
 
 ```bash
-curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg' -o "$HOME/Downloads/Nodus.dmg" && open "$HOME/Downloads/Nodus.dmg"
+tag=$(curl -fsSL -o /dev/null -w '%{url_effective}' 'https://github.com/alexwilliamclerk/Nodus/releases/latest' | sed 's#.*/##') && file="$HOME/Downloads/Nodus-$tag-macOS-arm64.dmg" && curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg' -o "$file" && open "$file"
 ```
 
 **Windows（PowerShell）**
 
 ```powershell
-$ErrorActionPreference='Stop'; Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe' -OutFile "$env:TEMP\Nodus-Setup.exe"; Start-Process "$env:TEMP\Nodus-Setup.exe"
+$ErrorActionPreference='Stop'; $release=Invoke-RestMethod 'https://api.github.com/repos/alexwilliamclerk/Nodus/releases/latest'; $file=Join-Path $env:TEMP "Nodus-$($release.tag_name)-Windows-x64.exe"; Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe' -OutFile $file; Start-Process $file
 ```
 
-**Linux x64（终端）：下载到用户程序目录并启动**
+**Linux x64（终端）：安装后可选择清理旧版 AppImage**
 
 ```bash
-mkdir -p "$HOME/.local/bin" && curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage' -o "$HOME/.local/bin/Nodus.AppImage" && chmod +x "$HOME/.local/bin/Nodus.AppImage" && "$HOME/.local/bin/Nodus.AppImage"
+mkdir -p "$HOME/.local/bin" && curl -fL --retry 3 'https://raw.githubusercontent.com/alexwilliamclerk/Nodus/main/scripts/install-linux.sh' -o "$HOME/.local/bin/Nodus-install-linux.sh" && bash "$HOME/.local/bin/Nodus-install-linux.sh"
 ```
 
 Linux AppImage 可能需要发行版提供 FUSE 运行库；不同桌面环境的兼容性仍需实机验证。
@@ -110,12 +114,15 @@ Linux AppImage 可能需要发行版提供 FUSE 运行库；不同桌面环境�
 | 类型 | 交付文件 | 当前能力范围 |
 | --- | --- | --- |
 | 网站 | HTML、CSS、JavaScript 与本地资源 | 本地预览与资源检查；不包含完整后端或自动部署 |
-| 调研报告 | Markdown 与来源清单 | 结构与来源状态检查；不提供联网事实核实 |
+| 调研报告 | Markdown 与来源清单 | 结构与来源状态检查；联网来源不等于独立事实核实 |
 | 演示文稿 | PPTX 与预览 | 以文字标题、要点和备注为主 |
 | Python 工程 | 源码、依赖文件与说明 | AST 语法检查；不自动安装依赖或执行生成代码 |
 | 数据分析 | 输入快照、代码、统计结果与说明 | 描述统计；需要数据材料与本机 Python 3 |
+| Word 文档 | DOCX 与可编辑 JSON 源文件 | 文字段落与基础表格 |
+| Excel 工作簿 | XLSX 与可编辑 JSON 源文件 | 基础工作表、文字、数字与布尔单元格 |
+| 源代码 | 源文件与 README | 检查文件；不执行生成代码 |
 
-PDF/DOCX 材料支持文字提取，不包含 OCR 或版式还原。图片理解需要支持视觉的模型。当前不支持任意 DOCX/XLSX 输出或自由媒体排版。
+PDF/DOCX 材料支持文字提取，不包含 OCR 或版式还原。图片理解需要支持视觉的模型。Word/Excel 目前只支持基础结构，不支持复杂版式或自由媒体排版。
 
 ## 本地数据与模型服务
 

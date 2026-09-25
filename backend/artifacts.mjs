@@ -3,6 +3,7 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
+import {Script} from 'node:vm';
 import PptxGenJS from 'pptxgenjs';
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
@@ -11,6 +12,7 @@ import { XMLParser, XMLValidator } from 'fast-xml-parser';
 import { parse } from 'csv-parse/sync';
 import { parse as parseHtml } from 'parse5';
 import { typeInfo, artifactRequirements } from '../frontend/artifact-types.js';
+import {finalizeDocx,finalizeXlsx} from './office-documents.mjs';
 const exec=promisify(execFile);
 const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(dir,file)=>readFile(safePath(dir,file),'utf8');
@@ -75,15 +77,33 @@ async function checkPython(dir,files) {
 async function checkWebsite(dir,files) {
   const html=await text(dir,'index.html');
   if(!/<html[\s>]/i.test(html)||!/<body[\s>]/i.test(html)) throw new Error('index.html 不是完整 HTML 页面');
+  const htmlTargets=new Map();
+  const targetsIn=async file=>{
+    if(htmlTargets.has(file))return htmlTargets.get(file);
+    const targets=new Set();
+    const walk=node=>{
+      const attrs=Object.fromEntries((node.attrs||[]).map(a=>[a.name,a.value]));
+      if(attrs.id)targets.add(attrs.id);
+      if(node.tagName==='a'&&attrs.name)targets.add(attrs.name);
+      for(const child of node.childNodes||[])walk(child);
+    };
+    walk(parseHtml(await text(dir,file)));htmlTargets.set(file,targets);return targets;
+  };
   const check=async(file,ref,navigation=false)=>{
-    if(!ref||/^(#|data:|mailto:|tel:)/i.test(ref))return;
+    if(!ref||/^(data:|mailto:|tel:)/i.test(ref))return;
+    if(/^javascript:/i.test(ref))throw new Error(`页面链接不能使用 javascript: ${ref.slice(0,80)}`);
     if(/^(https?:|\/\/)/i.test(ref)) { if(navigation)return; throw new Error(`资源必须本地可用：${ref}`); }
-    const pathname=decodeURIComponent(ref.split(/[?#]/)[0]);
-    if(!pathname)return;
+    const [rawPath,rawFragment='']=ref.split('#');
+    const pathname=decodeURIComponent(rawPath.split('?')[0]);
+    if(!pathname&&!navigation)return;
     if(pathname.startsWith('/'))throw new Error(`本地资源请使用相对路径：${ref}`);
-    const name=path.posix.normalize(path.posix.join(path.posix.dirname(file),pathname));
+    const name=pathname?path.posix.normalize(path.posix.join(path.posix.dirname(file),pathname)):file;
     const resolved=safePath(dir,name);
     if(!(await lstat(resolved)).isFile()) throw new Error(`资源不是文件：${name}`);
+    if(navigation&&rawFragment&&/\.html?$/i.test(name)){
+      const fragment=decodeURIComponent(rawFragment);
+      if(!(await targetsIn(name)).has(fragment))throw new Error(`页面跳转目标不存在：${ref}（${file}）`);
+    }
   };
   const cssRefs=source=>[...source.matchAll(/url\(\s*["']?([^\s"')]+)["']?\s*\)|@import\s+["']([^"']+)/gi)].map(m=>m[1]||m[2]);
   const moduleRefs=source=>[...source.matchAll(/(?:from\s*|import\s*\(?)["'](\.[^"']+)["']/g)].map(m=>m[1]);
@@ -96,8 +116,17 @@ async function checkWebsite(dir,files) {
         const attrs=Object.fromEntries((node.attrs||[]).map(a=>[a.name,a.value]));
         for(const key of ['src','poster','data'])if(attrs[key])refs.push(attrs[key]);
         if(node.tagName==='link'&&attrs.href)refs.push(attrs.href);
-        if(node.tagName==='a'&&attrs.href)links.push(attrs.href);
-        if(node.tagName==='script'&&attrs.type==='module')refs.push(...moduleRefs((node.childNodes||[]).map(n=>n.value||'').join('')));
+        if(node.tagName==='a'&&attrs.href){
+          if(['_top','_parent'].includes(attrs.target?.toLowerCase()))throw new Error(`预览中无法跳转到上级窗口：${attrs.href}`);
+          links.push(attrs.href);
+        }
+        if(node.tagName==='script'){
+          const script=(node.childNodes||[]).map(n=>n.value||'').join('');
+          if(attrs.type==='module')refs.push(...moduleRefs(script));
+          else if(!attrs.src&&(!attrs.type||/^(?:text|application)\/javascript$/i.test(attrs.type))&&script.trim()){
+            try{new Script(script,{filename:file});}catch(error){throw new Error(`页面脚本语法错误（${file}）：${error.message}`);}
+          }
+        }
         if(attrs.srcset&&!attrs.srcset.startsWith('data:'))refs.push(...attrs.srcset.split(',').map(v=>v.trim().split(/\s+/)[0]));
         if(attrs.style)refs.push(...cssRefs(attrs.style));
         if(node.tagName==='style')refs.push(...cssRefs((node.childNodes||[]).map(n=>n.value||'').join('')));
@@ -108,6 +137,30 @@ async function checkWebsite(dir,files) {
     for(const ref of links) await check(file,ref,true);
   }
   return {html:'passed',localResources:'passed',runtime:'未执行交互测试'};
+}
+export async function assertWebsiteInteractionsPreserved(beforeDir,afterDir){
+  const oldPages=(await fileList(beforeDir)).filter(file=>/\.html?$/i.test(file)&&file!=='.nodus-preview.html');
+  const newPages=new Set((await fileList(afterDir)).filter(file=>/\.html?$/i.test(file)));
+  const signatures=async(dir,file)=>{
+    const counts=new Map();
+    const add=value=>counts.set(value,(counts.get(value)||0)+1);
+    const walk=node=>{
+      const attrs=Object.fromEntries((node.attrs||[]).map(a=>[a.name,a.value]));
+      if(node.tagName==='a'&&attrs.href)add(`link:${attrs.href}`);
+      if(node.tagName==='button'&&attrs.id)add(`button:${attrs.id}`);
+      if(node.tagName==='form')add(`form:${attrs.id||''}:${attrs.action||''}`);
+      if(node.tagName==='script'&&attrs.src)add(`script:${attrs.src}`);
+      if(node.tagName==='script'&&!attrs.src&&(node.childNodes||[]).some(child=>child.value?.trim()))add('script:inline');
+      for(const [name,value] of Object.entries(attrs))if(name.startsWith('on')&&value)add(`handler:${node.tagName}:${attrs.id||''}:${name}`);
+      for(const child of node.childNodes||[])walk(child);
+    };
+    walk(parseHtml(await text(dir,file)));return counts;
+  };
+  for(const file of oldPages){
+    if(!newPages.has(file))throw new Error(`修订删除了原有网页 ${file}；当前未选择修改交互。`);
+    const old=await signatures(beforeDir,file),next=await signatures(afterDir,file);
+    for(const [signature,count] of old)if((next.get(signature)||0)<count)throw new Error(`修订移除了原有交互入口 ${signature}（${file}）；请保留，或明确选择修改交互。`);
+  }
 }
 async function compileSlides(dir) {
   const deck=JSON.parse(await text(dir,'slides.json'));
@@ -161,9 +214,11 @@ function markdown(value) {
   return sanitizeHtml(marked.parse(value),{allowedTags:sanitizeHtml.defaults.allowedTags,allowedAttributes:{a:['href','title']},allowedSchemes:['http','https','mailto']});
 }
 
-async function preview(dir,type,files,verification,deck) {
+async function preview(dir,type,files,verification,deck,officeSource) {
   const info=typeInfo(type);let body='';
   if(type==='presentation') body=deck.slides.map((s,i)=>`<section class="slide"><small>${i+1} / ${deck.slides.length}</small><h2>${esc(s.title)}</h2><ul>${s.bullets.map(b=>`<li>${esc(b)}</li>`).join('')}</ul><details><summary>演讲备注</summary>${esc(s.notes||'无')}</details></section>`).join('');
+  else if(type==='word') body=`<h1>${esc(officeSource.title)}</h1>${officeSource.blocks.map(block=>block.type==='heading'?`<h${block.level+1}>${esc(block.text)}</h${block.level+1}>`:block.type==='paragraph'?`<p class="line">${esc(block.text)}</p>`:`<table>${block.rows.map(row=>`<tr>${row.map(cell=>`<td>${esc(cell)}</td>`).join('')}</tr>`).join('')}</table>`).join('')}`;
+  else if(type==='excel') body=officeSource.sheets.map(sheet=>`<h2>${esc(sheet.name)}</h2><table>${sheet.columns?.length?`<tr>${sheet.columns.map(cell=>`<th>${esc(cell)}</th>`).join('')}</tr>`:''}${sheet.rows.map(row=>`<tr>${row.map(cell=>`<td>${esc(cell??'')}</td>`).join('')}</tr>`).join('')}</table>`).join('');
   else body=markdown(await text(dir,info.entry));
   const links=files.filter(f=>!['artifact.json','.nodus-preview.html'].includes(f)).map(f=>`<li><a download href="${f.split('/').map(encodeURIComponent).join('/')}">${esc(f)}</a>${/\.(py|txt|json|md)$/.test(f)?`<details><summary>查看源码 / 内容</summary><pre>${esc('')}</pre></details>`:''}</li>`);
   // Source views are static escaped text, never evaluated in the renderer.
@@ -191,6 +246,14 @@ export const artifactAdapters = Object.freeze({
     const checks=await validatePptx(dir,deck);
     if(checks.slides!==deck.slides.length) throw new Error('PPTX 与预览页数不一致');
     return {checks,deck};
+  },
+  word: async (_task,dir,_files,{restore})=>{const result=await finalizeDocx(dir,{restore});return {checks:result.checks,officeSource:result.source};},
+  excel: async (_task,dir,_files,{restore})=>{const result=await finalizeXlsx(dir,{restore});return {checks:result.checks,officeSource:result.source};},
+  code: async (_task,dir,files)=>{
+    const sources=files.filter(file=>/\.(?:js|mjs|cjs|jsx|ts|tsx|html|css|java|go|rs|c|cc|cpp|h|hpp|py|rb|sh|ps1|sql)$/i.test(file));
+    if(!sources.length)throw new Error('代码工程至少需要一个实际源文件');
+    if(files.some(file=>/\.(?:exe|dll|dylib|so|app)$/i.test(file)))throw new Error('代码工程不能把可执行二进制登记为已验证源码');
+    return {checks:{sources:sources.length,readme:'present',execution:'未安装依赖、未运行或编译生成代码'}};
   },
   python: async (_task,dir,files)=>({checks:await checkPython(dir,files)}),
   analysis: async (_task,dir,files,{restore})=>{
@@ -220,11 +283,11 @@ export async function finalizeArtifact(task,dir,{restore=false}={}) {
   const requirements=artifactRequirements[task.artifactType];
   if(!requirements)throw new Error('产物类型缺少文件协议');
   for(const [file,sections] of Object.entries(requirements.sections)) requireSections(await text(dir,file),sections);
-  const {checks,deck}=await adapter(task,dir,files,{restore});
+  const {checks,deck,officeSource}=await adapter(task,dir,files,{restore});
   files=await fileList(dir);
   for(const file of requirements.files)if(!files.includes(file))throw new Error(`产物缺少必需文件：${file}`);
   const verification={status:'passed',checkedAt:new Date().toISOString(),...checks};
-  if(info.preview!=='website') await preview(dir,task.artifactType,files,verification,deck);
+  if(info.preview!=='website') await preview(dir,task.artifactType,files,verification,deck,officeSource);
   const artifact={schemaVersion:1,type:task.artifactType,entry:info.entry,files:(await fileList(dir)).filter(f=>f!=='artifact.json'),preview:{kind:info.preview,entry:info.preview==='website'?info.entry:'.nodus-preview.html'},verification};
   await writeFile(path.join(dir,'artifact.json'),JSON.stringify(artifact,null,2));return artifact;
 }
