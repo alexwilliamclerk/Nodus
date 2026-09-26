@@ -37,3 +37,25 @@
 :root[data-platform][data-theme][data-scenic-theme] :is(.welcome,.event.user,.event.agent) {
   text-shadow:0 1px 2px var(--paper),0 0 8px var(--paper);color:var(--ink);
 }
+
+/* The transcript has no separate painted or frosted panel, in any appearance.
+   Keep these explicit so native accessibility/appearance rules cannot restore it. */
+:root .workspace,
+:root #recordPanel,
+:root #timeline {
+  background:transparent !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+:root #recordPanel,
+:root #timeline {
+  border:0;
+  border-radius:0;
+}
+:root .workspace::before,
+:root .workspace::after,
+:root #recordPanel::before,
+:root #recordPanel::after,
+:root #timeline::before,
+:root #timeline::after {display:none;}

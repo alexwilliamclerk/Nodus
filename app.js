@@ -1,3 +1,5 @@
+import {createAdviceWatchUi} from './frontend/advice-watch.js';
+let adviceUi;
 import {scenicThemes} from './frontend/themes.js';
 import { artifactTypes, typeInfo } from './frontend/artifact-types.js';
 import {localNode,emptyAnswer,selectedDecision,commitDecision,backDecision,confirmedFlow,isExecutionRequest,prepareFlowConfirmation} from './frontend/decision-flow.js';
@@ -180,9 +182,10 @@ function renderTimeline(task) {
   const panel=$('#recordPanel');
   const changed=lastRecordTask!==task.id;
   const position=panel.scrollTop;
-  $('#timeline').innerHTML=task.timeline.length?task.timeline.map(event=>`<article class="event ${event.type==='user'?'user':'agent'}">${event.type==='user'&&event.kind==='chat'?`<button type="button" class="text-button delete-question" data-delete-turn="${esc(event.turnId)}" aria-label="删除这条提问及回答" ${isBusy(task)||task.archivedAt?'disabled':''}>删除</button>`:''}${event.meta?.includes('评价')||event.meta?.includes('修改')?`<div class="event-meta">${esc(event.meta)}</div>`:''}<p>${esc(event.text)}</p>${event.sources?.length?`<ul class="search-sources">${event.sources.map(source=>`<li><a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title)}</a>${source.snippet?`<p>${esc(source.snippet)}</p>`:''}</li>`).join('')}</ul>`:''}</article>`).join(''):'<div class="welcome"><strong>从一个想法出发，改变世界</strong><p>描述你的任务目标和交付格式，我们一起确定方向。</p></div>';
+  $('#timeline').innerHTML=task.timeline.length?task.timeline.map((event,eventIndex)=>`<article class="event ${event.type==='user'?'user':'agent'}">${event.type==='user'&&event.kind==='chat'?`<button type="button" class="text-button delete-question" data-delete-turn="${esc(event.turnId)}" aria-label="删除这条提问及回答" ${isBusy(task)||task.archivedAt?'disabled':''}>删除</button>`:''}${event.meta?.includes('评价')||event.meta?.includes('修改')?`<div class="event-meta">${esc(event.meta)}</div>`:''}<p>${esc(event.text)}</p>${event.type==='agent'&&event.text?`<button type="button" class="text-button" data-adopt-advice="${eventIndex}">采纳并追踪</button>`:''}${event.sources?.length?`<ul class="search-sources">${event.sources.map(source=>`<li><a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title)}</a>${source.snippet?`<p>${esc(source.snippet)}</p>`:''}</li>`).join('')}</ul>`:''}</article>`).join(''):'<div class="welcome"><strong>从一个想法出发，改变世界</strong><p>描述你的任务目标和交付格式，我们一起确定方向。</p></div>';
   if(task.versions.length||task.requirementLedger?.items?.length)$('#timeline').insertAdjacentHTML('beforeend',`<div class="event-actions">${task.versions.length?`<button id="viewWorkButton" class="text-button">${icon('preview')}查看作品 · ${esc(task.currentVersionId?.toUpperCase())}</button>`:''}<button id="understandingButton" class="text-button">任务要求</button></div>`);
   on('#viewWorkButton','click',()=>{layout.view='preview';setPreview(true);});
+  $$('#timeline [data-adopt-advice]').forEach(button=>button.onclick=()=>adviceUi?.adopt(task,task.timeline[Number(button.dataset.adoptAdvice)]));
   $$('#timeline [data-delete-turn]').forEach(button=>button.onclick=()=>confirmDeleteChat(task,button.dataset.deleteTurn));
   if(task.versions.length){
     $('#timeline .event-actions').insertAdjacentHTML('beforeend','<button id="openWorkDirectory" class="text-button">打开目录</button><button id="exportWork" class="text-button">导出作品…</button>');
@@ -1152,6 +1155,8 @@ async function initialize() {
   $('#saveState').textContent='已保存';
   state.tasks.forEach(normalizeTask);
   if(state.settings.panelWidths){layout.railWidth=Math.min(280,Math.max(180,state.settings.panelWidths.rail||210));layout.previewWidth=Math.min(480,Math.max(300,state.settings.panelWidths.preview||370));}
+  adviceUi=createAdviceWatchUi({api,getLanguage:()=>state.settings.language,toast:showToast});
+  await adviceUi.initialize();
   bindEvents();
   api.onMenuCommand?.(async command=>{
     try{

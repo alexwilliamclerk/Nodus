@@ -15,6 +15,11 @@ contextBridge.exposeInMainWorld("forma", {
     ipcRenderer.on("forma:appearance", handler);
     return () => ipcRenderer.removeListener("forma:appearance", handler);
   },
+  listAdviceWatches:()=>ipcRenderer.invoke('forma:advice-list'),
+  saveAdviceWatch:input=>ipcRenderer.invoke('forma:advice-save',input),
+  adviceWatchAction:(id,action)=>ipcRenderer.invoke('forma:advice-action',{id,action}),
+  checkAdviceWatch:id=>ipcRenderer.invoke('forma:advice-check',id),
+  onAdviceWatches:listener=>{const handler=(_event,records)=>listener(records);ipcRenderer.on('forma:advice-watches',handler);return ()=>ipcRenderer.removeListener('forma:advice-watches',handler);},
   bootstrap: () => ipcRenderer.invoke("forma:bootstrap"),
   searchStatus: () => ipcRenderer.invoke('forma:search-status'),
   configureSearch: config => ipcRenderer.invoke('forma:configure-search',config),

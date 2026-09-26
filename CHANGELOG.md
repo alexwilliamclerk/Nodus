@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0
+
+- Removed the remaining translucent transcript container, including native glass backgrounds and shadows across appearance modes.
+
+- Added opt-in tracking for adopted advice, including editable adoption reasons, public HTTPS sources, manual checks and daily checks while the app runs. Evidence-backed AI assessments distinguish changed conditions, possible original errors and uncertainty.
+- Added persisted check history, unread impact alerts, pause/resume, alternative-source search and backup coverage for advice watches.
+
+
 ## 1.3.2
 
 - Added four landscape themes with coordinated colors, preview cards, bilingual names and persistent selection. Existing light, dark and system modes remain available.

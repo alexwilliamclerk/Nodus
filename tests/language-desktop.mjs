@@ -18,7 +18,7 @@ try{
   await page.locator('#languageSetting').selectOption('en-US');
   await page.locator('html[lang="en-US"]').waitFor();
   await page.locator('#newTaskButton').filter({hasText:'New chat'}).waitFor();
-  assert.equal(await page.locator('#actionTitle').innerText(),'What would you like to make?');
+  assert.equal(await page.locator('#actionTitle').innerText(),'What would you like to chat about or create?');
   assert.equal(await page.locator('#requirementInput').inputValue(),'保留用户输入的原文');
   assert.equal(await page.locator('#languageSetting').inputValue(),'en-US');
   assert.doesNotMatch(await page.locator('#settingsModal').innerText(),/[\u4e00-\u9fff]/,'English settings should not leave visible Chinese interface copy');
@@ -47,7 +47,7 @@ try{
   await page.locator('#languageSetting').selectOption('zh-CN');
   await page.locator('html[lang="zh-CN"]').waitFor();
   await page.locator('#newTaskButton').filter({hasText:'新对话'}).waitFor();
-  assert.equal(await page.locator('#actionTitle').innerText(),'你想完成什么任务？');
+  assert.equal(await page.locator('#actionTitle').innerText(),'想聊什么，或想制作什么？');
   assert.equal(await page.locator('#requirementInput').inputValue(),'保留用户输入的原文');
   assert.equal(await app.evaluate(({Menu})=>Menu.getApplicationMenu().items.find(item=>item.label==='文件')?.label),'文件');
   console.log(JSON.stringify({passed:true,english:true,chinese:true,persisted:true,userTextPreserved:true}));

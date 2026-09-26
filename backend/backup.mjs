@@ -20,6 +20,8 @@ export async function exportBackup(storage,destination,{version='unknown'}={}){
   if(state.tasks.some(t=>t.operation?.status==='running'))throw new Error('请先停止正在运行的任务，再导出备份');
   const zip=new JSZip(),warnings=[],excluded=[];let files=0;
   zip.file('state.json',JSON.stringify(backupState(state),null,2));
+  const watchPath=path.join(storage.dataDir,'advice-watch.json');
+  try{if((await lstat(watchPath)).isSymbolicLink())throw new Error('建议追踪文件不能是符号链接');zip.file('advice-watch.json',JSON.stringify(backupState(JSON.parse(await readFile(watchPath,'utf8'))),null,2));}catch(error){if(error.code!=='ENOENT')throw error;}
   const ids=[...new Set(state.tasks.map(t=>t.id))];
   for(const id of ids){
     if(typeof id!=='string'||!id||id==='.'||id==='..'||/[\\/]/.test(id))throw new Error('任务标识无效，无法导出');
@@ -33,9 +35,9 @@ export async function exportBackup(storage,destination,{version='unknown'}={}){
     }
     for(const v of state.tasks.find(t=>t.id===id)?.versions||[])if(!names.some(n=>n.startsWith(`${v.id}/`)))warnings.push(`任务 ${id} 的版本 ${v.id} 文件缺失`);
   }
-  const manifest={format:'nodus-backup',schemaVersion:1,appVersion:version,createdAt:new Date().toISOString(),tasks:state.tasks.length,artifactFiles:files,includes:['对话与草稿','选项与决策路径','评分与版本','任务附件','未完成文件与检查证据'],excludes:['模型凭据','Pi 认证配置','应用缓存'],excludedFiles:excluded,warnings};
+  const manifest={format:'nodus-backup',schemaVersion:1,appVersion:version,createdAt:new Date().toISOString(),tasks:state.tasks.length,artifactFiles:files,includes:['对话与草稿','选项与决策路径','评分与版本','任务附件','未完成文件与检查证据','已采纳建议与追踪记录'],excludes:['模型凭据','Pi 认证配置','应用缓存'],excludedFiles:excluded,warnings};
   zip.file('backup.json',JSON.stringify(manifest,null,2));
-  zip.file('恢复说明.txt','Nodus 对话备份\n\n此包含私人对话、附件和作品，不适合公开分享。已排除应用保存的模型凭据；用户自行粘贴在对话或作品中的敏感文本不会被自动识别或删除。\n\n恢复：先退出 Nodus，将目标数据目录另行备份；解压到新目录，使用 NODUS_DATA_DIR 指向其中包含 state.json 的目录后启动，或在备份原数据后将 state.json 与 artifacts 复制到应用数据目录。不要合并覆盖正在使用的目录。模型连接需重新添加。预览地址启动后重新生成。\n\nbackup.json 中 warnings 非空时，源数据已有缺失，不能将本包视为完整作品备份。本版本尚无应用内导入功能。\n');
+  zip.file('恢复说明.txt','Nodus 对话备份\n\n此包含私人对话、附件和作品，不适合公开分享。已排除应用保存的模型凭据；用户自行粘贴在对话或作品中的敏感文本不会被自动识别或删除。\n\n恢复：先退出 Nodus，将目标数据目录另行备份；解压到新目录，使用 NODUS_DATA_DIR 指向其中包含 state.json 的目录后启动，或在备份原数据后将 state.json、advice-watch.json（如有）与 artifacts 复制到应用数据目录。不要合并覆盖正在使用的目录。模型连接需重新添加。预览地址启动后重新生成。\n\nbackup.json 中 warnings 非空时，源数据已有缺失，不能将本包视为完整作品备份。本版本尚无应用内导入功能。\n');
   const temporary=path.join(path.dirname(target),`.nodus-backup-${randomUUID()}.tmp`);
   try{
     await pipeline(zip.generateNodeStream({type:'nodebuffer',streamFiles:true,compression:'DEFLATE',compressionOptions:{level:3}}),createWriteStream(temporary,{flags:'wx',mode:0o600}));

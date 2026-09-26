@@ -25,3 +25,7 @@ test('missing files are reported and symlinked workspaces are rejected',async()=
  const result=await exportBackup(storage,target);assert.equal(result.warnings.length,1);
  await symlink(path.dirname(target),storage.taskDir('t'),'dir');await assert.rejects(exportBackup(storage,target),/符号链接/);
 });
+test('backup preserves adopted advice and check evidence without credential fields',async()=>{
+ const {storage,target}=await setup();await writeFile(path.join(storage.dataDir,'advice-watch.json'),JSON.stringify({schemaVersion:1,records:[{id:'watch',title:'My editor',reasons:['offline'],apiKey:'private',lastCheck:{status:'unknown'},snapshots:{}}]}));
+ await exportBackup(storage,target);const zip=await JSZip.loadAsync(await readFile(target));const watches=JSON.parse(await zip.file('advice-watch.json').async('string'));assert.equal(watches.records[0].reasons[0],'offline');assert.equal(watches.records[0].apiKey,undefined);
+});

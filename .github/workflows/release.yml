@@ -105,5 +105,15 @@ jobs:
             echo "Release v$version already exists; refusing to overwrite it."
             exit 1
           fi
+          existing_tag=$(gh api "repos/$GH_REPO/git/ref/tags/v$version" --jq '.object.sha' 2>/dev/null || true)
+          if [[ -n "$existing_tag" && "$existing_tag" != "$GITHUB_SHA" ]]; then
+            # Reuse only the abandoned v1.4.0 tag explicitly requested for this release.
+            if [[ "$version" == "1.4.0" && "$existing_tag" == "6dddf3936db0c24d792af7f7cc63aa9823ff860e" ]]; then
+              gh api --method PATCH "repos/$GH_REPO/git/refs/tags/v$version" -f sha="$GITHUB_SHA" -F force=true
+            else
+              echo "Existing tag points to different code; refusing to replace it."
+              exit 1
+            fi
+          fi
           gh release create "v$version" release-assets/* --target "$GITHUB_SHA" --title "Nodus v$version" --notes-file "docs/releases/v$version.md" --draft
           gh release edit "v$version" --draft=false --latest

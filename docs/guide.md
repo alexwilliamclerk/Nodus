@@ -285,3 +285,15 @@ Open Settings and choose a preview card under Appearance: Lavender Dawn, Moonlit
 ## Delete a question
 
 Use the delete action on a chat question to remove the question and answer from the conversation and future model context. Use the current question's delete action or Review choices to remove a decision question. Later dependent choices must be confirmed again. Existing delivered files are preserved.
+
+## Adopt and track advice
+
+Choose **Adopt and track** beside an assistant reply. Confirm the advice, enter up to five reasons for adopting it, and add up to three public HTTPS source pages, preferably official documentation. Watches are stored independently of chats: deleting a chat does not delete its adopted advice. Use **Advice tracking** in the sidebar to manage or delete watches.
+
+Choose **Check now** to read the sources and have the configured model assess each reason. Daily automatic checks are optional and run only while Nodus is open. Closing the app stops checks; overdue watches are checked after reopening. Checks send the adopted advice, reasons and page excerpts to the configured model and may incur API costs. A separate search API is only needed for **Find alternatives**, which returns candidate links whose suitability is not yet verified.
+
+A comparison starts with the first successfully read source snapshot; it does not prove what the page said when the original answer was generated. Changes require quotations from both the baseline and the current source. A current contradiction without evidence of a later change is labelled a possible original error, not a proven correction. All impact assessments require user review. Unreachable pages, insufficient evidence, truncated pages and model failures are shown as unverified. Unchanged page text alone does not prove a recommendation is valid.
+
+Source reading supports public HTTPS HTML/text pages with public IPv4 DNS resolution, including validated redirects. It does not sign in, execute page JavaScript or read local/intranet addresses. Sources requiring those capabilities may remain unverified. Each page is limited to 2 MB and its extracted text to 24,000 characters. The first source snapshot and latest twelve checks are retained. Editing advice, reasons or sources resets the comparison; older checks retain their original reasons. Previous impact alerts remain available even if a later check fails. **Mark read** acknowledges an alert; it does not approve or change the advice.
+
+Watches and evidence are included in exported backups as `advice-watch.json`. This file contains private advice and should not be shared publicly. Restoring a backup also restores automatic-check preferences.

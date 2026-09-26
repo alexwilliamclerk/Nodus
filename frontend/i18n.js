@@ -3,6 +3,7 @@
 let activeLanguage='zh-CN';
 export const uiLanguage=()=>activeLanguage;
 const english={
+  '建议追踪':'Advice tracking','采纳并追踪':'Adopt and track',
   '紫岚晨光':'Lavender Dawn','星河夜阑':'Moonlit Peaks','桃源晨雾':'Peach Mist','竹影云亭':'Bamboo Pavilion','山水主题':'Landscape themes',
   '新对话':'New chat','新建对话':'New chat','添加插件':'Add plugins','已归档对话':'Archived chats','模型连接':'Model connections',
   '模型未配置':'Model not configured','尚未连接':'Not connected','设置与模型':'Settings & models','断开连接':'Disconnect',
@@ -285,7 +286,7 @@ export function createUiTranslator(document){
   const originals=new WeakMap();
   const attributes=new WeakMap();
   const translatableAttributes=['aria-label','title','placeholder'];
-  const skipped=node=>node.parentElement?.closest('textarea, input, #timeline .event p, #timeline .event-meta, #explanationView p');
+  const skipped=node=>node.parentElement?.closest('[data-localized], [data-user-content], textarea, input, #timeline .event p, #timeline .event-meta, #explanationView p');
   function translateNode(node){
     if(node.nodeType===3){
       if(skipped(node))return;
@@ -303,6 +304,7 @@ export function createUiTranslator(document){
     for(const element of node.querySelectorAll('[aria-label],[title],[placeholder]'))translateAttributes(element);
   }
   function translateAttributes(node){
+    if(node.closest('[data-localized], [data-user-content]'))return;
     for(const name of translatableAttributes){
       if(!node.hasAttribute(name))continue;
       let values=attributes.get(node);
