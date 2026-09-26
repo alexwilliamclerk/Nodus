@@ -9,7 +9,7 @@
 :root[data-platform][data-theme][data-scenic-theme] .workspace {background:transparent;}
 :root[data-platform][data-theme][data-scenic-theme] .task-rail {background:var(--scene-rail);border-color:var(--line);}
 :root[data-platform][data-theme][data-scenic-theme] :is(.workspace-header,.action-panel,.preview-column) {background:var(--scene-tint);border-color:var(--line);}
-:root[data-platform][data-theme][data-scenic-theme] :is(.composer,.composer-box,.event.agent,.event.user,.option-card,.settings-modal,.popover,.context-menu,dialog) {background:var(--scene-panel);color:var(--ink);border-color:var(--line);}
+:root[data-platform][data-theme][data-scenic-theme] :is(.composer,.composer-box,.option-card,.settings-modal,.popover,.context-menu,dialog) {background:var(--scene-panel);color:var(--ink);border-color:var(--line);}
 :root[data-platform][data-theme][data-scenic-theme] :is(input,textarea,select) {background:var(--surface);color:var(--ink);border-color:var(--line);}
 :root[data-platform][data-theme][data-scenic-theme] :is(.task-item.active,.option-card.selected) {background:var(--selected);}
 :root[data-platform][data-theme][data-scenic-theme] .primary-button {background:var(--accent);color:var(--paper);}
@@ -22,9 +22,18 @@
 :root[data-platform][data-theme][data-scenic-theme].reduce-transparency,:root[data-platform][data-theme][data-scenic-theme].increase-contrast {--scene-tint:var(--paper);--scene-panel:var(--surface);--scene-rail:var(--rail);}
 :root[data-platform][data-theme][data-scenic-theme].increase-contrast .app-shell {background:var(--paper);}
 
-:root[data-platform][data-theme][data-scenic-theme] .welcome {background:var(--scene-tint);border-radius:14px;padding:16px;}
+
 
 :root[data-platform][data-theme][data-scenic-theme] .record-panel {background:transparent;}
 :root[data-platform][data-theme][data-scenic-theme] .send-button {background:var(--accent);color:var(--paper);}
 :root[data-platform][data-theme][data-scenic-theme="moonlit-peaks"] .send-button {color:#21182c;}
 :root[data-platform][data-theme][data-scenic-theme] .send-button:hover {filter:brightness(1.1);}
+
+/* Conversation text sits directly on the landscape, without chat cards. */
+:root[data-platform][data-theme][data-scenic-theme] :is(.welcome,.record-panel,.event.user,.event.agent) {
+  background:transparent;border:0;border-radius:0;box-shadow:none;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+:root[data-platform][data-theme][data-scenic-theme] :is(.welcome,.event.user,.event.agent) {
+  text-shadow:0 1px 2px var(--paper),0 0 8px var(--paper);color:var(--ink);
+}

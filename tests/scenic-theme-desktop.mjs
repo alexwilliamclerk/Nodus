@@ -62,6 +62,9 @@ try{
     assert.match(await page.locator('.app-shell').evaluate(el=>getComputedStyle(el).backgroundImage),new RegExp(id));
     await page.screenshot({path:path.join(evidence,id+'.png')});
     await page.locator('#closeSettings').click();
+    assert.equal(await page.locator('.welcome').evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
+    const chatStyles=await page.evaluate(()=>{const el=document.createElement('article');el.className='event agent';el.textContent='Theme transparency check';document.querySelector('#timeline').append(el);const s=getComputedStyle(el);const value={background:s.backgroundColor,shadow:s.boxShadow,filter:s.backdropFilter};el.remove();return value;});
+    assert.deepEqual(chatStyles,{background:'rgba(0, 0, 0, 0)',shadow:'none',filter:'none'});
     await page.screenshot({path:path.join(evidence,id+'-workspace.png')});
     await page.locator('#modelButton').click();await page.locator('#manageConnections').click();
   }
