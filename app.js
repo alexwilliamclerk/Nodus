@@ -1,3 +1,4 @@
+import {scenicThemes} from './frontend/themes.js';
 import { artifactTypes, typeInfo } from './frontend/artifact-types.js';
 import {localNode,emptyAnswer,selectedDecision,commitDecision,backDecision,confirmedFlow,isExecutionRequest,prepareFlowConfirmation} from './frontend/decision-flow.js';
 import { icon, hydrateIcons, escapeHtml as esc, providerLabel, optionsView, ratingView } from './frontend/components.js';
@@ -8,6 +9,7 @@ import {createTranscriptFollower} from './frontend/transcript-follow.js';
 import {previewIntervals,modificationCount,previewCheckpointDue} from './frontend/preview-cadence.js';
 import {sameEvaluation} from './frontend/evaluation-state.js';
 import {createUiTranslator,translateUiText} from './frontend/i18n.js';
+import {normalizeChatTurns,deleteChatTurn,deleteDecisionQuestion} from './frontend/question-deletion.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -18,6 +20,9 @@ document.documentElement.dataset.platform = api?.platform || 'browser';
 function applyAppearance(appearance) {
   const root = document.documentElement;
   root.dataset.theme = appearance.dark ? 'dark' : 'light';
+  const scenic=scenicThemes.some(t=>t.id===appearance.theme);
+  if(scenic)root.dataset.scenicTheme=appearance.theme;else delete root.dataset.scenicTheme;
+  document.querySelectorAll('[data-theme-choice]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.themeChoice===appearance.theme)));
   root.classList.toggle('reduce-transparency', appearance.reducedTransparency);
   root.classList.toggle('increase-contrast', appearance.increasedContrast);
   root.classList.toggle('window-inactive', !appearance.focused);
@@ -52,6 +57,7 @@ const on = (selector, event, fn) => $(selector)?.addEventListener(event, fn);
 function normalizeTask(task) {
   if(!['plan','goat'].includes(task.agentMode))task.agentMode=DEFAULT_AGENT_MODE;
   for (const key of ['timeline','options','selectedOptionIds','versions','evaluations','executionEvents','attachments']) task[key] ||= [];
+  normalizeChatTurns(task);
   task.optionNotes ||= {};
   task.freeform ||= '';
   recoverLegacyDecision(task);
@@ -145,13 +151,39 @@ function manageTask(task,action) {
   manage({title:'删除这条对话？',description:`“${task.title}”将从导航中移除。已有作品文件和版本记录保留在本机，不连带删除。`,submit:()=>{task.deletedAt=new Date().toISOString();if(state.activeTaskId===task.id)state.activeTaskId=state.tasks.find(t=>!t.deletedAt&&!t.archivedAt)?.id||null;persist();render();}});
 }
 
+function confirmDeleteChat(task,turnId){
+  if(isBusy(task)||task.archivedAt)return;
+  manage({title:'删除这条提问及回答？',description:'这轮提问和回答会从对话及后续答复的上下文中移除。已确认的任务要求和已生成作品不受影响。',submit:async()=>{
+    const before=structuredClone(task);
+    try{deleteChatTurn(task,turnId);task.updatedAt=new Date().toISOString();await persistNow();renderCurrent(task);}
+    catch(error){Object.assign(task,before);$('#manageDescription').textContent=error.message;return false;}
+  }});
+}
+
+function confirmDeleteDecision(task,index){
+  if(isBusy(task)||task.archivedAt)return;
+  const flow=task.decisionFlow,flowId=flow?.id;
+  const question=index===null?flow?.current:flow?.history?.[index]?.node;
+  if(!question)return;
+  manage({title:'删除这道选择题？',description:index===null?'当前题目及未提交选择会移除。你可以继续生成下一题，或确认此前已选内容。':`将移除这道题及其之后的选择，相关要求停止生效，需要重新确认制作范围。已生成的作品版本保留。`,submit:async()=>{
+    const before=structuredClone(task);
+    try{
+      if(task.decisionFlow?.id!==flowId)throw new Error('制作流程已变化，请重新选择题目。');
+      deleteDecisionQuestion(task,index);task.updatedAt=new Date().toISOString();
+      await persistNow();layout.view='preview';layout.detail=null;renderCurrent(task);
+    }catch(error){Object.assign(task,before);$('#manageDescription').textContent=error.message;return false;}
+  }});
+}
+
 function renderTimeline(task) {
+  normalizeChatTurns(task);
   const panel=$('#recordPanel');
   const changed=lastRecordTask!==task.id;
   const position=panel.scrollTop;
-  $('#timeline').innerHTML=task.timeline.length?task.timeline.map(event=>`<article class="event ${event.type==='user'?'user':'agent'}">${event.meta?.includes('评价')||event.meta?.includes('修改')?`<div class="event-meta">${esc(event.meta)}</div>`:''}<p>${esc(event.text)}</p>${event.sources?.length?`<ul class="search-sources">${event.sources.map(source=>`<li><a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title)}</a>${source.snippet?`<p>${esc(source.snippet)}</p>`:''}</li>`).join('')}</ul>`:''}</article>`).join(''):'<div class="welcome"><strong>从一个想法出发，改变世界</strong><p>描述你的任务目标和交付格式，我们一起确定方向。</p></div>';
+  $('#timeline').innerHTML=task.timeline.length?task.timeline.map(event=>`<article class="event ${event.type==='user'?'user':'agent'}">${event.type==='user'&&event.kind==='chat'?`<button type="button" class="text-button delete-question" data-delete-turn="${esc(event.turnId)}" aria-label="删除这条提问及回答" ${isBusy(task)||task.archivedAt?'disabled':''}>删除</button>`:''}${event.meta?.includes('评价')||event.meta?.includes('修改')?`<div class="event-meta">${esc(event.meta)}</div>`:''}<p>${esc(event.text)}</p>${event.sources?.length?`<ul class="search-sources">${event.sources.map(source=>`<li><a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title)}</a>${source.snippet?`<p>${esc(source.snippet)}</p>`:''}</li>`).join('')}</ul>`:''}</article>`).join(''):'<div class="welcome"><strong>从一个想法出发，改变世界</strong><p>描述你的任务目标和交付格式，我们一起确定方向。</p></div>';
   if(task.versions.length||task.requirementLedger?.items?.length)$('#timeline').insertAdjacentHTML('beforeend',`<div class="event-actions">${task.versions.length?`<button id="viewWorkButton" class="text-button">${icon('preview')}查看作品 · ${esc(task.currentVersionId?.toUpperCase())}</button>`:''}<button id="understandingButton" class="text-button">任务要求</button></div>`);
   on('#viewWorkButton','click',()=>{layout.view='preview';setPreview(true);});
+  $$('#timeline [data-delete-turn]').forEach(button=>button.onclick=()=>confirmDeleteChat(task,button.dataset.deleteTurn));
   if(task.versions.length){
     $('#timeline .event-actions').insertAdjacentHTML('beforeend','<button id="openWorkDirectory" class="text-button">打开目录</button><button id="exportWork" class="text-button">导出作品…</button>');
     const versionId=task.stage==='accepted'?(task.acceptedVersionId||task.currentVersionId):(task.previewVersionId||task.currentVersionId);
@@ -303,7 +335,8 @@ function renderDecisionFlow(task){
     layout.view='preview';layout.detail=null;persist(task);setPreview(true);renderCurrent(task);
   });
   if((['area','question'].includes(f.current.kind)||f.awaitingNext)&&(f.history.length||f.draft?.selectedOptionIds?.length||f.draft?.freeform?.trim()))footerAction('finishQuestions','确认已选修改并预览…',()=>confirmCurrentChoices(task));
-  if(f.awaitingNext){$('#actionTitle').textContent='';footerAction('previousFlowDecision','上一题',()=>{backDecision(f);persist(task);renderCurrent(task);});submitButton('requestNextDecision','生成下一题',()=>requestDecision(task));return;}
+  if(f.awaitingNext){$('#actionTitle').textContent=f.deletedQuestions?.length?'题目已删除，可继续选择':' ';if(f.history.length)footerAction('previousFlowDecision','上一题',()=>{backDecision(f);persist(task);renderCurrent(task);});footerAction('showDecisionPath','查看已选',()=>showDecisionPath(task));submitButton('requestNextDecision','生成下一题',()=>requestDecision(task));return;}
+  if(['area','question'].includes(f.current.kind))footerAction('deleteCurrentQuestion','删除这题',()=>confirmDeleteDecision(task,null));
   $('#actionTitle').textContent=f.current.question;
   $('#dynamicAction').innerHTML=optionsView({...f.draft,options:f.current.options});
   $$('[data-choice]').forEach(input=>{
@@ -320,6 +353,13 @@ function renderDecisionFlow(task){
 function showDecisionPath(task){
   const f=task.decisionFlow;
   showExplanation(`<h2>已选路径</h2><p>基线：${esc(f.pendingId||f.baseVersionId||'尚无作品')} ${f.pendingId?'（未完成文件）':''}</p>${f.history.map((item,i)=>`<label>${i+1}. ${esc(item.decision.question)}</label><p>${esc(item.decision.selected.map(o=>o.title+(o.note?`：${o.note}`:'')).join('；'))}\n${esc(item.decision.supplement)}</p>`).join('')}${f.summary?`<h2>待确认范围</h2><p>${esc(f.summary.changes)}</p><label>保持</label><p>${esc(f.summary.preserve)}</p><label>验证</label><p>${esc(f.summary.verification)}</p>`:''}${f.invalidated.length?'<p class="muted">回改后原下游结果已失效，不参与执行。</p>':''}`);
+  $$('#explanationView [data-delete-decision]').forEach(button=>button.remove());
+  if(!isBusy(task)&&!task.archivedAt&&f.status!=='completed'){
+    [...$('#explanationView').querySelectorAll('label')].slice(0,f.history.length).forEach((label,index)=>{
+      if(!['area','question'].includes(f.history[index].node?.kind))return;
+      const button=document.createElement('button');button.type='button';button.className='text-button';button.dataset.deleteDecision=String(index);button.textContent=ui('删除这题');button.onclick=()=>confirmDeleteDecision(task,index);label.after(button);
+    });
+  }
 }
 async function requestDecision(task){
   const f=task.decisionFlow;
@@ -442,9 +482,10 @@ async function executionIntent(task,message){
 }
 
 async function answerMessage(task,message,temporary=false){
-  task.temporaryError='';addRecord(task,'user',message,'你 · 提问');
+  const turnId=crypto.randomUUID();
+  task.temporaryError='';Object.assign(addRecord(task,'user',message,'你 · 提问'),{turnId,kind:'chat'});
   await perform(task,'chat','正在答复',()=>api.oneShotChat({task:modelTask(task),message}),reply=>{
-    addRecord(task,'agent',reply,'完整答复');(task.temporaryConversations||=[]).push({message,reply});
+    Object.assign(addRecord(task,'agent',reply,'完整答复'),{turnId,kind:'chat'});(task.temporaryConversations||=[]).push({id:turnId,message,reply});
     if(temporary){task.temporaryOpen=false;task.temporaryDraft='';}
   });
 }
@@ -471,7 +512,7 @@ function editCompletion(task) {
     task.completionContract={conditions:next};task.allowCompletionRepair=$('#allowCompletionRepair').checked;persist(task);showToast('已保存；提交制作时确认执行');setPreview(false);
   });
 }
-function addRecord(task,type,text,meta='') { if(type==='user'&&activeTask()?.id===task.id)transcriptFollower?.submit();task.timeline.push({type,text,meta:meta|| (type==='user'?'你':'Nodus')});task.updatedAt=new Date().toISOString(); }
+function addRecord(task,type,text,meta='') { if(type==='user'&&activeTask()?.id===task.id)transcriptFollower?.submit();const event={type,text,meta:meta|| (type==='user'?'你':'Nodus')};if(task.decisionFlow&&['已选决定','待确认范围','执行确认'].includes(meta)){event.flowId=task.decisionFlow.id;event.nodeId=task.decisionFlow.current?.id;}task.timeline.push(event);task.updatedAt=new Date().toISOString();return event; }
 function nextVersionId(task) { return `v${Math.max(0,...task.versions.map(v=>Number(v.id.replace(/^v/,''))||0))+1}`; }
 function modelTask(task) {
   const copy=structuredClone(task);
@@ -1072,6 +1113,7 @@ function bindEvents() {
     }catch(error){$('#uninstallStatus').textContent=`无法启动卸载：${error.message}。可重新下载安装包并安装到原目录，再从 Windows“已安装的应用”卸载。`;}
   });
   on('#uninstallHelpButton','click',async()=>{try{await api.openUninstallHelp();}catch(error){$('#uninstallStatus').textContent=`无法打开卸载帮助：${error.message}`;}});
+  document.querySelectorAll('[data-theme-choice]').forEach(button=>button.addEventListener('click',()=>{const select=$('#themeSetting');select.value=button.dataset.themeChoice;select.dispatchEvent(new Event('change'));}));
   on('#themeSetting','change',async e=>{
     const theme=e.target.value,previous=state.settings.theme||'light';
     try{applyAppearance(await api.setTheme(theme));state.settings.theme=theme;persist();}

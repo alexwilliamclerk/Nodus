@@ -2,7 +2,7 @@ import { artifactTypes, recognizableTypes, typeInfo } from '../frontend/artifact
 import {decisionAreas,selectedDecision} from '../frontend/decision-flow.js';
 import {buildRequirementLedger,taskRuleContext} from '../frontend/requirements.js';
 export function nextDecisionPrompt(task,flow){
-  task={...task,conversationContext:`当前中断或失败原因（只作背景）：${flow.errorMessage||'无'}`};
+  task={...task,conversationContext:`当前中断或失败原因（只作背景）：${flow.errorMessage||'无'}\n用户已删除的题目（只用于避免重复，不是任务要求；不要重新提出这些题目）：${JSON.stringify(flow.deletedQuestions||[])}`};
   return `你是任务的动态决策助手，只负责提问，不修改文件。根据用户已经提交的路径只生成下一道问题，不能提前生成整份问卷，不重复已经明确的要求。先从修改范围逐步细化到具体做法和必须保持项。问题应依赖最新回答；用户没选的方向不要当作要求。\n${context(task)}\n当前产物可用范围：${JSON.stringify(decisionAreas[task.artifactType]||[])}\n触发原因与评分：${JSON.stringify({trigger:flow.trigger,evaluation:flow.evaluation})}\n已确认路径：${JSON.stringify(flow.history.map(item=>selectedDecision(item.node,item.answer)))}\n请进一步细化：${Boolean(flow.refine)}\n当前能力严格以产物协议为准：静态网站没有后端/数据库/部署，小程序类型尚不支持，PPTX 没有图片视频自由排版。超出能力时提出可行替代或材料澄清，不能说已支持。模糊或矛盾时提问，足够明确则给出待用户确认的范围。无须凑满题数。\n只返回 JSON。提问格式 {"kind":"question","explanation":"简短说明或初步判断","question":"当前问题","allowMultiple":false,"options":[{"id":"a","title":"方向","description":"做法","effect":"效果","tradeoff":"代价","condition":"适用条件"}]}，必须四项，互斥用单选，可组合用多选。范围明确时 {"kind":"ready","explanation":"简短判断","summary":{"changes":"明确修改范围","preserve":"保持内容","verification":"验证方式与未验证边界"}}。第一道题必须提问；要求继续细化时也必须提问。所有结果仍等待用户最终确认。`;
 }
 function materialContext(task) {

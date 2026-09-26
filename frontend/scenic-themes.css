@@ -1,0 +1,30 @@
+/* Landscape themes retain the light/dark semantic layer for native controls. */
+:root[data-platform][data-theme][data-scenic-theme] {--paper:#f4eef7;--rail:#eae2f1;--surface:#fffbff;--selected:#e5d6ee;--line:#cbbbd5;--ink:#382c46;--muted:#746080;--accent:#825a96;--scene-tint:rgba(247,241,251,.84);--scene-panel:rgba(255,251,255,.93);--scene-rail:rgba(238,227,247,.88);}
+:root[data-platform][data-theme][data-scenic-theme="lavender-dawn"] {--scene:url('./theme-assets/lavender-dawn.png');}
+:root[data-platform][data-theme][data-scenic-theme="moonlit-peaks"] {--scene:url('./theme-assets/moonlit-peaks.png');--paper:#1d1733;--rail:#26203d;--surface:#302740;--selected:#453957;--line:#665574;--ink:#f5eddf;--muted:#c7b7cc;--accent:#e7be83;--scene-tint:rgba(25,19,45,.77);--scene-panel:rgba(37,29,55,.95);--scene-rail:rgba(31,23,48,.91);}
+:root[data-platform][data-theme][data-scenic-theme="peach-mist"] {--scene:url('./theme-assets/peach-mist.png');--paper:#fff4ed;--rail:#f7e5db;--surface:#fffaf5;--selected:#f8dfd3;--line:#dbc2b5;--ink:#4c342c;--muted:#826458;--accent:#ad6249;--scene-tint:rgba(255,247,239,.80);--scene-panel:rgba(255,250,245,.94);--scene-rail:rgba(249,233,221,.88);}
+:root[data-platform][data-theme][data-scenic-theme="bamboo-pavilion"] {--scene:url('./theme-assets/bamboo-pavilion.png');--paper:#f8f5e9;--rail:#eae9d9;--surface:#fffdf3;--selected:#e7e7cc;--line:#c8c6ac;--ink:#3d4432;--muted:#70765b;--accent:#69764b;--scene-tint:rgba(250,248,235,.80);--scene-panel:rgba(255,253,242,.94);--scene-rail:rgba(236,237,216,.88);}
+:root[data-platform][data-theme][data-scenic-theme] .app-shell {background:var(--scene) center/cover no-repeat fixed;color:var(--ink);}
+:root[data-platform][data-theme][data-scenic-theme] .app-shell::before {display:none;}
+:root[data-platform][data-theme][data-scenic-theme] .workspace {background:transparent;}
+:root[data-platform][data-theme][data-scenic-theme] .task-rail {background:var(--scene-rail);border-color:var(--line);}
+:root[data-platform][data-theme][data-scenic-theme] :is(.workspace-header,.action-panel,.preview-column) {background:var(--scene-tint);border-color:var(--line);}
+:root[data-platform][data-theme][data-scenic-theme] :is(.composer,.composer-box,.event.agent,.event.user,.option-card,.settings-modal,.popover,.context-menu,dialog) {background:var(--scene-panel);color:var(--ink);border-color:var(--line);}
+:root[data-platform][data-theme][data-scenic-theme] :is(input,textarea,select) {background:var(--surface);color:var(--ink);border-color:var(--line);}
+:root[data-platform][data-theme][data-scenic-theme] :is(.task-item.active,.option-card.selected) {background:var(--selected);}
+:root[data-platform][data-theme][data-scenic-theme] .primary-button {background:var(--accent);color:var(--paper);}
+:root[data-platform][data-theme][data-scenic-theme="moonlit-peaks"] .primary-button {color:#21182c;}
+.theme-cards {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:8px 0 18px;}
+.theme-card {display:flex;flex-direction:column;gap:7px;padding:5px 5px 9px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);cursor:pointer;overflow:hidden;font:inherit;}
+.theme-card img {width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:7px;}
+.theme-card[aria-pressed="true"] {border-color:var(--accent);background:var(--selected);font-weight:600;}
+.theme-card:focus-visible {outline:3px solid var(--accent);outline-offset:2px;}
+:root[data-platform][data-theme][data-scenic-theme].reduce-transparency,:root[data-platform][data-theme][data-scenic-theme].increase-contrast {--scene-tint:var(--paper);--scene-panel:var(--surface);--scene-rail:var(--rail);}
+:root[data-platform][data-theme][data-scenic-theme].increase-contrast .app-shell {background:var(--paper);}
+
+:root[data-platform][data-theme][data-scenic-theme] .welcome {background:var(--scene-tint);border-radius:14px;padding:16px;}
+
+:root[data-platform][data-theme][data-scenic-theme] .record-panel {background:transparent;}
+:root[data-platform][data-theme][data-scenic-theme] .send-button {background:var(--accent);color:var(--paper);}
+:root[data-platform][data-theme][data-scenic-theme="moonlit-peaks"] .send-button {color:#21182c;}
+:root[data-platform][data-theme][data-scenic-theme] .send-button:hover {filter:brightness(1.1);}

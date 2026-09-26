@@ -196,3 +196,5 @@ dialog h2 { font-size:16px; font-weight:500; }
 .search-sources li { margin:5px 0; overflow-wrap:anywhere; }
 .search-sources a { color:var(--accent); text-decoration:underline; }
 .search-sources p { color:var(--muted); margin:3px 0 0; }
+.delete-question { float:right; margin:0 0 4px 10px; color:var(--muted); font-size:11px; }
+.delete-question:hover { color:#a04d35; }

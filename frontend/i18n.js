@@ -3,6 +3,7 @@
 let activeLanguage='zh-CN';
 export const uiLanguage=()=>activeLanguage;
 const english={
+  '紫岚晨光':'Lavender Dawn','星河夜阑':'Moonlit Peaks','桃源晨雾':'Peach Mist','竹影云亭':'Bamboo Pavilion','山水主题':'Landscape themes',
   '新对话':'New chat','新建对话':'New chat','添加插件':'Add plugins','已归档对话':'Archived chats','模型连接':'Model connections',
   '模型未配置':'Model not configured','尚未连接':'Not connected','设置与模型':'Settings & models','断开连接':'Disconnect',
   '收起侧栏':'Collapse sidebar','展开侧栏':'Expand sidebar','对话导航':'Chat navigation','对话列表':'Chat list',
@@ -172,6 +173,13 @@ const english={
   '本机累计用量：0 Token\n暂无已记录的模型用量':'Recorded local usage: 0 tokens\nNo model usage recorded',
   '移到项目':'Move to project','重命名对话':'Rename chat','删除这条对话？':'Delete this chat?',
   '归档':'Archive','恢复':'Restore','取消置顶':'Unpin','删除':'Delete',
+  '删除这条提问及回答':'Delete this question and answer','删除这条提问及回答？':'Delete this question and answer?',
+  '这轮提问和回答会从对话及后续答复的上下文中移除。已确认的任务要求和已生成作品不受影响。':'This question and answer will be removed from the chat and future reply context. Confirmed task requirements and existing work are kept.',
+  '删除这题':'Delete question','删除这道选择题？':'Delete this decision question?',
+  '当前题目及未提交选择会移除。你可以继续生成下一题，或确认此前已选内容。':'This question and its draft choices will be removed. You can generate another question or confirm earlier choices.',
+  '将移除这道题及其之后的选择，相关要求停止生效，需要重新确认制作范围。已生成的作品版本保留。':'This question and later choices will be removed. Related requirements will be retired and the scope must be confirmed again. Existing work versions are kept.',
+  '题目已删除，可继续选择':'Question deleted. Continue when ready.',
+  '请先停止当前操作，再删除问题。':'Stop the current operation before deleting a question.',
   '项目用于归组对话，不移动已有作品文件。':'Projects group chats and do not move work files.',
   '项目用于分组对话，本地目录单独选择。':'Projects group chats; choose a local folder separately.',
   '只修改名称，记录与作品保持原样。':'Only the name changes. Conversation and work remain unchanged.',

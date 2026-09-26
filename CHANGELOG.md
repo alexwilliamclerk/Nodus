@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.2
+
+- Added four landscape themes with coordinated colors, preview cards, bilingual names and persistent selection. Existing light, dark and system modes remain available.
+
+- Added deletion of individual chat question/answer pairs, including removal from future reply context.
+- Added deletion of current and answered decision questions, invalidating dependent choices and requiring a new execution confirmation.
+
 ## 1.3.1
 
 - Added explicit install-and-restart updates for packaged Windows NSIS and Linux AppImage builds, with release metadata and SHA-256 verification. Linux can preserve a backup of the old AppImage; macOS opens the matching GitHub release for a user-selected Finder replacement because automatic updates require a signed app.

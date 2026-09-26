@@ -38,7 +38,7 @@ export class ArtifactService {
     const pending=resumePending?await pendingWorkspace(this.storage,task.id):null;
     if(resumePending&&(!pending||pending.pendingId!==pendingId||flow?.pendingId!==pendingId))throw new Error('未完成工作已变化，请重新确认基线');
     if(pending){
-      effective={...pending.task,id:task.id,attachments:task.attachments||pending.task.attachments,taskRules:task.taskRules||pending.task.taskRules,disabledRequirementIds:task.disabledRequirementIds??pending.task.disabledRequirementIds};baseVersionId=pending.baseVersionId;
+      effective={...pending.task,id:task.id,timeline:task.timeline??pending.task.timeline,temporaryConversations:task.temporaryConversations??pending.task.temporaryConversations,attachments:task.attachments||pending.task.attachments,taskRules:task.taskRules||pending.task.taskRules,disabledRequirementIds:task.disabledRequirementIds??pending.task.disabledRequirementIds};baseVersionId=pending.baseVersionId;
       if(flow?.resumeOriginal){
         const original=Object.hasOwn(pending,'proposal')?pending.proposal:pending.task.decisionFlow?confirmedFlow(pending.task.decisionFlow):null;
         proposal=original?{...original,continuation:proposal}:proposal;

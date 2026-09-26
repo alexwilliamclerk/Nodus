@@ -1,3 +1,5 @@
+import {isTheme,normalizeTheme,nativeThemeFor} from '../frontend/themes.js';
+let selectedTheme='light';
 import { app, BrowserWindow, ipcMain, safeStorage, shell, dialog, nativeTheme, Menu, clipboard } from "electron";
 import {applicationMenu} from './application-menu.mjs';
 import {translateUiText} from '../frontend/i18n.js';
@@ -47,7 +49,8 @@ app.whenReady().then(async () => {
   await storage.initialize();
   const savedState = await storage.loadState();
   uiLanguage=savedState.settings?.language==='en-US'?'en-US':'zh-CN';
-  nativeTheme.themeSource = ['light','dark','system'].includes(savedState.settings?.theme) ? savedState.settings.theme : 'light';
+  selectedTheme=normalizeTheme(savedState.settings?.theme);
+  nativeTheme.themeSource = nativeThemeFor(selectedTheme);
   pi = new PiService({
     piDir: storage.piDir,
     emit: (taskId, event) => mainWindow?.webContents.send("forma:execution-event", { taskId, event }),
@@ -108,6 +111,7 @@ app.on("activate", () => {
 function windowAppearance() {
   return {
     platform: process.platform,
+    theme: selectedTheme,
     dark: nativeTheme.shouldUseDarkColors,
     reducedTransparency: nativeTheme.prefersReducedTransparency,
     increasedContrast: nativeTheme.shouldUseHighContrastColors,
@@ -119,7 +123,7 @@ function syncWindowAppearance() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   const appearance = windowAppearance();
   if (process.platform === "darwin") {
-    const opaque = appearance.reducedTransparency || appearance.increasedContrast;
+    const opaque = appearance.reducedTransparency || appearance.increasedContrast || !['light','dark','system'].includes(selectedTheme);
     mainWindow.setVibrancy(opaque ? null : "under-window");
     mainWindow.setBackgroundColor(opaque ? (appearance.dark ? "#171c24" : "#fffcfa") : "#00000000");
   } else {
@@ -267,8 +271,9 @@ function registerIpc() {
   ipcMain.handle('forma:remove-connection',(_event,id)=>connections.remove(id));
   ipcMain.handle("forma:appearance", () => windowAppearance());
   ipcMain.handle("forma:set-theme", (_event, theme) => {
-    if(!['light','dark','system'].includes(theme))throw new Error('无效的主题设置');
-    nativeTheme.themeSource = theme;
+    if(!isTheme(theme))throw new Error('无效的主题设置');
+    selectedTheme=theme;
+    nativeTheme.themeSource = nativeThemeFor(theme);
     syncWindowAppearance();
     return windowAppearance();
   });

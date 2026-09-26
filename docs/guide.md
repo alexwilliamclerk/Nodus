@@ -137,6 +137,10 @@ Nodus 内置 `nodus-requirement-guardian` 系统 Skill，并在每个 Nodus Agen
 
 对话默认跟随最新内容，并在消息增长、输入区或窗口尺寸变化后保持到底部。主动上翻阅读历史时暂停跟随，可点击顶部“回到最新”恢复；提交新的用户消息也会恢复跟随。
 
+## 删除问题
+
+普通提问旁的“删除”可移除该轮提问、回答及后续答复所用的对话背景；已有作品和独立确认的任务要求保留。正在进行的制作流程中，“删除这题”可移除当前题目；在“查看已选”里删除已回答题目，会同时撤销之后的选择和执行确认，并停用相关要求。删除后由用户选择生成下一题或重新确认，不自动调用模型。已完成版本的制作记录不能通过此入口撤销。
+
 ## 界面语言
 
 在“设置与模型连接”的“界面语言”中选择“简体中文”或“English”。切换后主界面、设置和原生菜单立即更新，重启后保持选择。已有对话、用户材料、任务规则和作品文件不被自动翻译；后续新生成的动态问题与选项会根据所选界面语言输出，交付文件语言仍以任务要求为准。
@@ -273,3 +277,11 @@ pnpm run dist:linux:tar
 已实现有限的模型辅助语义审查和按需联网搜索；全面语义判断、前端自动视觉验收、独立联网事实核实、完整工具审计和全面并行恢复仍需进一步建设。
 
 文件工具限制在当前工作目录；应用不默认安装依赖或执行模型生成的系统代码。网页脚本在受限预览容器中运行。运行记录不是完整持久化工具轨迹，token 用量只统计已记录响应，不代表服务商余额或精确费用。
+
+## Landscape themes
+
+Open Settings and choose a preview card under Appearance: Lavender Dawn, Moonlit Peaks, Peach Mist, or Bamboo Pavilion. The change applies immediately and is saved for the next launch. The dropdown also offers Light, Dark and Follow system. Theme changes affect Nodus, not the websites or documents shown in the work preview.
+
+## Delete a question
+
+Use the delete action on a chat question to remove the question and answer from the conversation and future model context. Use the current question's delete action or Review choices to remove a decision question. Later dependent choices must be confirmed again. Existing delivered files are preserved.

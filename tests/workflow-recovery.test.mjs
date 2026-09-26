@@ -71,6 +71,19 @@ test('backtracking clears original-resume intent',()=>{
  commitDecision(f);f.current=localNode('confirm');backDecision(f);assert.equal(f.resumeOriginal,false);
 });
 
+test('resuming unfinished work does not restore deleted conversation context',async()=>{
+ const {storage,pi,service}=await setup('website');
+ const task={id:'chat-removal',artifactType:'website',requirement:'Build site',timeline:[],temporaryConversations:[{message:'REMOVED_CHAT_UNIQUE',reply:'obsolete answer'}]};
+ await service.execute({task,versionId:'v1'});
+ const original=flow('Update title');let prompt='';
+ pi.runText=async args=>{prompt=args.prompt;throw Error('NODUS_STOPPED');};
+ await assert.rejects(service.execute({task,versionId:'v2',baseVersionId:'v1',proposal:original}));
+ const pending=await pendingWorkspace(storage,task.id);
+ const resumed={...flow('Continue'),pendingId:pending.pendingId,resumeOriginal:true};
+ await assert.rejects(service.execute({task:{...task,temporaryConversations:[]},versionId:'v2',baseVersionId:'v1',proposal:resumed,resumePending:true,pendingId:pending.pendingId}));
+ assert(!prompt.includes('REMOVED_CHAT_UNIQUE'));assert(!prompt.includes('obsolete answer'));
+});
+
 test('website read-only context includes stylesheet and interaction source',async()=>{
  const {storage,service}=await setup('website');const task={id:'web',artifactType:'website'};
  await service.execute({task,versionId:'v1'});const context=await withVersionContext(storage,task,'v1');
