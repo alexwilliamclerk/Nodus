@@ -23,6 +23,10 @@
 
 Nodus currently creates local websites, Markdown research reports, PPTX presentations, Python projects, and descriptive data analyses. It runs on macOS, Windows, and Linux with a model connection you provide.
 
+**In [v1.4.1](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.4.1):** The four landscape themes keep the conversation background visible while giving user messages and AI replies separate, readable bubbles. An animated **Thinking…** indicator appears as soon as you submit a request, shows the current activity, and gives way to the streamed reply. It also works in Chinese and respects reduced-motion settings. See the [changelog](CHANGELOG.md) for the full version history.
+
+You can also **adopt and track** an AI recommendation: confirm why you adopted it, add public HTTPS sources, and check whether those conditions have changed. Daily checks are optional and run while Nodus is open; assessments include source quotations and can remain unverified when evidence is insufficient. [Read the tracking guide](docs/guide.md#adopt-and-track-advice).
+
 ![Nodus showing four directions for a sample portfolio website](docs/assets/workspace.jpg)
 
 <sub>Screenshot of the actual application using a synthetic task and a mocked planning response. The application interface is currently in Chinese.</sub>
@@ -52,6 +56,8 @@ Drag **Nodus** into Applications after opening the image.
 ```powershell
 $ErrorActionPreference='Stop'; $release=Invoke-RestMethod 'https://api.github.com/repos/alexwilliamclerk/Nodus/releases/latest'; $file=Join-Path $env:TEMP "Nodus-$($release.tag_name)-Windows-x64.exe"; Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe' -OutFile $file; Start-Process $file
 ```
+
+The Windows installer is currently **unsigned**. A downloaded EXE may trigger SmartScreen or be blocked by Smart App Control. Check its SHA-256 against `SHA256SUMS.txt` on the same release before running it; the automated release test covers silent installation, not every PC's interactive launch. A code-signing certificate or Microsoft Store distribution is still needed to address this for public installs.
 
 **Linux — install and choose whether to remove older AppImages after testing the new app:**
 

@@ -4,6 +4,7 @@
 
 - Restored separate, readable user and assistant chat bubbles across the four landscape themes while keeping the conversation canvas transparent.
 - Show a compact, bilingual thinking indicator immediately after submission, retain the current activity label, and replace it with streamed output or clear it when the request ends.
+- Validated this release with 128 automated tests and packaged Windows installation, upgrade and removal checks. The Windows EXE remains unsigned, so Windows may still warn about or block interactive installation.
 
 ## 1.4.0
 

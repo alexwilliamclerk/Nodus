@@ -24,6 +24,10 @@ Nodus 是一个以**动态选择与持续反馈**为核心的 AI 桌面工作台
 
 选择、任务要求、作品版本和反馈保存在同一个工作空间中。你决定方向，也能回看为什么这样做、实际交付了什么，以及哪些要求还需要判断。
 
+**[v1.4.1](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.4.1) 更新：**四套山水主题恢复了清晰的用户与 AI 对话气泡，对话背景仍可见。提交请求后会立即显示动态“正在思考”和当前进度，收到流式回复后切换为正文；支持中英文与减少动画设置。完整版本记录见[更新日志](CHANGELOG.md)。
+
+你还可以在 AI 回复旁选择**“采纳并追踪”**：确认采纳理由、添加公开 HTTPS 来源，按需检查原建议的关键条件是否变化。每日自动检查需要主动开启，仅在 Nodus 运行期间执行；证据不足时会标明暂未确认。详见[使用手册](docs/guide.md#adopt-and-track-advice)。
+
 ![Nodus 真实桌面界面：需求、任务规则与四种可选方向](docs/assets/workspace.jpg)
 
 <p align="center"><sub>当前应用的真实界面截图；使用合成示例与模拟规划响应，没有使用私人对话或真实模型凭据。</sub></p>
@@ -77,6 +81,8 @@ tag=$(curl -fsSL -o /dev/null -w '%{url_effective}' 'https://github.com/alexwill
 ```powershell
 $ErrorActionPreference='Stop'; $release=Invoke-RestMethod 'https://api.github.com/repos/alexwilliamclerk/Nodus/releases/latest'; $file=Join-Path $env:TEMP "Nodus-$($release.tag_name)-Windows-x64.exe"; Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe' -OutFile $file; Start-Process $file
 ```
+
+Windows 安装包目前**没有数字签名**，下载后可能触发 SmartScreen 警告，或被 Smart App Control 阻止。运行前可用同一发布页的 `SHA256SUMS.txt` 核对文件；发布自动测试覆盖静默安装，不能证明每台电脑双击都能启动。面向公众稳定安装仍需可信代码签名或 Microsoft Store 分发。
 
 **Linux x64（终端）：安装后可选择清理旧版 AppImage**
 
