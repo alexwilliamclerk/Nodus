@@ -1,9 +1,9 @@
 /* Landscape themes retain the light/dark semantic layer for native controls. */
-:root[data-platform][data-theme][data-scenic-theme] {--paper:#f4eef7;--rail:#eae2f1;--surface:#fffbff;--selected:#e5d6ee;--line:#cbbbd5;--ink:#382c46;--muted:#746080;--accent:#825a96;--scene-tint:rgba(247,241,251,.84);--scene-panel:rgba(255,251,255,.93);--scene-rail:rgba(238,227,247,.88);}
+:root[data-platform][data-theme][data-scenic-theme] {--paper:#f4eef7;--rail:#eae2f1;--surface:#fffbff;--selected:#e5d6ee;--line:#cbbbd5;--ink:#382c46;--muted:#746080;--accent:#825a96;--scene-tint:rgba(247,241,251,.84);--scene-panel:rgba(255,251,255,.93);--scene-rail:rgba(238,227,247,.88);--chat-user:rgba(232,215,241,.96);--chat-agent:rgba(255,251,255,.96);}
 :root[data-platform][data-theme][data-scenic-theme="lavender-dawn"] {--scene:url('./theme-assets/lavender-dawn.png');}
-:root[data-platform][data-theme][data-scenic-theme="moonlit-peaks"] {--scene:url('./theme-assets/moonlit-peaks.png');--paper:#1d1733;--rail:#26203d;--surface:#302740;--selected:#453957;--line:#665574;--ink:#f5eddf;--muted:#c7b7cc;--accent:#e7be83;--scene-tint:rgba(25,19,45,.77);--scene-panel:rgba(37,29,55,.95);--scene-rail:rgba(31,23,48,.91);}
-:root[data-platform][data-theme][data-scenic-theme="peach-mist"] {--scene:url('./theme-assets/peach-mist.png');--paper:#fff4ed;--rail:#f7e5db;--surface:#fffaf5;--selected:#f8dfd3;--line:#dbc2b5;--ink:#4c342c;--muted:#826458;--accent:#ad6249;--scene-tint:rgba(255,247,239,.80);--scene-panel:rgba(255,250,245,.94);--scene-rail:rgba(249,233,221,.88);}
-:root[data-platform][data-theme][data-scenic-theme="bamboo-pavilion"] {--scene:url('./theme-assets/bamboo-pavilion.png');--paper:#f8f5e9;--rail:#eae9d9;--surface:#fffdf3;--selected:#e7e7cc;--line:#c8c6ac;--ink:#3d4432;--muted:#70765b;--accent:#69764b;--scene-tint:rgba(250,248,235,.80);--scene-panel:rgba(255,253,242,.94);--scene-rail:rgba(236,237,216,.88);}
+:root[data-platform][data-theme][data-scenic-theme="moonlit-peaks"] {--scene:url('./theme-assets/moonlit-peaks.png');--paper:#1d1733;--rail:#26203d;--surface:#302740;--selected:#453957;--line:#665574;--ink:#f5eddf;--muted:#c7b7cc;--accent:#e7be83;--scene-tint:rgba(25,19,45,.77);--scene-panel:rgba(37,29,55,.95);--scene-rail:rgba(31,23,48,.91);--chat-user:rgba(72,57,91,.97);--chat-agent:rgba(37,30,54,.97);}
+:root[data-platform][data-theme][data-scenic-theme="peach-mist"] {--scene:url('./theme-assets/peach-mist.png');--paper:#fff4ed;--rail:#f7e5db;--surface:#fffaf5;--selected:#f8dfd3;--line:#dbc2b5;--ink:#4c342c;--muted:#826458;--accent:#ad6249;--scene-tint:rgba(255,247,239,.80);--scene-panel:rgba(255,250,245,.94);--scene-rail:rgba(249,233,221,.88);--chat-user:rgba(249,220,207,.97);--chat-agent:rgba(255,250,245,.97);}
+:root[data-platform][data-theme][data-scenic-theme="bamboo-pavilion"] {--scene:url('./theme-assets/bamboo-pavilion.png');--paper:#f8f5e9;--rail:#eae9d9;--surface:#fffdf3;--selected:#e7e7cc;--line:#c8c6ac;--ink:#3d4432;--muted:#70765b;--accent:#69764b;--scene-tint:rgba(250,248,235,.80);--scene-panel:rgba(255,253,242,.94);--scene-rail:rgba(236,237,216,.88);--chat-user:rgba(230,232,205,.97);--chat-agent:rgba(255,253,242,.97);}
 :root[data-platform][data-theme][data-scenic-theme] .app-shell {background:var(--scene) center/cover no-repeat fixed;color:var(--ink);}
 :root[data-platform][data-theme][data-scenic-theme] .app-shell::before {display:none;}
 :root[data-platform][data-theme][data-scenic-theme] .workspace {background:transparent;}
@@ -29,14 +29,22 @@
 :root[data-platform][data-theme][data-scenic-theme="moonlit-peaks"] .send-button {color:#21182c;}
 :root[data-platform][data-theme][data-scenic-theme] .send-button:hover {filter:brightness(1.1);}
 
-/* Conversation text sits directly on the landscape, without chat cards. */
-:root[data-platform][data-theme][data-scenic-theme] :is(.welcome,.record-panel,.event.user,.event.agent) {
+/* Keep the transcript open to the landscape without painting a large panel. */
+:root[data-platform][data-theme][data-scenic-theme] :is(.welcome,.record-panel) {
   background:transparent;border:0;border-radius:0;box-shadow:none;
   backdrop-filter:none;-webkit-backdrop-filter:none;
 }
-:root[data-platform][data-theme][data-scenic-theme] :is(.welcome,.event.user,.event.agent) {
+:root[data-platform][data-theme][data-scenic-theme] .welcome {
   text-shadow:0 1px 2px var(--paper),0 0 8px var(--paper);color:var(--ink);
 }
+:root[data-platform][data-theme][data-scenic-theme] .event:is(.user,.agent) {
+  color:var(--ink);border-color:var(--line);box-shadow:0 5px 18px rgba(35,25,35,.12);
+  backdrop-filter:none;-webkit-backdrop-filter:none;text-shadow:none;
+}
+:root[data-platform][data-theme][data-scenic-theme] .event.user {background:var(--chat-user);}
+:root[data-platform][data-theme][data-scenic-theme] .event.agent {background:var(--chat-agent);}
+:root[data-platform][data-theme][data-scenic-theme]:is(.reduce-transparency,.increase-contrast) .event.user {background:var(--selected);}
+:root[data-platform][data-theme][data-scenic-theme]:is(.reduce-transparency,.increase-contrast) .event.agent {background:var(--surface);}
 
 /* The transcript has no separate painted or frosted panel, in any appearance.
    Keep these explicit so native accessibility/appearance rules cannot restore it. */

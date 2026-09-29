@@ -70,7 +70,7 @@ const english={
   '每 3 次修改生成预览':'Preview every 3 changes','每 5 次修改生成预览':'Preview every 5 changes',
   '每 8 次修改生成预览':'Preview every 8 changes',
   '仅本次使用':'This session only','已加密保存':'Encrypted on this device','当前':'Current',
-  '正在连接模型':'Connecting to model','已连接':'Connected',
+  '正在连接模型':'Connecting to model','正在思考':'Thinking…','已连接':'Connected',
   '本机累计用量':'Recorded local usage','暂无已记录的模型用量':'No model usage recorded',
   '打开已有对话':'Open a chat','打开已有对话…':'Open a chat…','打开文件作为材料…':'Open file as material…',
   '导出当前作品…':'Export current work…','打开作品目录':'Open work folder',

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1
+
+- Restored separate, readable user and assistant chat bubbles across the four landscape themes while keeping the conversation canvas transparent.
+- Show a compact, bilingual thinking indicator immediately after submission, retain the current activity label, and replace it with streamed output or clear it when the request ends.
+
 ## 1.4.0
 
 - Removed the remaining translucent transcript container, including native glass backgrounds and shadows across appearance modes.

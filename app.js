@@ -45,10 +45,15 @@ let liveFrame=null;
 let transcriptFollower;
 function renderLiveResponse(task){
   let node=$('#liveResponse');
-  const text=liveResponses.get(task.id);
+  const text=liveResponses.get(task.id)||'';
   if(!text&&!isBusy(task)){node?.remove();return;}
-  if(!node){$('#timeline').insertAdjacentHTML('beforeend','<article id="liveResponse" class="event agent"><p></p></article>');node=$('#liveResponse');}
-  node.querySelector('p').textContent=text||task.operation?.lastActivity||'正在连接模型';
+  if(!node){$('#timeline').insertAdjacentHTML('beforeend','<article id="liveResponse" class="event agent"><span class="thinking-indicator" role="status"><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>正在思考</span></span><small class="thinking-activity" hidden></small><p hidden></p></article>');node=$('#liveResponse');}
+  node.classList.toggle('thinking',!text);
+  node.querySelector('.thinking-indicator').hidden=Boolean(text);
+  const activity=node.querySelector('.thinking-activity');
+  const currentActivity=task.operation?.lastActivity==='正在思考'?task.operation.label:task.operation?.lastActivity;
+  activity.hidden=Boolean(text)||!currentActivity;activity.textContent=currentActivity?ui(currentActivity):'';
+  const response=node.querySelector('p');response.hidden=!text;response.textContent=text;
   transcriptFollower?.refresh();
 }
 const activeTask = () => state.tasks.find(t=>t.id===state.activeTaskId && !t.deletedAt);
@@ -529,9 +534,9 @@ async function perform(task,phase,label,work,commit) {
   if(isBusy(task))return;
   task.retryStage=task.stage;task.error=null;task.stopRequested=false;
   liveResponses.delete(task.id);
-  task.operation={phase,label,status:'running',startedAt:new Date().toISOString(),lastActivity:'请求已提交'};
+  task.operation={phase,label,status:'running',startedAt:new Date().toISOString(),lastActivity:'正在思考'};
   try {
-    await persistNow();renderCurrent(task);
+    renderCurrent(task);await persistNow();
     const result=await work();
     if(['artifact','revision'].includes(phase)&&liveResponses.get(task.id))addRecord(task,'agent',liveResponses.get(task.id),'执行输出');
     commit(result);task.operation.status='success';task.operation.lastActivity='操作完成';

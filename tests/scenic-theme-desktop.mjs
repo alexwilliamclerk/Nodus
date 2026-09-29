@@ -62,9 +62,17 @@ try{
     assert.match(await page.locator('.app-shell').evaluate(el=>getComputedStyle(el).backgroundImage),new RegExp(id));
     await page.screenshot({path:path.join(evidence,id+'.png')});
     await page.locator('#closeSettings').click();
-    assert.equal(await page.locator('.welcome').evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
-    const chatStyles=await page.evaluate(()=>{const el=document.createElement('article');el.className='event agent';el.textContent='Theme transparency check';document.querySelector('#timeline').append(el);const s=getComputedStyle(el);const value={background:s.backgroundColor,shadow:s.boxShadow,filter:s.backdropFilter};el.remove();return value;});
-    assert.deepEqual(chatStyles,{background:'rgba(0, 0, 0, 0)',shadow:'none',filter:'none'});
+    const chatStyles=await page.evaluate(()=>{
+      const timeline=document.querySelector('#timeline');
+      const bubbles=['user','agent'].map(role=>{
+        const el=document.createElement('article');el.className=`event ${role}`;el.textContent='Readable conversation';timeline.append(el);
+        const style=getComputedStyle(el);const result={background:style.backgroundColor,border:style.borderWidth};el.remove();return result;
+      });
+      return {panel:getComputedStyle(document.querySelector('#recordPanel')).backgroundColor,bubbles};
+    });
+    assert.equal(chatStyles.panel,'rgba(0, 0, 0, 0)');
+    assert(chatStyles.bubbles.every(bubble=>bubble.background!=='rgba(0, 0, 0, 0)'&&bubble.border==='1px'));
+    assert.notEqual(chatStyles.bubbles[0].background,chatStyles.bubbles[1].background);
     await page.screenshot({path:path.join(evidence,id+'-workspace.png')});
     await page.locator('#modelButton').click();await page.locator('#manageConnections').click();
   }
