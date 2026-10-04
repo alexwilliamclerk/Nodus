@@ -1,10 +1,10 @@
-# Nodus
+# Nodus — AI Agent Safety & Reviewable Memory
 
 ### Test your agents. Review what they send. Decide what they remember.
 
-**An AI agent desktop workspace with safety controls built into the work itself.**
+**An open-source desktop workspace for LLM agent security, prompt injection testing and human-in-the-loop control.**
 
-Nodus brings task-specific safety testing, outgoing-request review and revocable project memory into one place. Build websites, reports, presentations and code with your own model—and keep the agent's permissions, context and decisions open to review.
+Nodus combines AI agent evaluation on your own tasks, LLM privacy controls and agent memory with source provenance. Build websites, reports, presentations and code with your own model—and keep the agent's permissions, context and decisions open to review.
 
 For independent developers and creators working with real files, external sources and more than one AI model.
 
@@ -14,9 +14,9 @@ macOS · Windows · Linux &nbsp; / &nbsp; Bring your own model &nbsp; / &nbsp; M
 
 ---
 
-## Safety checks built around your own work
+## Prompt injection testing on your own tasks
 
-**Compare agents on the task you actually want to finish.**
+**Run task-specific agent safety evaluations while checking whether useful work still gets done.**
 
 Take an isolated copy of a task and add test materials that try to make the agent disclose a synthetic secret, modify a protected file or abandon the original goal. Keep the original task intact, save the test configuration and rerun it after switching models.
 
@@ -28,37 +28,37 @@ The comparison separates three things that matter:
 
 A stopped task and a safely completed task are different outcomes. Nodus keeps that difference visible so you can judge both safety and usefulness.
 
-## Memory you can inspect—and take back
+## Agent memory with provenance and revocation
 
 **See what is remembered, where it came from and which project can use it.**
 
-Each memory carries its source quotation, originating task, scope and edit history. Keep it within one task or approve it for the source task's project.
+Memory provenance is visible: each entry carries its source quotation, originating task, scope and edit history. Keep it within one task or approve it for the source task's project.
 
 Observations from external material enter as **candidates**. You review each one before it is used. Editing its content or scope returns it to review; revoking it stops future direct injection and interrupts calls using it. You can also delete an entry.
 
 **A document's suggestion never automatically becomes your requirement.** Reviewed memory remains reference context, separate from confirmed task requirements and tool permissions.
 
-## Review the information leaving your machine
+## LLM privacy: review and redact outgoing requests
 
 **Inspect the actual outgoing model request before it is sent.**
 
-Turn on disclosure review to see the request body, then remove selected values or fields before dispatch. This includes copies carried in conversation history and file-tool results, helping you reduce unnecessary exposure of customer details, contract fields or log content.
+Turn on disclosure review for human-reviewed data redaction: inspect the request body, then remove selected values or fields before dispatch. This includes copies carried in conversation history and file-tool results, helping you reduce unnecessary exposure of customer details, contract fields or log content.
 
 Original materials stay intact. You decide what to omit from the outgoing request.
 
-## Set boundaries before the agent acts
+## Agent permissions with human-in-the-loop approval
 
 **Choose what the agent may read, change and send.**
 
-Set file read/write scopes, mark sensitive sources and approve recipients per task. Describe a policy in plain language to get a draft you can review before saving. Permissions are checked at supported action boundaries and can be revoked.
+Use task-scoped access control to set file read/write scopes, mark sensitive sources and approve recipients. Describe a policy in plain language to get a draft you can review before saving. Permissions are checked at supported action boundaries and can be revoked.
 
 Text inside a webpage or attachment cannot grant tool access. A remembered preference cannot expand the agent's permissions.
 
-## Inspect a suspicious action, then recover
+## Context isolation and recovery
 
 **Keep useful work moving while preserving the evidence.**
 
-Review the recorded links between source material and a proposed action. Select material to isolate, inspect the removal, and retry in a clean task without overwriting the originals.
+Inspect source-to-action evidence when reviewing suspected prompt injection or unwanted agent behavior. Select material to isolate, inspect the removal, and retry in a clean task without overwriting the originals.
 
 This connects the parts of the workflow: inspect the action, narrow its context, retry, and review the resulting work. Source/action links provide evidence for your judgment; they are not proof of causation.
 
