@@ -1,3 +1,4 @@
+import {withContextAccess} from './context-access.mjs';
 import {readFile,writeFile,lstat,realpath} from 'node:fs/promises';
 import path from 'node:path';
 import {fileList,safePath} from './artifacts.mjs';
@@ -18,7 +19,11 @@ export async function pendingWorkspace(storage,taskId){
 }
 export async function pendingContext(storage,task){
   const saved=await pendingWorkspace(storage,task.id);if(!saved)return task;
-  const files=await fileList(saved.dir);let remaining=48000;const texts=[];
+  const guard=storage.safety?.contextCheckpoint(task.id);
+  const files=await fileList(saved.dir);
+  await storage.safety?.assertContextPaths(task.id,files.filter(f=>!['artifact.json','.nodus-preview.html'].includes(f)));
+  let remaining=48000;const texts=[];
   for(const file of files.filter(f=>/\.(md|txt|py|json|html|css|js)$/.test(f)&&!['artifact.json','.nodus-preview.html'].includes(f))){if(remaining<=0)break;const value=(await readFile(safePath(saved.dir,file),'utf8')).slice(0,remaining);texts.push(`${file}\n${value}`);remaining-=value.length;}
-  return {...task,artifactType:saved.task.artifactType,versionContext:`未完成目录 ${saved.pendingId}，不代表可用版本。\n文件：${files.join('、')}\n${texts.join('\n\n')}`};
+  guard?.();
+  return withContextAccess({...task,artifactType:saved.task.artifactType,versionContext:`未完成目录 ${saved.pendingId}，不代表可用版本。\n文件：${files.join('、')}\n${texts.join('\n\n')}`},guard);
 }

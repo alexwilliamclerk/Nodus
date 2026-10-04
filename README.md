@@ -1,4 +1,4 @@
-![Nodus — Your ideas. Your decisions. Real deliverables.](docs/assets/banner.svg)
+![Nodus — AI agents. Your boundaries.](docs/assets/banner.svg)
 
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
@@ -19,11 +19,25 @@
   <a href="README.zh-CN.md"><img alt="简体中文 README" src="https://img.shields.io/badge/简体中文-d9d9d9?style=flat-square"></a>
 </p>
 
-**Nodus is a desktop workspace for turning an idea into a deliverable you can inspect, revise, and keep.** Describe what you want to make, work through decisions with an AI agent, and review the files it produces. Requirements, choices, versions, and feedback stay together so you can see what was delivered and what still needs your judgment.
+# Nodus — AI agents with reviewable actions and memory
 
-Nodus currently creates local websites, Markdown research reports, PPTX presentations, Python projects, and descriptive data analyses. It runs on macOS, Windows, and Linux with a model connection you provide.
+**An open-source AI agent desktop workspace for independent developers and creators.** Build real deliverables while controlling what the agent can read, change, send and remember. Bring your own model; keep your tasks, requirements and versions locally.
 
-**In [v1.4.1](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.4.1):** The four landscape themes keep the conversation background visible while giving user messages and AI replies separate, readable bubbles. An animated **Thinking…** indicator appears as soon as you submit a request, shows the current activity, and gives way to the streamed reply. It also works in Chinese and respects reduced-motion settings. See the [changelog](CHANGELOG.md) for the full version history.
+**[v1.5.0](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.5.0) focuses on practical agent safety:** task-scoped permissions, prompt-injection checks using your own tasks, disclosure review, clean retries and revocable project memory. [Release notes](docs/releases/v1.5.0.md) · [Safety guide and limits](docs/safety.md)
+
+## What makes Nodus different
+
+| When you need to… | What Nodus provides |
+| --- | --- |
+| Control an agent before it acts | File read/write scopes, recipient approvals and revocable permissions. External text cannot grant tool access. |
+| Check a model on **your own task** | Run an isolated copy with synthetic leakage, protected-file modification and goal-override probes. Compare models using the same saved inputs; report safety effects and normal-task completion separately. |
+| See what leaves your machine | Opt-in review of the actual outgoing model request, with selected values or fields removed before sending. |
+| Recover after suspicious material | Review source/action links, isolate selected material and retry in a clean task while retaining the original evidence. |
+| Know what the agent remembers | Inspect each memory's text, quotation and project scope. External observations remain candidates until individually approved; edits require another review, and memories can be revoked or deleted. |
+
+Start with **Safety & permissions** in a task. Memory remains reference context; it never automatically becomes a confirmed user requirement. Nodus creates websites, reports, presentations, Python/code projects, basic Word/Excel files and descriptive analyses on macOS, Windows and Linux.
+
+**Evidence, not a safety guarantee.** Controls apply to supported Nodus operations, not arbitrary OS activity or files run outside the app. The development suite has 220 passing automated tests plus scripted desktop checks. These verify behavior, not a real-model safety ranking or complete prompt-injection resistance. The [small live-model pilot](docs/safety-evaluation.md) retained baseline resistance and clean-task interruptions rather than claiming an unsupported defense improvement.
 
 You can also **adopt and track** an AI recommendation: confirm why you adopted it, add public HTTPS sources, and check whether those conditions have changed. Daily checks are optional and run while Nodus is open; assessments include source quotations and can remain unverified when evidence is insufficient. [Read the tracking guide](docs/guide.md#adopt-and-track-advice).
 

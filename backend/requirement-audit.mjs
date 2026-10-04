@@ -2,15 +2,16 @@ import {readFile} from 'node:fs/promises';
 import {activeRequirements} from '../frontend/requirements.js';
 import {safePath} from './artifacts.mjs';
 
-export async function artifactTextSnapshot(dir,artifact,limit=64000){
+export async function artifactTextSnapshot(dir,artifact,limit=64000,{canRead=()=>true}={}){
   const names=[...new Set([artifact.entry,...artifact.files])].filter(file=>/\.(?:html|css|js|mjs|md|txt|json|py|xml|yaml|yml)$/i.test(file)&&!['artifact.json','.nodus-preview.html'].includes(file));
-  const files=[];let remaining=limit;
+  const files=[],omittedFiles=[];let remaining=limit;
   for(const file of names){
+    if(!canRead(file)){omittedFiles.push(file);continue;}
     if(remaining<=0)break;
     const source=await readFile(safePath(dir,file),'utf8');const content=source.slice(0,remaining);
     files.push({file,content,truncated:content.length<source.length});remaining-=content.length;
   }
-  return {files,truncated:remaining<=0||files.some(file=>file.truncated)};
+  return {files,truncated:remaining<=0||files.some(file=>file.truncated)||omittedFiles.length>0,...(omittedFiles.length?{omittedFiles}:{})};
 }
 
 export function validateRequirementAudit(value,ledger,snapshot){

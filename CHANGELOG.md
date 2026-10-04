@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.0
+
+- Added task-scoped file permissions, recipient approvals, revocable grants and reviewable natural-language permission drafts.
+- Added source/action evidence, selected-material isolation and clean task retries.
+- Added opt-in review and minimization of the actual outgoing model request.
+- Added safety checks on isolated copies of user tasks, with saved model comparisons and separate safety/utility evidence.
+- Added reviewable task/project memory with exact provenance, candidate-only extraction, explicit approval, editing, revocation and deletion.
+- Updated English/Chinese READMEs to foreground agent safety, task evaluation, privacy controls and memory boundaries.
+- Local development validation: 220 automated tests plus scripted desktop checks; no claim of complete prompt-injection resistance or a real-model safety ranking.
+
 ## 1.4.1
 
 - Restored separate, readable user and assistant chat bubbles across the four landscape themes while keeping the conversation canvas transparent.

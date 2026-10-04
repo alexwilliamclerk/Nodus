@@ -49,7 +49,7 @@ export async function searchWithProvider(provider,key,query,{request=fetch}={}){
 }
 
 export class WebSearchService {
-  constructor({pi,safeStorage,file,request=fetch}){this.pi=pi;this.safeStorage=safeStorage;this.file=file;this.request=request;this.mode='off';this.provider=null;this.key=null;this.remembered=false;}
+  constructor({pi,safeStorage,file,request=fetch,authorize=null}){this.pi=pi;this.safeStorage=safeStorage;this.file=file;this.request=request;this.authorize=authorize;this.mode='off';this.provider=null;this.key=null;this.remembered=false;}
   status(){return {mode:this.mode,provider:this.provider,configured:this.mode==='current'?Boolean(currentProviders[this.pi.providerId]&&this.pi.model):this.mode==='separate'&&Boolean(this.key),remembered:this.remembered,currentSupported:Boolean(currentProviders[this.pi.providerId]&&this.pi.model)};}
   restoreCurrentMode(){this.mode='current';this.provider=null;this.key=null;this.remembered=false;return this.status();}
   async configure({mode,provider,apiKey,remember=false}){
@@ -79,7 +79,7 @@ export class WebSearchService {
     const key=this.safeStorage.decryptString(Buffer.from(saved.encryptedKey,'base64'));
     this.mode='separate';this.provider=saved.provider;this.key=key;this.remembered=true;return this.status();
   }
-  async search(query){
+  async search(query,context={}){
     let provider=this.provider,key=this.key;
     if(this.mode==='current'){
       if(!currentProviders[this.pi.providerId]||!this.pi.model)throw new Error('当前模型连接不支持搜索；请切换到 OpenAI、Anthropic、百炼或使用独立搜索 API');
@@ -87,6 +87,16 @@ export class WebSearchService {
       provider=currentProviders[this.pi.providerId];key=credential?.key;
     }
     if(this.mode==='off'||!key)throw new Error('请先在设置中连接搜索服务');
-    return searchWithProvider(provider,key,query,{request:this.request});
+    const origins={brave:'https://api.search.brave.com',tavily:'https://api.tavily.com',qwen:'https://dashscope.aliyuncs.com',openai:'https://api.openai.com',anthropic:'https://api.anthropic.com'};
+    const action={...context,kind:'search',target:origins[provider],payload:query,preview:query,detail:'搜索问题将发送给此服务 / Search query sent to this service'};
+    const grant=await this.authorize?.(action);
+    const request=(input,init)=>{
+      if(this.authorize){
+        if(typeof grant?.assertCurrent!=='function')throw new Error('NODUS_SAFETY: Missing dispatch authorization');
+        grant.assertCurrent({kind:'search',target:origins[provider],payload:query});
+      }
+      return this.request(input,init);
+    };
+    return searchWithProvider(provider,key,query,{request});
   }
 }

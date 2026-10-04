@@ -24,12 +24,17 @@ export function pageText(html){
   visit(parse(html));return parts.join(' ').replace(/\s+/g,' ').trim();
 }
 // Resolve and pin a public IPv4 address on every hop; never send cookies or credentials.
-export async function fetchAdviceSource(value,{resolve=lookup,request=https.get}={}){
+export async function fetchAdviceSource(value,{resolve=lookup,request=https.get,authorize=null}={}){
   let url=sourceUrl(value);
   for(let hop=0;hop<4;hop++){
+    const grant=await authorize?.(url);
     const target=new URL(url);let timer;
     const addresses=await Promise.race([resolve(target.hostname,{all:true,family:4}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('WATCH_TIMEOUT')),15000);})]).finally(()=>clearTimeout(timer));
     if(!addresses.length||addresses.some(a=>!publicIPv4(a.address)))throw Error('WATCH_PRIVATE_SOURCE');
+    if(authorize){
+      if(typeof grant?.assertCurrent!=='function')throw Error('NODUS_SAFETY: Missing dispatch authorization');
+      grant.assertCurrent({kind:'web',target:target.origin,payload:url});
+    }
     const response=await new Promise((resolve,reject)=>{
       let settled=false;const finish=(error,result)=>{if(settled)return;settled=true;clearTimeout(deadline);error?reject(error):resolve(result);};
       const req=request(target,{headers:{Accept:'text/html,text/plain','Accept-Encoding':'identity','User-Agent':'Nodus-AdviceWatch/1.0'},lookup:(_host,options,callback)=>options?.all?callback(null,[{address:addresses[0].address,family:4}]):callback(null,addresses[0].address,4)},res=>{

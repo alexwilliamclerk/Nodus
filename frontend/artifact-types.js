@@ -1,4 +1,4 @@
-// Shared protocol catalogue: projectId groups tasks; artifactType selects a delivery contract.
+// Shared protocol catalogue: projectId groups tasks and scopes reviewed memory; artifactType selects a delivery contract.
 export const artifactTypes = Object.freeze({
   website: { label:'网站／网页', entry:'index.html', preview:'website', dimensions:['需求符合度','视觉表现','信息清晰度','交互可用性'], protocol:'生成可独立运行的 index.html 及其本地 CSS/JS/图片资源。禁止依赖远程 CDN 或构建步骤；所有本地引用必须存在。' },
   report: { label:'调研报告', entry:'report.md', preview:'document', dimensions:['需求符合度','论证清晰度','来源透明度','结论实用性'], protocol:'生成 report.md（Markdown，必须有 # 标题和 ## 摘要、## 事实与来源、## 假设、## 待验证、## 结论）及 sources.json（数组，每项 {claim,source,status:"unverified"}）。本应用没有联网核实工具，所有外部来源必须标为未核实，不得称已核实；区分用户提供材料与推测。不可虚构引用。' },

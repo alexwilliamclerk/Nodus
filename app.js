@@ -1,3 +1,5 @@
+import {createSafetyUi} from './frontend/safety.js';
+let safetyUi;
 import {createAdviceWatchUi} from './frontend/advice-watch.js';
 let adviceUi;
 import {scenicThemes} from './frontend/themes.js';
@@ -122,7 +124,7 @@ function renderNav() {
   } else {
     const current=tasks.filter(t=>!t.archivedAt);
     $('#taskList').innerHTML=`<section class="nav-section"><div class="section-heading">置顶</div>${current.filter(t=>t.pinned).map(taskButton).join('')||'<p class="empty-list">右键对话可置顶</p>'}</section><section class="nav-section"><div class="section-heading">项目<button id="newProjectButton" class="icon-button" aria-label="新建项目">${icon('plus')}</button></div>${(state.settings.projects||[]).map(project=>`<details class="project-group" open><summary>${icon('folder')}<span>${esc(project.name)}</span></summary>${current.filter(t=>t.projectId===project.id).map(taskButton).join('')}<button class="task-item" data-new-project-task="${esc(project.id)}">${icon('plus')}新对话</button></details>`).join('')||'<p class="empty-list">按项目组织对话</p>'}</section><section class="nav-section"><div class="section-heading">最近</div>${current.filter(t=>!t.pinned && !t.projectId).map(taskButton).join('')||'<p class="empty-list">暂无其他对话</p>'}</section>`;
-    on('#newProjectButton','click',()=>manage({title:'新建项目',description:'项目用于归组对话，不移动已有作品文件。',value:'',submit:name=>{if(!name.trim())return false;(state.settings.projects||=[]).push({id:crypto.randomUUID(),name:name.trim()});persist();renderNav();}}));
+    on('#newProjectButton','click',()=>manage({title:'新建项目',description:'项目用于归组对话，并限定已审阅记忆的共享范围。',value:'',submit:name=>{if(!name.trim())return false;(state.settings.projects||=[]).push({id:crypto.randomUUID(),name:name.trim()});persist();renderNav();}}));
     $$('[data-new-project-task]').forEach(button=>button.onclick=()=>createTask(button.dataset.newProjectTask));
   }
   $$('[data-task-id]').forEach(button=>{
@@ -224,7 +226,7 @@ function renderAction(task) {
   projectSelector.innerHTML='<option value="">未分组</option>'+(state.settings.projects||[]).map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')+'<option value="__new__">新建项目…</option>';
   projectSelector.value=task.projectId||'';projectSelector.disabled=isBusy(task)||Boolean(task.archivedAt);
   projectSelector.onchange=()=>{
-    if(projectSelector.value==='__new__'){projectSelector.value=task.projectId||'';manage({title:'新建项目',description:'项目用于分组对话，本地目录单独选择。',value:'',submit:name=>{if(!name.trim())return false;const p={id:crypto.randomUUID(),name:name.trim()};(state.settings.projects||=[]).push(p);task.projectId=p.id;persist(task);render();}});return;}
+    if(projectSelector.value==='__new__'){projectSelector.value=task.projectId||'';manage({title:'新建项目',description:'项目内可共享已审阅的记忆，本地目录单独选择。',value:'',submit:name=>{if(!name.trim())return false;const p={id:crypto.randomUUID(),name:name.trim()};(state.settings.projects||=[]).push(p);task.projectId=p.id;persist(task);render();}});return;}
     task.projectId=projectSelector.value||null;persist(task);renderNav();
   };
   const directoryButton=$('#chooseDeliveryDirectory');directoryButton.textContent=task.deliveryDirectory?`目录：${task.deliveryDirectory.split(/[\\/]/).filter(Boolean).at(-1)}`:'选择本地目录…';directoryButton.title=task.deliveryDirectory||'首次制作前请选择本地交付目录';directoryButton.disabled=isBusy(task)||Boolean(task.archivedAt);directoryButton.onclick=()=>chooseDeliveryDirectory(task);
@@ -238,7 +240,7 @@ function renderAction(task) {
   selector.disabled=isBusy(task)||Boolean(task.versions.length);
   selector.innerHTML='<option value="">自动识别类型</option>'+Object.entries(artifactTypes).map(([id,info])=>`<option value="${id}">${esc(info.label)}</option>`).join('')+'<option value="__other__">其他类型，先讨论…</option>';
   selector.value=task.artifactType||'';
-  selector.title=task.deliverySummary||'主产物类型；项目仅用于对话分组';
+  selector.title=task.deliverySummary||'主产物类型；项目控制对话分组与记忆共享';
   selector.onchange=async()=>{
     if(selector.value==='__other__'){selector.value=task.artifactType||'';detectTypeOnDemand();return;}
     task.artifactType=selector.value||null;task.typeConfirmed=Boolean(selector.value);task.clarification=null;
@@ -529,6 +531,31 @@ function modelTask(task) {
   copy.requirementLedger=copy.taskRules||copy.requirementLedger;
   return copy;
 }
+async function beforeSafetyRecovery(taskId){
+  const task=state.tasks.find(t=>t.id===taskId);if(!task)throw Error('原任务不存在');
+  if(isBusy(task)){
+    await api.stopTask({taskId});
+    for(let i=0;i<120&&isBusy(task);i++)await new Promise(resolve=>setTimeout(resolve,25));
+    if(isBusy(task))throw Error('当前操作仍在停止，请稍后重新打开隔离预览。');
+  }
+  await persistNow();
+}
+async function runSafetyRecovery({task,jobId,mode}){
+  normalizeTask(task);state.tasks.push(task);state.activeTaskId=task.id;
+  addRecord(task,'agent','本次从已预览的材料重新执行。原任务和原材料已保留；旧对话、模型摘要与工作副本未继承。权限保持，结果仍需核对原要求。','隔离后重试');
+  await persistNow();render();
+  await perform(task,mode==='artifact'?'artifact':'chat','正在使用隔离后的材料重试',()=>api.safetyRecoveryRun(jobId),result=>{
+    if(mode==='reply'){
+      addRecord(task,'agent',result.reply,'隔离后答复 · 请核对原要求');task.stage='input';
+    }else{
+      task.versions.push({id:'v1',label:'V1 · 隔离后重新制作',artifact:result.artifact,previewUrl:result.previewUrl,verification:result.verification,completion:result.completion,createdAt:new Date().toISOString()});
+      task.currentVersionId='v1';task.previewVersionId='v1';task.stage='rating';
+      if(result.artifact?.taskRules){task.taskRules=result.artifact.taskRules;task.requirementLedger=task.taskRules;}
+      addRecord(task,'agent','已使用本次保留的材料生成新版本。请核对原任务是否完整完成；被移除的材料内容未核实。','隔离后交付 · 待核对');
+      layout.view='preview';layout.detail=null;setPreview(true);
+    }
+  });
+}
 async function perform(task,phase,label,work,commit) {
   if(materialImports.has(task.id))return showToast('材料正在读取，请稍后提交。');
   if(isBusy(task))return;
@@ -782,6 +809,7 @@ function renderPreview(task,refresh=false) {
   const version=task.versions.find(v=>v.id===task.previewVersionId);
   $$('.device-button').forEach(button=>button.hidden=Boolean(version)&&version.artifact?.type!=='website');
   if(version?.artifact?.type!=='website')$('#sitePreview').classList.remove('mobile');
+  $('#sitePreview').setAttribute('sandbox',version?.artifact?.type&&version.artifact.type!=='website'?'allow-downloads':'allow-scripts');
   $('#sitePreview').title=`${typeInfo(version?.artifact?.type||task.artifactType)?.label||'作品'}预览`;
   $('#versionSelect').innerHTML=task.versions.length?task.versions.map(v=>`<option value="${esc(v.id)}" ${v.id===task.previewVersionId?'selected':''}>${esc(v.label)}</option>`).join(''):'<option>尚未生成</option>';
   $('#versionSelect').disabled=!task.versions.length||isBusy(task);
@@ -969,7 +997,8 @@ async function runWebSearch(task,query){
   if(!searchStatus.configured){openSettings();$('#searchStatus').textContent='请先配置联网搜索。';return;}
   const button=$('#webSearchButton');button.disabled=true;button.textContent='搜索中…';
   try{
-    const sources=await api.webSearch(query);
+    await persistNow();
+    const sources=await api.webSearch(query,task.id);
     if(!sources.length)throw new Error('搜索服务没有返回可引用的网页来源。');
     task.webSearchResults=sources;
     task.timeline.push({type:'agent',text:`已搜索「${query}」。以下是外部网页来源，内容尚未独立核实；发送消息后模型可参考这些来源。`,meta:'联网来源',sources});
@@ -1129,7 +1158,7 @@ function bindEvents() {
   });
   on('#languageSetting','change',async event=>{
     const next=event.target.value,previous=state.settings.language||'zh-CN';
-    state.settings.language=next;translator.set(next);render();translator.refresh();
+    state.settings.language=next;translator.set(next);render();translator.refresh();safetyUi?.refresh();
     try{await api.setLanguage(next);persist();}
     catch(error){state.settings.language=previous;event.target.value=previous;translator.set(previous);render();translator.refresh();showToast(`切换语言失败：${error.message}`);}
   });
@@ -1162,6 +1191,8 @@ async function initialize() {
   if(state.settings.panelWidths){layout.railWidth=Math.min(280,Math.max(180,state.settings.panelWidths.rail||210));layout.previewWidth=Math.min(480,Math.max(300,state.settings.panelWidths.preview||370));}
   adviceUi=createAdviceWatchUi({api,getLanguage:()=>state.settings.language,toast:showToast});
   await adviceUi.initialize();
+  safetyUi=createSafetyUi({api,getTask:activeTask,getLanguage:()=>state.settings.language,persist:persistNow,toast:showToast,beforeRecovery:beforeSafetyRecovery,onRecovered:runSafetyRecovery});
+  await safetyUi.initialize();
   bindEvents();
   api.onMenuCommand?.(async command=>{
     try{

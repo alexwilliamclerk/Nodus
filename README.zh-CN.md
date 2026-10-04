@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/banner.svg" alt="Nodus — Your ideas. Your decisions. Real deliverables." width="100%" />
+  <img src="docs/assets/banner.svg" alt="Nodus — AI agents. Your boundaries." width="100%" />
   <br /><br />
   <a href="https://github.com/alexwilliamclerk/Nodus/releases"><img src="https://img.shields.io/github/v/release/alexwilliamclerk/Nodus?style=flat-square&amp;color=b57858" alt="Latest release" /></a>
   <a href="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml"><img src="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml/badge.svg" alt="Checks" /></a>
@@ -10,9 +10,9 @@
 
 <div align="center">
 
-**从一个想法，到一份真正可交付的作品。**
+**让 AI 做事，也让你看清它能做什么、发送什么、记住什么。**
 
-先把方向想清楚，再与 AI 一起制作、预览和改进。
+面向个人开发者与独立创作者的开源 AI Agent 桌面工作台。
 
 [下载安装](#下载安装) · [快速开始](#快速开始) · [使用手册](docs/guide.md) · [参与贡献](CONTRIBUTING.md) · [反馈问题](https://github.com/alexwilliamclerk/Nodus/issues)
 
@@ -20,11 +20,23 @@
 
 ---
 
-Nodus 是一个以**动态选择与持续反馈**为核心的 AI 桌面工作台。你可以用自然语言描述目标，通过选项逐步明确需求，再让 Agent 制作网站、报告、演示文稿、Python 工程或数据分析。
+Nodus 将 **Agent 安全控制与实际作品交付**放在同一个工作台：使用自己的模型制作网站、报告、演示文稿、代码、基础 Word/Excel 文件和数据分析，同时保留任务要求、版本与审阅记录。
 
-选择、任务要求、作品版本和反馈保存在同一个工作空间中。你决定方向，也能回看为什么这样做、实际交付了什么，以及哪些要求还需要判断。
+**[v1.5.0](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.5.0) 重点：**执行前授权、用自己的任务做提示注入安全体检、最小必要信息外发、隔离重试，以及可审阅、可撤销的项目记忆。[版本说明](docs/releases/v1.5.0.md) · [安全功能与边界](docs/safety.md)
 
-**[v1.4.1](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.4.1) 更新：**四套山水主题恢复了清晰的用户与 AI 对话气泡，对话背景仍可见。提交请求后会立即显示动态“正在思考”和当前进度，收到流式回复后切换为正文；支持中英文与减少动画设置。完整版本记录见[更新日志](CHANGELOG.md)。
+## Nodus 的区别在哪里
+
+| 你关心的问题 | 对应功能 |
+| --- | --- |
+| Agent 会不会越权读取或修改文件？ | 按任务限制读写路径、批准接收方，并可撤回授权；外部材料不能授予工具权限。 |
+| 换一个模型，我的任务会更安全吗？ | 在隔离副本中加入合成泄露、违规改写和目标偏离测试；用同一份输入比较模型，分别记录实际影响、拦截和正常任务完成情况。 |
+| 到底向模型发送了什么？ | 开启外发审阅后，核对实际请求体，并在发送前移除选中的值或字段。 |
+| 发现可疑材料后，怎么继续工作？ | 查看材料与操作的关联，隔离选定内容，用干净任务重试，同时保留原材料与证据。 |
+| 它记住了什么，会不会影响其他项目？ | 显示记忆内容、原文来源和适用范围；外部经验先成为候选，逐条批准才启用，编辑后重新待审，支持撤销与删除。 |
+
+从任务右上角的 **“安全与授权”** 开始。记忆仅作为参考，**不会自动变成用户要求**。数据保存在本地，但发送给模型的材料仍会离开设备；撤销无法追回已发送内容。
+
+**有明确的验证边界。** 开发验证已通过 220 项自动测试和模拟模型桌面检查；这不代表真实模型安全排名、完全防提示注入或安全认证。防护只覆盖 Nodus 支持的操作，不控制其他应用或导出后独立运行的文件。[有限规模的真实模型评测](docs/safety-evaluation.md)保留了基线同样抵抗攻击、正常任务曾被中断等结果。
 
 你还可以在 AI 回复旁选择**“采纳并追踪”**：确认采纳理由、添加公开 HTTPS 来源，按需检查原建议的关键条件是否变化。每日自动检查需要主动开启，仅在 Nodus 运行期间执行；证据不足时会标明暂未确认。详见[使用手册](docs/guide.md#adopt-and-track-advice)。
 

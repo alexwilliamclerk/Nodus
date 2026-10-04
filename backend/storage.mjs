@@ -47,6 +47,7 @@ export class StorageService {
       tasks: Array.isArray(state.tasks) ? state.tasks : [],
       settings: { ...EMPTY_STATE.settings, ...(state.settings || {}) },
     };
+    for(const observer of this.stateObservers||[])observer(next);
     await writeFile(this.statePath, JSON.stringify(next, null, 2), "utf8");
     return next;
   }

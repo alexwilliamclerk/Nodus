@@ -1,0 +1,12 @@
+import {spawn} from 'node:child_process';
+import {mkdir} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const data=path.join(root,'.nodus-safety-preview');await mkdir(data,{recursive:true});
+const executable=path.join(root,'node_modules','electron','dist',...(process.platform==='darwin'?['Electron.app','Contents','MacOS','Electron']:process.platform==='win32'?['electron.exe']:['electron']));
+console.log(`Nodus safety preview — separate data: ${data}`);
+const child=spawn(executable,['.',`--user-data-dir=${path.join(data,'profile')}`],{cwd:root,stdio:'inherit',env:{...process.env,NODUS_DATA_DIR:data,NODUS_SAFETY_PREVIEW:'1'}});
+child.on('error',error=>{console.error(error.message);process.exitCode=1;});
+child.on('exit',code=>{process.exitCode=code??1;});
+for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>child.kill(signal));
