@@ -62,7 +62,9 @@ test('real artifact retry uses only reviewed material, preserves original and ex
   const restored=await recovery.artifacts.restore({taskId:committed.task.id,sourceVersionId:'v1',versionId:'v2'});assert.equal(restored.completion.status,'needs_review');assert(restored.artifact.safetyReview.isolatedMaterials);
   const reloaded=new SafetyRecovery({storage,safety,pi,artifacts:recovery.artifacts}),originals=await reloaded.originals(committed.task.id);
   assert(originals.materials.some(m=>m.text?.includes('POISON_SOURCE_CANARY')));assert(!originals.cleaned.some(m=>m.text?.includes('POISON_SOURCE_CANARY')));
-  assert.equal((await stat(path.join(root,'safety-recovery',committed.jobId+'.json'))).mode&0o777,0o600);
+  // Windows stat/chmod do not represent POSIX owner/group permission bits.
+  // Content isolation and persistence above are still tested on every platform.
+  if(process.platform!=='win32')assert.equal((await stat(path.join(root,'safety-recovery',committed.jobId+'.json'))).mode&0o777,0o600);
 });
 
 test('preview binds source contents and permissions; stale or forged choices cannot start',async()=>{
