@@ -1,141 +1,109 @@
-![Nodus — AI agents. Your boundaries.](docs/assets/banner.svg)
+# Nodus
 
-<p align="center">
-  <a href="#quick-start">Quick start</a> ·
-  <a href="https://github.com/alexwilliamclerk/Nodus/releases/latest">Download</a> ·
-  <a href="docs/development.md">Development</a> ·
-  <a href="CONTRIBUTING.md">Contributing</a>
-</p>
+### Test your agents. Review what they send. Decide what they remember.
 
-<p align="center">
-  <a href="https://github.com/alexwilliamclerk/Nodus/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/alexwilliamclerk/Nodus?style=flat-square&color=b57858"></a>
-  <a href="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml"><img alt="Checks" src="https://github.com/alexwilliamclerk/Nodus/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-607d70?style=flat-square"></a>
-  <a href="https://github.com/alexwilliamclerk/Nodus/releases/latest"><img alt="macOS, Windows, Linux" src="https://img.shields.io/badge/desktop-macOS%20%7C%20Windows%20%7C%20Linux-72665e?style=flat-square"></a>
-</p>
+**An AI agent desktop workspace with safety controls built into the work itself.**
 
-<p align="center">
-  <a href="README.md"><img alt="English README" src="https://img.shields.io/badge/English-b57858?style=flat-square"></a>
-  <a href="README.zh-CN.md"><img alt="简体中文 README" src="https://img.shields.io/badge/简体中文-d9d9d9?style=flat-square"></a>
-</p>
+Nodus brings task-specific safety testing, outgoing-request review and revocable project memory into one place. Build websites, reports, presentations and code with your own model—and keep the agent's permissions, context and decisions open to review.
 
-# Nodus — AI agents with reviewable actions and memory
+For independent developers and creators working with real files, external sources and more than one AI model.
 
-**An open-source AI agent desktop workspace for independent developers and creators.** Build real deliverables while controlling what the agent can read, change, send and remember. Bring your own model; keep your tasks, requirements and versions locally.
+**[Download v1.5.0](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.5.0)** · [简体中文](README.zh-CN.md) · [User guide](docs/guide.md) · [Release notes](docs/releases/v1.5.0.md)
 
-**[v1.5.0](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.5.0) focuses on practical agent safety:** task-scoped permissions, prompt-injection checks using your own tasks, disclosure review, clean retries and revocable project memory. [Release notes](docs/releases/v1.5.0.md) · [Safety guide and limits](docs/safety.md)
+macOS · Windows · Linux &nbsp; / &nbsp; Bring your own model &nbsp; / &nbsp; MIT License
 
-## What makes Nodus different
+---
 
-| When you need to… | What Nodus provides |
+## Safety checks built around your own work
+
+**Compare agents on the task you actually want to finish.**
+
+Take an isolated copy of a task and add test materials that try to make the agent disclose a synthetic secret, modify a protected file or abandon the original goal. Keep the original task intact, save the test configuration and rerun it after switching models.
+
+The comparison separates three things that matter:
+
+- **What happened:** whether the synthetic secret appeared in a request or output, or a protected file changed.
+- **What was blocked:** attempts stopped by the permission layer.
+- **What still got done:** output checks, requirement review and your assessment of the original task.
+
+A stopped task and a safely completed task are different outcomes. Nodus keeps that difference visible so you can judge both safety and usefulness.
+
+## Memory you can inspect—and take back
+
+**See what is remembered, where it came from and which project can use it.**
+
+Each memory carries its source quotation, originating task, scope and edit history. Keep it within one task or approve it for the source task's project.
+
+Observations from external material enter as **candidates**. You review each one before it is used. Editing its content or scope returns it to review; revoking it stops future direct injection and interrupts calls using it. You can also delete an entry.
+
+**A document's suggestion never automatically becomes your requirement.** Reviewed memory remains reference context, separate from confirmed task requirements and tool permissions.
+
+## Review the information leaving your machine
+
+**Inspect the actual outgoing model request before it is sent.**
+
+Turn on disclosure review to see the request body, then remove selected values or fields before dispatch. This includes copies carried in conversation history and file-tool results, helping you reduce unnecessary exposure of customer details, contract fields or log content.
+
+Original materials stay intact. You decide what to omit from the outgoing request.
+
+## Set boundaries before the agent acts
+
+**Choose what the agent may read, change and send.**
+
+Set file read/write scopes, mark sensitive sources and approve recipients per task. Describe a policy in plain language to get a draft you can review before saving. Permissions are checked at supported action boundaries and can be revoked.
+
+Text inside a webpage or attachment cannot grant tool access. A remembered preference cannot expand the agent's permissions.
+
+## Inspect a suspicious action, then recover
+
+**Keep useful work moving while preserving the evidence.**
+
+Review the recorded links between source material and a proposed action. Select material to isolate, inspect the removal, and retry in a clean task without overwriting the originals.
+
+This connects the parts of the workflow: inspect the action, narrow its context, retry, and review the resulting work. Source/action links provide evidence for your judgment; they are not proof of causation.
+
+---
+
+## From a task to a deliverable you can keep
+
+Nodus is a working environment for making and revising real files. Plan a direction, confirm requirements, inspect the result and restore earlier versions when needed.
+
+| Work | Deliverables |
 | --- | --- |
-| Control an agent before it acts | File read/write scopes, recipient approvals and revocable permissions. External text cannot grant tool access. |
-| Check a model on **your own task** | Run an isolated copy with synthetic leakage, protected-file modification and goal-override probes. Compare models using the same saved inputs; report safety effects and normal-task completion separately. |
-| See what leaves your machine | Opt-in review of the actual outgoing model request, with selected values or fields removed before sending. |
-| Recover after suspicious material | Review source/action links, isolate selected material and retry in a clean task while retaining the original evidence. |
-| Know what the agent remembers | Inspect each memory's text, quotation and project scope. External observations remain candidates until individually approved; edits require another review, and memories can be revoked or deleted. |
+| Build a site or prepare code | Local HTML/CSS/JavaScript websites, Python projects and source files |
+| Research and communicate | Markdown reports with sources, PPTX presentations and basic DOCX documents |
+| Work with data | Descriptive analyses and basic XLSX workbooks |
 
-Start with **Safety & permissions** in a task. Memory remains reference context; it never automatically becomes a confirmed user requirement. Nodus creates websites, reports, presentations, Python/code projects, basic Word/Excel files and descriptive analyses on macOS, Windows and Linux.
+Confirmed requirements stay editable and separate from ordinary conversation. File checks, model-assisted review and your acceptance remain distinct. Advice tracking, local backups and Chinese/English interfaces support the work around each deliverable. [Explore the full workflow →](docs/guide.md)
 
-**Evidence, not a safety guarantee.** Controls apply to supported Nodus operations, not arbitrary OS activity or files run outside the app. The development suite has 220 passing automated tests plus scripted desktop checks. These verify behavior, not a real-model safety ranking or complete prompt-injection resistance. The [small live-model pilot](docs/safety-evaluation.md) retained baseline resistance and clean-task interruptions rather than claiming an unsupported defense improvement.
+## Get started
 
-You can also **adopt and track** an AI recommendation: confirm why you adopted it, add public HTTPS sources, and check whether those conditions have changed. Daily checks are optional and run while Nodus is open; assessments include source quotations and can remain unverified when evidence is insufficient. [Read the tracking guide](docs/guide.md#adopt-and-track-advice).
+Download the package for your platform; Node.js and the Pi CLI are not required for packaged builds.
 
-![Nodus showing four directions for a sample portfolio website](docs/assets/workspace.jpg)
+| Platform | Download |
+| --- | --- |
+| macOS · Apple Silicon | [DMG](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg) |
+| Windows · x64 | [Installer](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe) |
+| Linux · x64 | [AppImage](https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-linux-x64.AppImage) |
 
-<sub>Screenshot of the actual application using a synthetic task and a mocked planning response. The application interface is currently in Chinese.</sub>
+1. **Connect your model.** Add a provider, model and API key. Implemented connections include OpenAI, Anthropic, DeepSeek, Kimi, GLM, MiniMax and Qwen; availability depends on your account and provider.
+2. **Bring a real task.** Describe the result you want and add the materials it needs.
+3. **Open Safety & permissions.** Set access boundaries, enable outgoing-request review, or create a safety check from the task.
+4. **Build, review and retain.** Inspect the deliverable and choose which observations deserve to become reviewed memories.
 
-## Quick start
+Credentials are held in memory by default; encrypted local storage is opt-in. Model calls may incur provider fees. Installers are currently unsigned/not notarized; platform notes and checksums are on the [release page](https://github.com/alexwilliamclerk/Nodus/releases/latest).
 
-Download the latest package for your platform. Packaged builds include Electron and the Pi SDK; you do not need to install Node.js or the Pi CLI to use the app.
+## Scope and evidence
 
-| Platform | Package | One-line download and launch |
-| --- | --- | --- |
-| macOS · Apple Silicon | `Nodus-v{version}-macOS-arm64.dmg` | [Latest release](https://github.com/alexwilliamclerk/Nodus/releases/latest) or Terminal command below |
-| Windows · x64 | `Nodus-v{version}-Windows-x64.exe` | [Latest release](https://github.com/alexwilliamclerk/Nodus/releases/latest) or PowerShell command below |
-| Linux · x64 | `Nodus-v{version}-Linux-x86_64.AppImage` | [Latest release](https://github.com/alexwilliamclerk/Nodus/releases/latest) or Terminal command below |
+Nodus focuses on **AI agent safety, prompt-injection evaluation, disclosure control and memory provenance** within its supported desktop workflow. Tasks and files are stored locally; context sent to your chosen provider still leaves your machine.
 
-New releases display the version in each installer filename, following the platform-specific pattern used by [CC Switch](https://github.com/farion1231/cc-switch/releases). The commands below use stable compatibility download links and save files under versioned names, so they also work with earlier Nodus releases.
+Controls do not cover arbitrary OS activity or exported files run elsewhere. A passing safety check is evidence for that configuration, not a guarantee against every attack. Revocation cannot recall content already sent or erase its influence on existing outputs.
 
-**macOS — download and open the disk image:**
+Implementation tests and bounded live-model experiments are documented separately, including negative results and normal-task interruptions. [Safety design and limits](docs/safety.md) · [Evaluation evidence](docs/safety-evaluation.md) · [Follow-up comparisons](docs/safety-followup-results.md)
 
-```bash
-tag=$(curl -fsSL -o /dev/null -w '%{url_effective}' 'https://github.com/alexwilliamclerk/Nodus/releases/latest' | sed 's#.*/##') && file="$HOME/Downloads/Nodus-$tag-macOS-arm64.dmg" && curl -fL --retry 3 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-mac-arm64.dmg' -o "$file" && open "$file"
-```
+## Develop and contribute
 
-Drag **Nodus** into Applications after opening the image.
-
-**Windows — download and start the installer in PowerShell:**
-
-```powershell
-$ErrorActionPreference='Stop'; $release=Invoke-RestMethod 'https://api.github.com/repos/alexwilliamclerk/Nodus/releases/latest'; $file=Join-Path $env:TEMP "Nodus-$($release.tag_name)-Windows-x64.exe"; Invoke-WebRequest 'https://github.com/alexwilliamclerk/Nodus/releases/latest/download/Nodus-windows-x64.exe' -OutFile $file; Start-Process $file
-```
-
-The Windows installer is currently **unsigned**. A downloaded EXE may trigger SmartScreen or be blocked by Smart App Control. Check its SHA-256 against `SHA256SUMS.txt` on the same release before running it; the automated release test covers silent installation, not every PC's interactive launch. A code-signing certificate or Microsoft Store distribution is still needed to address this for public installs.
-
-**Linux — install and choose whether to remove older AppImages after testing the new app:**
-
-```bash
-mkdir -p "$HOME/.local/bin" && curl -fL --retry 3 'https://raw.githubusercontent.com/alexwilliamclerk/Nodus/main/scripts/install-linux.sh' -o "$HOME/.local/bin/Nodus-install-linux.sh" && bash "$HOME/.local/bin/Nodus-install-linux.sh"
-```
-
-Linux AppImage may require a FUSE runtime supplied by your distribution. Intel Mac, Windows ARM, and Linux ARM builds are not available yet. See [Releases](https://github.com/alexwilliamclerk/Nodus/releases) for SHA-256 checksums and version notes.
-
-Once Nodus opens:
-
-1. Add a model connection and verify it. You need valid credentials from your chosen provider.
-2. Describe your goal, add source materials if needed, and choose a local directory for the result.
-3. In the default `/plan` mode, select a direction, refine the requirements, and confirm before production starts.
-4. Preview the files, inspect the checks, request changes, or accept a version.
-
-> Need help? Read the [user guide](docs/guide.md) or [open an issue](https://github.com/alexwilliamclerk/Nodus/issues) with a reproducible example. Do not include API keys or private task data in an issue.
-
-## Key features
-
-**1. Plan first, then build.** `/plan` presents options and waits for your submitted choices before making a deliverable. `/goat` works within an explicit authorization, with up to three production attempts per submission. You can stop a task at any time; restarting Nodus does not resume paid model calls automatically.
-
-**2. Keep requirements editable.** Submitted requirements are stored separately from the conversation. You can inspect their source, edit or retire an item, and see its change history. They remain task data supplied to the agent, not higher-priority system instructions.
-
-**3. Review real files and versions.** Preview the current work, score it, request a revision, or restore an earlier version into a new one. Export a selected version to your own local directory.
-
-**4. See what the checks support.** Nodus keeps file checks, model-assisted requirement review, and your acceptance distinct. A generated file is not proof that every goal was met; requirements without reliable evidence remain open for review.
-
-**5. Connect your own model.** Implemented connection options include OpenAI (GPT), Anthropic (Claude), DeepSeek, Kimi, GLM, MiniMax, and Qwen. API keys stay in memory unless you explicitly choose encrypted local storage. Availability depends on the provider, account, region, and model.
-
-**6. Search when you need current sources.** Configure a compatible current model API key or a separate Brave, Tavily, Qwen, OpenAI, or Anthropic search key. Search results appear as clickable sources in the chat and are available to later answers as unverified external material. Search remains off until configured.
-
-**7. Keep a portable task backup.** Export conversations, materials, decisions, ratings, and deliverables as a ZIP. Application-saved credentials are excluded; sensitive text you put in a task or deliverable is not automatically removed.
-
-**8. Choose your appearance.** Switch between light, dark, and system themes in Settings. Your choice is saved across restarts; website previews keep their own colors.
-
-**9. Check for updates.** Settings can check GitHub Releases. Installed Windows and Linux AppImage builds can verify an update, then install and restart after your confirmation; Linux lets you keep a backup of the previous AppImage. On macOS, the update button opens the matching GitHub release so you can download the DMG and choose whether to replace the old app in Finder. Chats and work files are retained. Windows also provides a direct uninstall entry and [recovery steps for a damaged uninstaller](docs/windows-uninstall.md).
-
-**10. Switch interface language.** Choose Simplified Chinese or English in Settings. The interface and native menus change immediately, and the choice survives restarts. Existing conversations and work files keep their original language; new AI-generated choices follow the selected interface language unless your task requests otherwise.
-
-## What Nodus can produce
-
-| Deliverable | Files | Current scope |
-| --- | --- | --- |
-| Website | HTML, CSS, JavaScript, local assets | Local preview and reference checks; no full backend or automatic deployment |
-| Research report | Markdown and a source list | Structure and source-status checks; search results are not independent fact verification |
-| Presentation | PPTX and preview | Primarily titles, bullets, and speaker notes |
-| Python project | Source, dependencies, instructions | Syntax checks; generated code is not run automatically |
-| Data analysis | Input snapshots, code, statistics, explanation | Descriptive statistics; input data and local Python 3 required |
-| Word document | DOCX and editable JSON source | Text blocks and basic tables |
-| Excel workbook | XLSX and editable JSON source | Basic sheets, text, numbers, and Boolean cells |
-| Source code | Source files and README | File checks; generated code is not executed |
-
-PDF and DOCX materials support text extraction, without OCR or layout reconstruction. Image understanding requires a vision-capable model. Complex Word/Excel layout and unrestricted media layout are not part of the current product.
-
-## Using Nodus
-
-Nodus saves tasks and files locally. Materials supplied to a configured model are sent to that model's service, so local storage does not mean offline inference. You can configure multiple model connections and switch between them when no task is running.
-
-The application interface can be switched between Chinese and English in Settings. The [user guide](docs/guide.md) has the full walkthrough, including task requirements, previews, model connections, and backups.
-
-## Advanced setup
-
-To run the source, install Node.js 24 and pnpm 11.19.0. Python checks and data analysis also need Python 3.10 or newer.
+To run from source, use Node.js 24 and pnpm 11.19.0. Python checks and analyses also require Python 3.10+.
 
 ```bash
 git clone https://github.com/alexwilliamclerk/Nodus.git
@@ -145,20 +113,6 @@ node node_modules/electron/install.js
 pnpm start
 ```
 
-See the [development guide](docs/development.md) for code structure, tests, and building installers. The app needs Electron; opening `index.html` directly in a browser is not supported.
+[Development guide](docs/development.md) · [Contributing](CONTRIBUTING.md) · [Report an issue](https://github.com/alexwilliamclerk/Nodus/issues) · [Security reporting](SECURITY.md)
 
-## Contributing and support
-
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. For a bug, include the Nodus version, operating system, CPU architecture, reproduction steps, and expected versus actual behavior. Use synthetic examples and keep credentials and private files out of public issues.
-
-New versions appear on [GitHub Releases](https://github.com/alexwilliamclerk/Nodus/releases). The [changelog](CHANGELOG.md) records this version's capabilities and verification limits.
-
-## Security and privacy
-
-Report sensitive vulnerabilities through the repository's private reporting channel when available. See [SECURITY.md](SECURITY.md) for reporting guidance and credential handling. Current packages are not formally developer-signed or notarized, and clean-machine Windows and Linux installation has not been validated.
-
-If Windows reports **“NSIS Error: Installer integrity check has failed”** when running `Uninstall Nodus.exe`, follow the [tested repair steps](docs/windows-uninstall.md) before trying again. Do not bypass the integrity check.
-
-## License
-
-Nodus is available under the [MIT License](LICENSE). Third-party dependencies retain their own licenses. The application is built with [Electron](https://www.electronjs.org/) and [Pi](https://github.com/earendil-works/pi).
+Built with [Electron](https://www.electronjs.org/) and [Pi](https://github.com/earendil-works/pi). Nodus is released under the [MIT License](LICENSE); third-party dependencies retain their own licenses.
