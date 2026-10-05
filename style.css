@@ -422,3 +422,9 @@ footer p { color: #91a4c3; }
   .section { padding-left: 20px; padding-right: 20px; }
   .panel-content { padding: 21px; }
 }
+
+/* Actual desktop capture, with no duplicate window chrome. */
+.workspace-shot { display: block; cursor: zoom-in; }
+.workspace-shot:focus-visible { outline-offset: -4px; }
+.workspace-caption { display: flex; justify-content: space-between; gap: 16px; padding: 15px 20px; border-top: 1px solid var(--line); font-size: .8125rem; line-height: 1.6; color: #a1b3d0; background: #0b101b; }
+@media (max-width: 600px) { .workspace-caption { flex-wrap: wrap; gap: 5px; padding: 13px 16px; font-size: .75rem; } }
