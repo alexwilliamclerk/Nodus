@@ -13,13 +13,13 @@ import {installCheckProvider} from './helpers/safety-check-provider.mjs';
 import {exportBackup} from '../backend/backup.mjs';
 import JSZip from 'jszip';
 
-async function setup(){
+async function setup({onRequest=()=>{}}={}){
   const root=await mkdtemp(path.join(os.tmpdir(),'nodus-health-')),storage=new StorageService(root);await storage.initialize();
   const safety=new SafetyService({file:path.join(root,'safety.json')});await safety.initialize();storage.safety=safety;
   const task={id:'original',title:'My launch site',requirement:'Create a public release webpage from my material.',artifactType:'website',attachments:[{name:'release.txt',status:'read',text:'The public release date is 20 October.'}],versions:[{id:'v1'}],currentVersionId:'v1',temporaryConversations:[],webSearchResults:[]};
   const dir=await storage.prepareVersion(task.id,'v1');await writeFile(path.join(dir,'index.html'),'<!doctype html><html><body>ORIGINAL_UNCHANGED</body></html>');await finalizeArtifact(task,dir);
   await storage.saveState({tasks:[task],activeTaskId:task.id});await safety.setPolicy(task.id,{...defaultPolicy(),destinations:['model|https://model.example.test']},0);
-  const pi=new PiService({piDir:storage.piDir,safety,emit:()=>{}});await pi.initialize();const requests=[];await installCheckProvider(pi,'fixture-safe',body=>requests.push(body));
+  const pi=new PiService({piDir:storage.piDir,safety,emit:()=>{}});await pi.initialize();const requests=[];await installCheckProvider(pi,'fixture-safe',body=>{requests.push(body);onRequest(body);});
   const check=new SafetyCheck({storage,safety,pi});return {root,storage,safety,task,pi,requests,check};
 }
 async function create(check,task,options={}){const description=await check.describe(task.id);return check.create({taskId:task.id,sourceDigest:description.sourceDigest,selectedMaterials:[0],expected:['20 October'],probeMode:'enforced',...options});}
@@ -73,10 +73,14 @@ test('limits stop repeated real tool/model calls without reporting a secure or c
   assert(report.cases.every(c=>c.status==='budget_exhausted'));assert(report.cases.every(c=>c.requests.length===2&&c.utility.status==='incomplete'));assert.equal(requests.length,4);
 });
 
-test('stop cancels the live request and records unrun conditions instead of fabricated passes',async()=>{
-  const {task,pi,requests,check}=await setup();await installCheckProvider(pi,'fixture-wait');const spec=await create(check,task),description=await check.describe(task.id);
+test('stop cancels the live request and records unrun conditions instead of fabricated passes',async t=>{
+  let dispatched;const firstRequest=new Promise(resolve=>{dispatched=resolve;});
+  const {task,pi,requests,check}=await setup({onRequest:dispatched});await installCheckProvider(pi,'fixture-wait');const spec=await create(check,task),description=await check.describe(task.id);
   const started=await check.start(spec.id,description.model),done=check.active.done;
-  for(let i=0;i<100&&!requests.length;i++)await new Promise(r=>setTimeout(r,5));assert(requests.length);
+  // Synchronize with the real fixture transport, not a filesystem-speed guess.
+  // Always abort the waiting fixture, even if a precondition/assertion fails.
+  let timer;t.after(async()=>{clearTimeout(timer);await check.stop();await done;});
+  await Promise.race([firstRequest,done.then(()=>{throw Error('Assessment ended before dispatch');}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Fixture request did not start within 20 seconds')),20000);})]);clearTimeout(timer);assert(requests.length);
   await check.stop();await done;const result=(await check.results(spec.id)).find(r=>r.id===started.id);assert.equal(result.status,'stopped');assert.equal(result.cases.length,1);assert.equal(result.cases[0].utility.status,'incomplete');assert.equal(pi.activeRuns.size,0);
 });
 
