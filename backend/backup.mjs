@@ -23,6 +23,10 @@ export async function exportBackup(storage,destination,{version='unknown'}={}){
   const watchPath=path.join(storage.dataDir,'advice-watch.json');
   try{if((await lstat(watchPath)).isSymbolicLink())throw new Error('建议追踪文件不能是符号链接');zip.file('advice-watch.json',JSON.stringify(backupState(JSON.parse(await readFile(watchPath,'utf8'))),null,2));}catch(error){if(error.code!=='ENOENT')throw error;}
   const safetyPath=path.join(storage.dataDir,'safety.json');
+  const budgetPath=path.join(storage.dataDir,'task-budgets.json');
+  try{if((await lstat(budgetPath)).isSymbolicLink())throw new Error('预算文件不能是符号链接');zip.file('task-budgets.json',await readFile(budgetPath));}catch(error){if(error.code!=='ENOENT')throw error;}
+  const compressionPath=path.join(storage.dataDir,'context-compression.json');
+  try{if((await lstat(compressionPath)).isSymbolicLink())throw new Error('压缩记录不能是符号链接');zip.file('context-compression.json',await readFile(compressionPath));}catch(error){if(error.code!=='ENOENT')throw error;}
   const memoryPath=path.join(storage.dataDir,'reviewed-memory.json');
   try{if((await lstat(memoryPath)).isSymbolicLink())throw new Error('记忆文件不能是符号链接');zip.file('reviewed-memory.json',await readFile(memoryPath));}catch(error){if(error.code!=='ENOENT')throw error;}
   try{if((await lstat(safetyPath)).isSymbolicLink())throw new Error('权限文件不能是符号链接');zip.file('safety.json',await readFile(safetyPath));}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -45,9 +49,9 @@ export async function exportBackup(storage,destination,{version='unknown'}={}){
     }
     for(const v of state.tasks.find(t=>t.id===id)?.versions||[])if(!names.some(n=>n.startsWith(`${v.id}/`)))warnings.push(`任务 ${id} 的版本 ${v.id} 文件缺失`);
   }
-  const manifest={format:'nodus-backup',schemaVersion:1,appVersion:version,createdAt:new Date().toISOString(),tasks:state.tasks.length,artifactFiles:files,includes:['对话与草稿','选项与决策路径','评分与版本','任务附件','未完成文件与检查证据','已采纳建议与追踪记录','安全权限与来源记录（不含待批准请求）','隔离前原材料与重试记录','安全体检配置、结果与隔离产物','可审阅记忆、来源与撤销状态'],excludes:['模型凭据','Pi 认证配置','应用缓存'],excludedFiles:excluded,warnings};
+  const manifest={format:'nodus-backup',schemaVersion:1,appVersion:version,createdAt:new Date().toISOString(),tasks:state.tasks.length,artifactFiles:files,includes:['对话与草稿','选项与决策路径','评分与版本','任务附件','未完成文件与检查证据','已采纳建议与追踪记录','安全权限与来源记录（不含待批准请求）','隔离前原材料与重试记录','安全体检配置、结果与隔离产物','可审阅记忆、来源与撤销状态','任务预算、拆解与调用用量','上下文压缩草稿、原文与审阅记录'],excludes:['模型凭据','Pi 认证配置','应用缓存'],excludedFiles:excluded,warnings};
   zip.file('backup.json',JSON.stringify(manifest,null,2));
-  zip.file('恢复说明.txt','Nodus 对话备份\n\n此包含私人对话、附件和作品，不适合公开分享。已排除应用保存的模型凭据；用户自行粘贴在对话或作品中的敏感文本不会被自动识别或删除。\n\n恢复：先退出 Nodus，将目标数据目录另行备份；解压到新目录，使用 NODUS_DATA_DIR 指向其中包含 state.json 的目录后启动，或在备份原数据后将 state.json、advice-watch.json、safety.json、reviewed-memory.json（如有）、safety-materials、safety-recovery、safety-checks 与 artifacts 复制到应用数据目录。不要合并覆盖正在使用的目录。模型连接需重新添加。预览地址启动后重新生成。\n\nbackup.json 中 warnings 非空时，源数据已有缺失，不能将本包视为完整作品备份。本版本尚无应用内导入功能。\n');
+  zip.file('恢复说明.txt','Nodus 对话备份\n\n此包含私人对话、附件和作品，不适合公开分享。已排除应用保存的模型凭据；用户自行粘贴在对话或作品中的敏感文本不会被自动识别或删除。\n\n恢复：先退出 Nodus，将目标数据目录另行备份；解压到新目录，使用 NODUS_DATA_DIR 指向其中包含 state.json 的目录后启动，或在备份原数据后将 state.json、advice-watch.json、safety.json、reviewed-memory.json、task-budgets.json、context-compression.json（如有）、safety-materials、safety-recovery、safety-checks 与 artifacts 复制到应用数据目录。不要合并覆盖正在使用的目录。模型连接需重新添加。预览地址启动后重新生成。\n\nbackup.json 中 warnings 非空时，源数据已有缺失，不能将本包视为完整作品备份。本版本尚无应用内导入功能。\n');
   const temporary=path.join(path.dirname(target),`.nodus-backup-${randomUUID()}.tmp`);
   try{
     await pipeline(zip.generateNodeStream({type:'nodebuffer',streamFiles:true,compression:'DEFLATE',compressionOptions:{level:3}}),createWriteStream(temporary,{flags:'wx',mode:0o600}));

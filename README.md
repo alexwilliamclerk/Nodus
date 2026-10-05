@@ -8,11 +8,27 @@ Nodus combines AI agent evaluation on your own tasks, LLM privacy controls and a
 
 For independent developers and creators working with real files, external sources and more than one AI model.
 
-**[Download v1.5.0](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.5.0)** · [简体中文](README.zh-CN.md) · [User guide](docs/guide.md) · [Release notes](docs/releases/v1.5.0.md)
+**[Download v1.5.1](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.5.1)** · [简体中文](README.zh-CN.md) · [User guide](docs/guide.md) · [Release notes](docs/releases/v1.5.1.md)
 
 macOS · Windows · Linux &nbsp; / &nbsp; Bring your own model &nbsp; / &nbsp; MIT License
 
 ---
+
+## Task budgets for planning, execution and checking
+
+**Decide how much computation a task can use—and see where it goes.**
+
+Let the current model decompose the task, review its complexity estimates, then allocate generation tokens across planning, individual execution steps and checking. Execution cannot borrow the checking allowance. Inspect used and reserved tokens, remaining allowance and estimated costs; restarting or replanning retains prior usage.
+
+The limit covers generated tokens, including reasoning counted as output by the provider. Input usage is tracked separately. Costs use your supplied rates; missing usage or prices remain explicitly unknown. Open **Task budget** in the task header.
+
+## Reviewable context compression
+
+**Keep the useful context, with the originals still within reach.**
+
+Choose earlier replies or materials, draft a shorter summary and review its quotations before enabling it. User messages, recent turns, current requirements and permissions remain separate. Pin unresolved questions or important details to retain their exact wording.
+
+Edit and review again, or revoke the summary to use current originals. Changed or deleted sources invalidate old summaries. The preview shows character reduction, not a promised token or billing saving. Open **Safety & permissions → Reviewable context compression**.
 
 ## Prompt injection testing on your own tasks
 

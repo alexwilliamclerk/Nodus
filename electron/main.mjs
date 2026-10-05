@@ -2,6 +2,8 @@ import {proposeSafetyPolicy} from '../backend/safety-policy-draft.mjs';
 import {SafetyRecovery} from '../backend/safety-recovery.mjs';
 import {SafetyCheck} from '../backend/safety-check.mjs';
 import {ReviewedMemory} from '../backend/reviewed-memory.mjs';
+import {TaskBudget} from '../backend/task-budget.mjs';
+import {ContextCompression} from '../backend/context-compression.mjs';
 import {SafetyService,taskSources,sourceDescription,recipient} from '../backend/safety-service.mjs';
 import {fetchAdviceSource} from '../backend/advice-source.mjs';
 import {previewContentPolicy,installPreviewNetworkBoundary} from '../backend/preview-security.mjs';
@@ -69,6 +71,8 @@ app.whenReady().then(async () => {
   });
   await pi.initialize();
   pi.memory=new ReviewedMemory({storage,safety,pi});await pi.memory.initialize();
+  pi.budget=new TaskBudget({storage,safety,pi,onChange:value=>{if(mainWindow&&!mainWindow.isDestroyed())mainWindow.webContents.send('forma:budget-update',value);}});await pi.budget.initialize();
+  pi.compression=new ContextCompression({storage,safety,pi});await pi.compression.initialize();
   connections=new ModelConnections(pi,safeStorage,storage.credentialPath);
   // macOS Keychain access must be user initiated, including existing credentials.
   if(process.platform!=='darwin')await restoreCredential();
@@ -388,6 +392,15 @@ function registerIpc() {
   ipcMain.handle('forma:classify-message',(_event,{task,message})=>pi.classifyMessage(task,message));
   ipcMain.handle("forma:propose-revision", async (_event, { task, evaluation }) => pi.proposeRevision(await withVersionContext(storage,task,evaluation.versionId), evaluation));
   const artifacts=new ArtifactService(storage,pi);
+  ipcMain.handle('forma:compression-get',async(event,id)=>{trusted(event);return pi.compression.describe(id);});
+  ipcMain.handle('forma:compression-create',async(event,input)=>{trusted(event);if(backupBusy)throw Error('正在备份，请稍后');return pi.compression.create(input);});
+  ipcMain.handle('forma:compression-generate',async(event,input)=>{trusted(event);if(backupBusy||connections.busy)throw Error('正在备份或切换模型，请稍后');return pi.compression.generate(input);});
+  ipcMain.handle('forma:compression-action',async(event,input)=>{trusted(event);if(backupBusy)throw Error('正在备份，请稍后');return pi.compression.action(input);});
+  ipcMain.handle('forma:budget-get',async(event,id)=>{trusted(event);return pi.budget.describe(id);});
+  ipcMain.handle('forma:budget-configure',async(event,input)=>{trusted(event);if(backupBusy)throw Error('正在备份，请稍后');return pi.budget.configure(input);});
+  ipcMain.handle('forma:budget-plan',async(event,input)=>{trusted(event);if(backupBusy||connections.busy)throw Error('正在备份或切换模型，请稍后');return pi.budget.plan(input);});
+  ipcMain.handle('forma:budget-approve',async(event,input)=>{trusted(event);if(backupBusy)throw Error('正在备份，请稍后');return pi.budget.approve(input);});
+  ipcMain.handle('forma:budget-preview',async(event,input)=>{trusted(event);return pi.budget.preview(input);});
   ipcMain.handle('forma:memory-describe',async(event,id)=>{trusted(event);return pi.memory.describe(id);});
   ipcMain.handle('forma:memory-create',async(event,input)=>{trusted(event);if(backupBusy)throw Error('正在备份，请稍后');return pi.memory.create(input);});
   ipcMain.handle('forma:memory-action',async(event,input)=>{trusted(event);if(backupBusy)throw Error('正在备份，请稍后');return pi.memory.action(input);});

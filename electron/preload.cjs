@@ -2,6 +2,16 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("forma", {
   platform: process.platform,
+  compressionGet:id=>ipcRenderer.invoke('forma:compression-get',id),
+  compressionCreate:input=>ipcRenderer.invoke('forma:compression-create',input),
+  compressionGenerate:input=>ipcRenderer.invoke('forma:compression-generate',input),
+  compressionAction:input=>ipcRenderer.invoke('forma:compression-action',input),
+  budgetGet:id=>ipcRenderer.invoke('forma:budget-get',id),
+  budgetConfigure:input=>ipcRenderer.invoke('forma:budget-configure',input),
+  budgetPlan:input=>ipcRenderer.invoke('forma:budget-plan',input),
+  budgetApprove:input=>ipcRenderer.invoke('forma:budget-approve',input),
+  budgetPreview:input=>ipcRenderer.invoke('forma:budget-preview',input),
+  onBudgetUpdate:listener=>{const handler=(_event,value)=>listener(value);ipcRenderer.on('forma:budget-update',handler);return ()=>ipcRenderer.removeListener('forma:budget-update',handler);},
   memoryDescribe:id=>ipcRenderer.invoke('forma:memory-describe',id),
   memoryCreate:input=>ipcRenderer.invoke('forma:memory-create',input),
   memoryAction:input=>ipcRenderer.invoke('forma:memory-action',input),

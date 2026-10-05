@@ -297,3 +297,47 @@ A comparison starts with the first successfully read source snapshot; it does no
 Source reading supports public HTTPS HTML/text pages with public IPv4 DNS resolution, including validated redirects. It does not sign in, execute page JavaScript or read local/intranet addresses. Sources requiring those capabilities may remain unverified. Each page is limited to 2 MB and its extracted text to 24,000 characters. The first source snapshot and latest twelve checks are retained. Editing advice, reasons or sources resets the comparison; older checks retain their original reasons. Previous impact alerts remain available even if a later check fails. **Mark read** acknowledges an alert; it does not approve or change the advice.
 
 Watches and evidence are included in exported backups as `advice-watch.json`. This file contains private advice and should not be shared publicly. Restoring a backup also restores automatic-check preferences.
+
+
+## 任务预算模式 / Task budget mode
+
+点击任务顶部的 **任务预算**。此模式无须训练模型：先用当前模型拆解原任务，由用户核对复杂度，再按复杂度分配规划、执行子任务与检查额度。
+
+1. 保存任务目标，开启预算，填写整项任务的生成 token 总额度、单次请求上限和累计调用次数上限。
+2. 可选填写当前模型每百万 token 的美元价格：输入、生成、缓存读取、缓存写入。价格只用于后续调用；没有价格时费用保持未知，不能视为免费。
+3. 点击 **用当前模型拆解并分配**。拆解本身会调用模型、遵守原有外发授权，最多申请 2,048 个生成 token，并计入规划花费。
+4. 审阅 1–6 个执行子任务、规划与检查的复杂度和依据。复杂度为 1–5，可修改并预览重新分配后的额度，再确认。
+5. 正常执行任务。文件任务依次完成执行子任务，再进行原有要求审查；纯问答任务依次产生草稿，再用检查额度整理最终答复。制作任务中的临时答疑、方案选择等调用记入规划额度。
+
+总额度先扣除历史已用或占用的 token，再给每个步骤保留 256 token，将其余部分按复杂度权重分配。执行不能借用规划、其他执行子任务或检查的额度；模型调用次数也会保留最后一次给检查。总额度、单次上限和步骤额度同时约束实际请求。额度不足或回复因长度限制中断时，工作停止；未完成的文件保留，检查未完成不会登记为成功作品。调整设置、重新拆解或切换模型都不会清除历史用量。
+
+面板显示各阶段和子任务的分配、已用/占用和剩余量，也显示费用估算与逐次调用记录。服务商报告的推理 token 是生成 token 的子集，不再重复累加。当前模式不单独指定内部思考上限：它控制接口编码后的生成上限，包含服务商计入生成用量的推理。接口没有可核对的生成上限时不发送请求；若服务商不遵守上限，应用在收到超量报告后停止，不能追回已发生的服务商计算。
+
+输入 token 单独统计并计入费用估算，**不包含在生成 token 额度中**。费用按用户填写的当前模型与接收方价格计算，属于估算，不是账单，也不是美元费用硬上限。换模型后，旧单价不自动套用于新模型；已记录的历史估算不改写。服务商不返回完整用量、网络中断或进程意外退出时，该请求的上限继续占用额度并标为未知。已经确定没有发送的请求释放占用。应用重启保留预算和记录。
+
+任务要求或材料改变后，重新拆解并确认分配。预算草案仅用于分配计算量，不增加用户要求或授予权限；外发审阅与执行前授权仍然适用。安全体检与新建隔离任务有独立的额度和记录，不消耗这份原任务预算。
+
+**English:** Open **Task budget** in the task header, configure a generation-token allowance and optional USD rates, then decompose the task and review the complexity estimates. Approve the allocation before running. Planning, individual execution steps and checking receive separate allowances; each encoded model request is checked before dispatch. The panel shows usage, remaining allowance and known estimated costs, while missing usage/prices remain explicitly unknown. Restart and replanning retain prior charges. Input tokens affect cost estimates but are outside the generation allowance. Internal reasoning is not capped separately from provider-accounted generation. Safety assessments and clean retries are separate tasks with independent limits.
+
+该实现借鉴 [Plan-and-Budget（ICLR 2026）](https://proceedings.iclr.cc/paper_files/paper/2026/hash/ae8d4084f418bb51575c2ca6c658a05b-Abstract-Conference.html) 的拆解与预算分配思路，采用本项目自己的复杂度加权与执行控制，没有引入其代码或训练模型，也不声称复现论文的性能结果。功能测试使用真实 SDK 编解码与文件工具、模拟服务商回复；实际质量、费用和节省比例需要在真实任务上另行评测。
+
+
+## 可审阅的上下文压缩 / Reviewable context compression
+
+从 **安全与授权 → 可审阅的上下文压缩** 打开。它缩短当前任务的参考上下文，不会创建跨任务记忆，也不会修改已确认要求。
+
+选择旧答复、文字附件、网页资料或可读取的当前版本上下文。用户原话、最近两轮对话、以问号结尾的答复、当前选择题、任务要求与权限不作为折叠对象。对其他不能丢失的细节或未决事项，可以选择来源并逐字引用，标记为保留项。
+
+可以手工写摘要，也可以让当前模型生成草稿。模型生成会发送所选原文和任务目标，沿用已有授权、外发审阅与任务预算，最长等待两分钟；一次最多选择 12 段、合计 100,000 字符。草稿必须为每个来源提供匹配的原文引用。原文引用只证明来源对应，不能证明摘要完整或语义正确；请核对后再勾选确认并启用。模型返回的“已批准”等字段没有效力。
+
+审阅页对照展示摘要、原文、来源、引用和逐字保留的事项。字符数预览比较标准任务提示词在替换前后的长度，不是 token 数、整轮工具上下文长度或费用节省。没有缩短上下文的草稿不能启用。新的压缩若覆盖旧摘要的来源，页面会指出将被替代的记录；旧记录仍保留。
+
+启用后，支持的提示词组装会按字段替换所选旧资料，并加入标明“参考资料”的摘要。不会全局删除相同文字，因此同一句话出现在用户要求或未选资料中时仍会保留。只对本次提示词确实包含全部所选来源的摘要应用替换；不会把本来未使用的资料通过摘要带入请求。意图识别仅使用最近六轮，因此更早的摘要可能不适用于该步骤。要求审查、预算拆解和当前工具循环的新增观察不压缩；工具再次读取原文件时，原文仍可能进入模型上下文。安全体检使用独立保存的原始材料副本，不继承上下文压缩。
+
+原文仍在任务与作品中，压缩记录也保留所审阅原文的副本。修改摘要会立即停用旧版本，重新审阅期间使用当前原文；撤销同样恢复后续对当前原文的使用。原文被编辑或删除、来源回合改变、版本变化等会使旧摘要暂停，后续相关调用要求重新审阅或撤销，不能从旧摘要恢复已删除内容。启用、编辑或撤销会中断正在使用压缩的调用，已经发送的数据和既有输出不能被追回。
+
+来源的私密/禁止外发分类保持不变。压缩不是脱敏，不能借摘要绕过接收方审批或文件权限。最终外发审阅针对压缩后的实际请求体，批准的请求不会在发送前被另外重写。近期记录区分别显示任务提示词字符数、外发审阅后的请求字节数，以及是否已尝试发送；不记录认证头。记录和备份保存在 `context-compression.json`，包含原文，按私人任务数据处理。
+
+**English:** Open **Safety & permissions → Reviewable context compression**. Choose earlier replies or source materials, optionally pin exact unresolved details, then write a draft or ask the current model to draft one. Review source quotations and retained details before enabling it. User messages, recent turns, current questions, requirements, permissions and reviewed memory remain separate. Editing requires a new review; revocation restores use of current originals. Changed/deleted source records invalidate old summaries. Character reduction is not a token or billing measurement, and compression never declassifies private sources. Saved safety assessments retain their own original inputs. Request review still sees the actual final body.
+
+本功能借鉴分层整理上下文的思路，提供应用层的人工审阅与可撤销替换；没有训练 AgentFold 模型，也不声称复现其长任务成绩。测试使用真实 SDK 编解码及模拟模型回复，验证结构、传输、来源、撤销和重启行为；摘要质量与长期任务收益仍需另行评测。

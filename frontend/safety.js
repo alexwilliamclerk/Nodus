@@ -4,6 +4,7 @@ import {createSafetyRecoveryUi} from './safety-recovery.js';
 import {createDisclosureUi} from './minimal-disclosure.js';
 import {createSafetyCheckUi} from './safety-check.js';
 import {createMemoryUi} from './reviewed-memory.js';
+import {createCompressionUi} from './context-compression.js';
 
 export function createSafetyUi({api,getTask,getLanguage,persist,toast,beforeRecovery=async()=>persist(),onRecovered=()=>{}}){
   const t=(zh,en)=>getLanguage()==='en-US'?en:zh;
@@ -15,6 +16,7 @@ export function createSafetyUi({api,getTask,getLanguage,persist,toast,beforeReco
   const disclosure=createDisclosureUi({api,t,toast});
   const checkUi=createSafetyCheckUi({api,t,persist,toast});
   const memoryUi=createMemoryUi({api,t,persist,toast});
+  const compressionUi=createCompressionUi({api,t,persist,toast});
   const recovery=createSafetyRecoveryUi({api,t,toast,onRecovered,beforeOpen:async taskId=>{await beforeRecovery(taskId);if(policyDialog.open)policyDialog.close();}});
   const message=error=>String(error.message||error).replace(/^Error invoking remote method '[^']+': (?:SafetyError|Error): /,'');
   const actionName=kind=>({disclosure:t('最小必要信息外发','Minimum necessary disclosure'),model:t('发送模型上下文','Send model context'),search:t('发送搜索问题','Send a search query'),web:t('读取网页','Read a web source'),read:t('读取工作文件','Read a work file'),write:t('修改工作文件','Change a work file')})[kind]||kind;
@@ -80,6 +82,7 @@ export function createSafetyUi({api,getTask,getLanguage,persist,toast,beforeReco
       <h3>${t('材料与来源','Materials & sources')}</h3><ul class="safety-sources">${sourceRows(current.sources,true)}</ul>
       <p class="safety-note">${t('修改权限会停止当前模型调用。检查覆盖 Nodus 内部调用，不能控制其他应用或导出后单独运行的作品。预览中禁止外部联网、表单提交和弹窗。来源说明不是提示注入检测或安全认证。','Changing permissions stops the current model call. Checks cover Nodus calls, not other apps or exported files run elsewhere. Previews block external networking, form submissions and popups. Source descriptions are not injection detection or security certification.')}</p><p id="safetyError" role="alert"></p>`;
     bindHistoryFilter();
+    if(api.compressionGet&&!policyTask.id.startsWith('advice-watch:')){policyDialog.querySelector('#safetyRecords').insertAdjacentHTML('beforebegin',`<button id="openContextCompression" class="secondary-button">${t('可审阅的上下文压缩','Reviewable context compression')}</button>`);policyDialog.querySelector('#openContextCompression').onclick=()=>{policyDialog.close();void compressionUi.open(policyTask.id);};}
     if(api.memoryDescribe&&!policyTask.id.startsWith('advice-watch:')){policyDialog.querySelector('#safetyRecords').insertAdjacentHTML('beforebegin',`<button id="openReviewedMemory" class="secondary-button">${t('可审阅、可撤销的记忆','Reviewable, revocable memory')}</button>`);policyDialog.querySelector('#openReviewedMemory').onclick=()=>{policyDialog.close();void memoryUi.open(policyTask.id);};}
     if(api.safetyCheckDescribe&&!policyTask.id.startsWith('advice-watch:')){policyDialog.querySelector('#safetyRecords').insertAdjacentHTML('beforebegin',`<button id="openSafetyCheck" class="secondary-button">${t('用自己的任务做安全体检','Safety check for this task')}</button>`);policyDialog.querySelector('#openSafetyCheck').onclick=()=>{policyDialog.close();void checkUi.open(policyTask.id);};}
     policyDialog.querySelector('#minimalDisclosureEnabled').onchange=async event=>{const enabled=event.target.checked;event.target.disabled=true;try{current=await api.disclosureSetting({taskId:policyTask.id,enabled});renderPolicy();}catch(error){toast(message(error));event.target.checked=!enabled;event.target.disabled=false;}};

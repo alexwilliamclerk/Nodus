@@ -7,7 +7,7 @@ const copy=value=>structuredClone(value);
 const fail=message=>{throw new SafetyError(message);};
 const text=value=>{if(typeof value!=='string'||!value.trim()||value.length>2000)fail('记忆内容须为 1–2000 字 / Memory must contain 1–2000 characters');return value.trim();};
 const now=()=>new Date().toISOString();
-const phases=new Set(['options','chat','intent','revision-analysis','decision','artifact','revision']);
+const phases=new Set(['options','chat','intent','revision-analysis','decision','artifact','revision','answer-execution']);
 
 // Memory is independent of the requirement ledger. Model output has no write or
 // approval capability; all mutations below are exposed only to the trusted UI.

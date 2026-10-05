@@ -1,7 +1,7 @@
 {
   "name": "nodus",
   "productName": "Nodus",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "AI agent desktop workspace with task-scoped permissions, prompt-injection checks, disclosure review and revocable project memory",
   "author": "Nodus",
   "private": true,
@@ -9,7 +9,7 @@
   "main": "electron/main.mjs",
   "scripts": {
     "start": "electron .",
-    "check": "node --check app.js && node --check frontend/advice-watch.js && node --check backend/advice-watch.mjs && node --check backend/advice-source.mjs && node --check frontend/components.js && node --check frontend/i18n.js && node --check frontend/requirements.js && node --check electron/main.mjs && node --check electron/preload.cjs && node --check electron/application-menu.mjs && node --check backend/pi-service.mjs && node --check backend/storage.mjs && node --check backend/artifacts.mjs && node --check backend/artifact-service.mjs && node --check backend/requirement-audit.mjs && node --check backend/update-service.mjs && node --check backend/prompts.mjs && node --check frontend/artifact-types.js && node --check backend/safety-service.mjs && node --check backend/preview-security.mjs && node --check frontend/safety.js && node --check backend/model-safety.mjs && node --check scripts/evaluate-safety.mjs && node --check backend/safety-policy-draft.mjs && node --check backend/context-access.mjs && node --check scripts/evaluate-safety-followup.mjs && node --check scripts/evaluate-reference-pilot.mjs && node --check backend/safety-evidence.mjs && node --check frontend/safety-evidence.js && node --check backend/safety-materials.mjs && node --check backend/safety-recovery.mjs && node --check frontend/safety-recovery.js && node --check backend/minimal-disclosure.mjs && node --check frontend/minimal-disclosure.js && node --check backend/safety-check.mjs && node --check frontend/safety-check.js && node --check backend/reviewed-memory.mjs && node --check frontend/reviewed-memory.js",
+    "check": "node --check app.js && node --check frontend/advice-watch.js && node --check backend/advice-watch.mjs && node --check backend/advice-source.mjs && node --check frontend/components.js && node --check frontend/i18n.js && node --check frontend/requirements.js && node --check electron/main.mjs && node --check electron/preload.cjs && node --check electron/application-menu.mjs && node --check backend/pi-service.mjs && node --check backend/storage.mjs && node --check backend/artifacts.mjs && node --check backend/artifact-service.mjs && node --check backend/requirement-audit.mjs && node --check backend/update-service.mjs && node --check backend/prompts.mjs && node --check frontend/artifact-types.js && node --check backend/safety-service.mjs && node --check backend/preview-security.mjs && node --check frontend/safety.js && node --check backend/model-safety.mjs && node --check scripts/evaluate-safety.mjs && node --check backend/safety-policy-draft.mjs && node --check backend/context-access.mjs && node --check scripts/evaluate-safety-followup.mjs && node --check scripts/evaluate-reference-pilot.mjs && node --check backend/safety-evidence.mjs && node --check frontend/safety-evidence.js && node --check backend/safety-materials.mjs && node --check backend/safety-recovery.mjs && node --check frontend/safety-recovery.js && node --check backend/minimal-disclosure.mjs && node --check frontend/minimal-disclosure.js && node --check backend/safety-check.mjs && node --check frontend/safety-check.js && node --check backend/reviewed-memory.mjs && node --check frontend/reviewed-memory.js && node --check backend/task-budget.mjs && node --check frontend/task-budget.js && node --check backend/context-compression.mjs && node --check frontend/context-compression.js",
     "test": "node --test tests/*.test.mjs",
     "test:desktop": "node tests/peach-desktop-check.mjs",
     "test:macos": "node tests/macos-glass-check.mjs",
@@ -38,7 +38,9 @@
     "test:safety:recovery:desktop": "node tests/safety-recovery-desktop.mjs",
     "test:safety:disclosure:desktop": "node tests/safety-disclosure-desktop.mjs",
     "test:safety:check:desktop": "node tests/safety-check-desktop.mjs",
-    "test:memory:desktop": "node tests/reviewed-memory-desktop.mjs"
+    "test:memory:desktop": "node tests/reviewed-memory-desktop.mjs",
+    "test:budget:desktop": "node tests/task-budget-desktop.mjs",
+    "test:compression:desktop": "node tests/context-compression-desktop.mjs"
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.85.1",

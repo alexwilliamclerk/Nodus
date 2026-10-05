@@ -1,5 +1,7 @@
 import {createSafetyUi} from './frontend/safety.js';
 let safetyUi;
+import {createTaskBudgetUi} from './frontend/task-budget.js';
+let budgetUi;
 import {createAdviceWatchUi} from './frontend/advice-watch.js';
 let adviceUi;
 import {scenicThemes} from './frontend/themes.js';
@@ -105,6 +107,7 @@ function persistNow() {
 }
 
 function render() {
+  void budgetUi?.refresh();
   const task=activeTask();
   renderNav(); renderModel();
   if (!task) return createTask();
@@ -1191,6 +1194,7 @@ async function initialize() {
   if(state.settings.panelWidths){layout.railWidth=Math.min(280,Math.max(180,state.settings.panelWidths.rail||210));layout.previewWidth=Math.min(480,Math.max(300,state.settings.panelWidths.preview||370));}
   adviceUi=createAdviceWatchUi({api,getLanguage:()=>state.settings.language,toast:showToast});
   await adviceUi.initialize();
+  budgetUi=createTaskBudgetUi({api,getTask:activeTask,getLanguage:()=>state.settings.language,persist:persistNow,toast:showToast});
   safetyUi=createSafetyUi({api,getTask:activeTask,getLanguage:()=>state.settings.language,persist:persistNow,toast:showToast,beforeRecovery:beforeSafetyRecovery,onRecovered:runSafetyRecovery});
   await safetyUi.initialize();
   bindEvents();

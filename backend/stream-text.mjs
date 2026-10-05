@@ -1,6 +1,6 @@
 // Project readable strings from an unfinished JSON response, never show protocol syntax.
 export function readableStream(source,phase) {
-  if(phase==='intent'||phase==='requirement-audit')return '';
+  if(phase==='intent'||phase==='requirement-audit'||phase==='budget-plan'||phase==='context-compression')return '';
   if(!['options','revision-analysis','decision'].includes(phase))return source;
   const allowed=new Set(phase==='options'?['deliverySummary','context','question','clarification','title','description','effect','tradeoff','condition','reason']:['hypothesis','suggestion','scope','preserve','question']);
   if(phase==='decision')for(const key of ['explanation','question','changes','preserve','verification'])allowed.add(key);

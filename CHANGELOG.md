@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.1
+
+- Added reviewed task decomposition and complexity-weighted generation-token budgets for planning, execution steps and checking, with request-boundary enforcement.
+- Added persistent usage, remaining allowance and user-priced cost estimates; missing usage conservatively retains the requested cap. Budget changes, cancellation and exhausted checks stop work without publishing an incomplete artifact.
+- Added reviewable context compression with source quotations, exact retained details, manual/model drafts, explicit approval, editing and revocation. Original task data and permission labels remain intact.
+- Invalidated summaries when their sources change or are deleted, and preserved original-history backups. Request review receives the compressed body exactly as it will be dispatched.
+- Updated bilingual READMEs and the guide for both features without adding screenshots. Local verification: 252 automated tests and scripted desktop checks; no paid-model efficiency or quality claim.
+
 ## 1.5.0
 
 - Added task-scoped file permissions, recipient approvals, revocable grants and reviewable natural-language permission drafts.

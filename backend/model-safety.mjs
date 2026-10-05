@@ -11,7 +11,9 @@ export function guardedModelRuntime(runtime,safety,taskId,run,{interactive=true}
         run.contextGuard?.();
         if(run.safetyError)throw run.safetyError;
         if(run.stopped)throw new Error('NODUS_STOPPED');
-        const prepared=await target.prepareRequest(model,{...options,...run.assessment?.modelOptions});
+        const requestOptions={...options,...run.modelOptions,...run.assessment?.modelOptions,...run.budget?.options()};
+        if(run.modelOptions?.maxTokens&&requestOptions.maxTokens)requestOptions.maxTokens=Math.min(run.modelOptions.maxTokens,requestOptions.maxTokens);
+        const prepared=await target.prepareRequest(model,requestOptions);
         if(run.stopped)throw new Error('NODUS_STOPPED');
         const origin=recipient(prepared.model.baseUrl);
         const revision=safety.snapshot(taskId).policy.revision;
@@ -41,15 +43,27 @@ export function guardedModelRuntime(runtime,safety,taskId,run,{interactive=true}
           let receipt;
           try{receipt=await run.assessment?.beforeDispatch?.(input,minimized);check();}
           catch(error){run.safetyError=error;queueMicrotask(()=>run.session?.abort().catch(()=>{}));throw error;}
+          let compressionReceipt;
+          try{
+            if(run.recordCompression){
+              let bytes=null;const body=minimized?.body;
+              if(typeof body==='string')bytes=Buffer.byteLength(body);
+              else if(ArrayBuffer.isView(body)||body instanceof ArrayBuffer)bytes=body.byteLength;
+              else if(body===undefined&&input instanceof Request)bytes=(await input.clone().arrayBuffer()).byteLength;
+              compressionReceipt=await run.recordCompression(bytes);
+            }
+            await run.budget?.dispatch(input,minimized);check();
+          }
+          catch(error){run.budget?.cancelPrepared();run.safetyError=error;queueMicrotask(()=>run.session?.abort().catch(()=>{}));throw error;}
           let response;
           try{response=await transport(input,{...minimized,redirect:'error'});}
-          catch(error){await run.assessment?.afterDispatch?.(receipt,null);throw error;}
-          await run.assessment?.afterDispatch?.(receipt,response.status);return response;
+          catch(error){await run.finishCompression?.(compressionReceipt,null);await run.assessment?.afterDispatch?.(receipt,null);throw error;}
+          await run.finishCompression?.(compressionReceipt,response.status);await run.assessment?.afterDispatch?.(receipt,response.status);return response;
         };
         if(!safety.task(taskId).minimalDisclosure)safety.evidence.observe(taskId,context);
         return prepared.provider.streamSimple(prepared.model,context,{...prepared.options,fetch:guardedFetch,transport:'sse'});
       }catch(error){
-        if(error.code==='NODUS_SAFETY'){run.safetyError=error;queueMicrotask(()=>run.session?.abort().catch(()=>{}));}
+        if(error.code==='NODUS_SAFETY'||error.code==='NODUS_BUDGET'){run.safetyError=error;queueMicrotask(()=>run.session?.abort().catch(()=>{}));}
         throw error;
       }
     };

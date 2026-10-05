@@ -101,7 +101,7 @@ export class ArtifactService {
     const reviewTask=utilityRules?{...effective,taskRules:utilityRules,requirementLedger:utilityRules}:effective;
     if(typeof this.pi.auditRequirements==='function') {
       try{requirementAudit=await this.pi.auditRequirements(reviewTask,workDir,artifact);}
-      catch(error){if(this.cancelled.has(task.id)||/NODUS_STOPPED|NODUS_SAFETY/.test(String(error.message)))throw error;requirementAudit=unavailableRequirementAudit(reviewTask.requirementLedger,await artifactTextSnapshot(workDir,artifact),error.message);}
+      catch(error){if(this.cancelled.has(task.id)||/NODUS_STOPPED|NODUS_SAFETY|NODUS_BUDGET/.test(String(error.message)))throw error;requirementAudit=unavailableRequirementAudit(reviewTask.requirementLedger,await artifactTextSnapshot(workDir,artifact),error.message);}
       if(this.cancelled.has(task.id))throw new Error('NODUS_STOPPED: 操作已停止');
       completion={...(completion||{schemaVersion:1,versionId,checkedAt:new Date().toISOString(),status:'needs_review',contract:null,results:[],hashes:{}}),taskRules:reviewTask.taskRules,requirementLedger:reviewTask.requirementLedger,requirementAudit};
       if(requirementAudit.status==='conflict')completion.status='gaps';
