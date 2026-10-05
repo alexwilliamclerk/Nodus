@@ -2,3 +2,16 @@ const features={permission:{title:'先明确边界，再开始行动。',sub:'�
 const tabs=[...document.querySelectorAll('[data-feature]')];
 function select(tab){tabs.forEach(t=>{const active=t===tab;t.setAttribute('aria-selected',String(active));t.tabIndex=active?0:-1});const f=features[tab.dataset.feature];document.getElementById('feature-panel').setAttribute('aria-labelledby',tab.id);document.getElementById('panel-content').innerHTML=`<h3>${f.title}</h3><p class="panel-sub">${f.sub}</p>${f.rows.map(([icon,label,state])=>`<div class="permission-row"><span class="row-icon" aria-hidden="true">${icon}</span><span>${label}</span><span class="badge">${state}</span></div>`).join('')}`;}
 tabs.forEach((tab,i)=>{tab.addEventListener('click',()=>select(tab));tab.addEventListener('keydown',e=>{let j;if(e.key==='ArrowDown')j=(i+1)%tabs.length;if(e.key==='ArrowUp')j=(i-1+tabs.length)%tabs.length;if(e.key==='Home')j=0;if(e.key==='End')j=tabs.length-1;if(j!==undefined){e.preventDefault();tabs[j].focus();select(tabs[j])}})});select(tabs[0]);
+
+// Reveal only below-the-fold content; keep all content visible without JavaScript.
+if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.remove('pending'); observer.unobserve(entry.target); }
+    });
+  }, { threshold: 0.08 });
+  document.body.classList.add('motion-enabled');
+  document.querySelectorAll('.intro-row, .capability-list, .control-layout, .workspace-frame, .workspace-details, .open-section, .download-links').forEach(el => {
+    el.classList.add('reveal', 'pending'); observer.observe(el);
+  });
+}
