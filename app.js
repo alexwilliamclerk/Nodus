@@ -15,3 +15,49 @@ if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: re
     el.classList.add('reveal', 'pending'); observer.observe(el);
   });
 }
+
+// Fixed Earth: passive scroll input, a single animation frame, slow exposure changes.
+{
+  const background = document.querySelector('.site-background');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const clamp = value => Math.max(0, Math.min(1, value));
+  const smooth = (value, start = 0, end = 1) => {
+    const t = clamp((value - start) / (end - start));
+    return t * t * (3 - 2 * t);
+  };
+  let target = 0, displayed = 0, frame = 0, lastTime = 0;
+  function paint(progress) {
+    background.style.setProperty('--earth-brightness', (.32 + .68 * smooth(progress)).toFixed(4));
+    background.style.setProperty('--city-west', smooth(progress, .06, .82).toFixed(4));
+    background.style.setProperty('--city-center', smooth(progress, .14, .92).toFixed(4));
+    background.style.setProperty('--city-east', smooth(progress, .24, 1).toFixed(4));
+  }
+  function animate(time) {
+    frame = 0;
+    const elapsed = lastTime ? Math.min(time - lastTime, 64) : 16;
+    lastTime = time;
+    displayed += (target - displayed) * (1 - Math.exp(-elapsed / 420));
+    if (Math.abs(target - displayed) < .0002) displayed = target;
+    paint(displayed);
+    if (displayed !== target) frame = requestAnimationFrame(animate);
+    else lastTime = 0;
+  }
+  function update() {
+    if (!background) return;
+    const range = document.documentElement.scrollHeight - innerHeight;
+    target = range > 0 ? clamp(scrollY / range) : 0;
+    if (reduceMotion.matches) {
+      cancelAnimationFrame(frame); frame = 0; lastTime = 0;
+      displayed = target; paint(displayed);
+    } else if (!frame) frame = requestAnimationFrame(animate);
+  }
+  if (background) {
+    addEventListener('scroll', update, { passive: true });
+    addEventListener('resize', update, { passive: true });
+    addEventListener('pageshow', update);
+    addEventListener('load', update, { once: true });
+    reduceMotion.addEventListener('change', update);
+    if ('ResizeObserver' in window) new ResizeObserver(update).observe(document.body);
+    update();
+  }
+}

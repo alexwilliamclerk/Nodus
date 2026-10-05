@@ -460,3 +460,28 @@ main, body > .brand-outro, footer { position: relative; z-index: 1; }
 @media (max-width:760px) {
   .site-background .hero-art { background-position: center bottom; }
 }
+
+/* Scroll reveals a registered city-light exposure, not a brighter horizon alone. */
+.site-background {
+  --earth-brightness: .32;
+  --city-west: 0;
+  --city-center: 0;
+  --city-east: 0;
+}
+.site-background .hero-art,
+.site-background .earth-lights {
+  position: absolute;
+  inset: 0;
+  background-position: center bottom;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: brightness(var(--earth-brightness));
+}
+.site-background .earth-lights {
+  background-image: url('assets/earth-city-lights.jpg');
+  -webkit-mask-image: linear-gradient(110deg, rgba(0,0,0,var(--city-west)), rgba(0,0,0,var(--city-center)) 50%, rgba(0,0,0,var(--city-east)));
+  mask-image: linear-gradient(110deg, rgba(0,0,0,var(--city-west)), rgba(0,0,0,var(--city-center)) 50%, rgba(0,0,0,var(--city-east)));
+}
+.site-background .hero-shade {
+  background: linear-gradient(180deg, rgba(3,5,11,.10), rgba(3,5,11,.18) 45%, rgba(3,5,11,.24));
+}
