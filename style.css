@@ -21,8 +21,6 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 .nav-cta{border:1px solid #d4e2ff33;background:linear-gradient(#c1d4ff19,#8cadff08);border-radius:8px;padding:11px 20px;transition:background .2s}
 .nav-cta:hover{background:#88aaff2b}
 .hero{min-height:970px;height:100svh;max-height:1200px;position:relative;isolation:isolate;overflow:hidden}
-.hero-art{position:absolute;inset:0;z-index:-3;background:url('assets/deep-space-v2.jpg') center bottom / cover no-repeat;animation:space-appear 2s ease-out both}
-.hero-shade{position:absolute;inset:0;z-index:-2;background:linear-gradient(180deg,#03050b00 0%,#03050b00 45%,#03050b00 76%,#03050b 100%)}
 .hero-content{position:relative;max-width:1050px;margin:auto;padding:164px 32px 0;text-align:center}
 .release{display:inline-flex;align-items:center;gap:12px;padding:6px 13px 6px 7px;border:1px solid #b3cbfa26;border-radius:40px;color:#bac9e4;background:#91b7ff09;box-shadow:inset 0 1px 0 #eff5ff0c}
 .release>span:first-child{padding:5px 9px;background:#a3bfff17;border:1px solid #b4d0ff17;border-radius:20px;color:#c6d9ff;}
@@ -146,7 +144,6 @@ to{opacity:1;transform:scale(1)}
 }
 @media(max-width:1050px){.nav{width:calc(100% - 48px)}
 .hero{min-height:940px}
-.hero-art{background-size:auto 100%;background-position:center bottom}
 .intro-row{gap:40px}
 .capability-list{grid-template-columns:repeat(2,1fr)}
 .capability-list a{min-height:245px}
@@ -166,7 +163,6 @@ to{opacity:1;transform:scale(1)}
 .nav-cta{padding:9px 13px}
 .hero{height:auto;min-height:890px}
 .hero-content{padding:142px 22px 0}
-.hero-art{background-size:auto 850px;background-position:center bottom;opacity:.95}
 .eyebrow{margin:28px 0 22px}
 .hero-copy{margin-top:25px}
 .hero-actions{margin-top:29px}
@@ -215,7 +211,6 @@ footer>div{margin-left:0}
 .hero-content{padding-top:129px}
 .hero-actions{gap:10px}
 .button{padding:13px 17px;gap:13px}
-.hero-art{background-size:auto 750px}
 .capability-list a{padding:20px 16px}
 .capability-list small{position:static;display:block;margin:-12px 0 15px;}
 .permission-row{gap:8px}
@@ -429,3 +424,39 @@ footer p { color: #91a4c3; }
 img.mark { display:block; width:42px; height:42px; object-fit:contain; border:0; border-radius:0; transform:none; box-shadow:none; }
 img.tiny-mark { display:block; width:24px; height:24px; object-fit:contain; }
 @media (max-width:760px) { img.mark { width:36px; height:36px; } }
+
+/* One viewport-fixed Earth backdrop; all page content scrolls above it. */
+.site-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: #03050b;
+}
+.site-background .hero-art {
+  position: absolute;
+  inset: 0;
+  background: url('assets/deep-space-v2.jpg') center bottom / cover no-repeat;
+}
+.site-background .hero-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(3,5,11,.12), rgba(3,5,11,.30) 45%, rgba(3,5,11,.46));
+}
+main, body > .brand-outro, footer { position: relative; z-index: 1; }
+.hero { isolation: auto; background: transparent; }
+.hero-copy, .section-index, .intro-row, .section-heading, .workspace-details, .faq {
+  text-shadow: 0 2px 12px rgba(0,0,0,.8);
+}
+.capability-list a {
+  background: linear-gradient(150deg, rgba(12,18,33,.93), rgba(8,11,19,.87));
+}
+.open-section {
+  background: linear-gradient(135deg, rgba(11,18,32,.88), rgba(5,8,17,.80));
+}
+.download { background: transparent; }
+.download-glow { display: none; }
+@media (max-width:760px) {
+  .site-background .hero-art { background-position: center bottom; }
+}
