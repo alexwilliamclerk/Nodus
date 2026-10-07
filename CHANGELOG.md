@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.2
+
+- Added persistent connection verification feedback and a direct start-chat action. Current-model questions use the configured provider/model; ordinary replies default to concise prose.
+- Kept short user messages on a natural line, moved message actions out of text flow, and softened scenic backgrounds behind conversations.
+
+- Render Markdown in saved chat messages and streaming replies, including headings, lists, code and tables. Escape raw HTML and prevent automatic image loads.
+
+- Added a bilingual, no-key scripted demo for prompt injection, revocable memory and task budgets/context compression, with back/replay controls and explicit fictional-result labels.
+- Added independent trial creation with fictional inputs only, manual submission and model/permission setup links; no automatic calls or imported approvals.
+- Added a shared browser demo, recorded desktop walkthrough and two practical tutorials, linked from clean bilingual READMEs.
+
 ## 1.5.1
 
 - Added reviewed task decomposition and complexity-weighted generation-token budgets for planning, execution steps and checking, with request-boundary enforcement.

@@ -3,12 +3,15 @@
 <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Nodus · Agent 工作台</title><link rel="stylesheet" href="./styles.css" /><link rel="stylesheet" href="./frontend/macos-glass.css" /><link rel="stylesheet" href="./frontend/dark-theme.css" /><link rel="stylesheet" href="frontend/scenic-themes.css">
 <link rel="stylesheet" href="./frontend/advice-watch.css">
 <link rel="stylesheet" href="frontend/safety.css">
+<link rel="stylesheet" href="frontend/demo.css">
+<link rel="stylesheet" href="frontend/task-budget.css">
 </head>
 <body>
 <div id="appShell" class="app-shell">
   <aside id="taskRail" class="task-rail" aria-label="对话导航">
     <div class="brand"><span data-icon="brand"></span><strong>Nodus</strong><button id="collapseRail" class="icon-button" aria-label="收起侧栏" data-icon="panel"></button></div>
     <button id="newTaskButton" class="nav-button"><span data-icon="edit"></span>新对话</button>
+    <button id="demoButton" class="nav-button">免密钥体验</button>
     <button id="pluginButton" class="nav-button"><span data-icon="plugin"></span>添加插件<span data-icon="external"></span></button>
     <button id="adviceWatchButton" class="nav-button"><span>建议追踪</span><span id="adviceWatchCount" aria-live="polite"></span></button>
     <nav id="taskList" class="task-list" aria-label="对话列表"></nav>

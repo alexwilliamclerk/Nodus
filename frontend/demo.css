@@ -1,0 +1,20 @@
+.demo-dialog { width:min(850px, calc(100vw - 40px)); max-height:88vh; padding:0; border:1px solid #86929e66; border-radius:20px; background:var(--surface,#fff); color:var(--text,#202c38); overflow:auto; }
+.demo-dialog::backdrop {background:#101b2b88}
+.demo-shell {padding:28px; line-height:1.6; text-align:left; overflow-wrap:anywhere}
+.demo-header {display:flex;justify-content:space-between;gap:16px;align-items:start}
+.demo-shell h2 {font-size:25px;margin:6px 0 16px}.demo-shell h3 {font-size:18px;margin:12px 0}
+.demo-shell small {font-weight:650;letter-spacing:.06em}
+.demo-notice {padding:12px 16px;border-left:3px solid #7588bb;background:#8096bf15;border-radius:4px}
+.demo-cases {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0}
+.demo-shell button {font:inherit;cursor:pointer;border:1px solid #8293a466;border-radius:10px;padding:9px 14px;background:transparent;color:inherit}
+.demo-shell button:disabled {opacity:.4;cursor:default}.demo-shell button:focus-visible,.demo-shell a:focus-visible {outline:3px solid #648ae3;outline-offset:3px}
+.demo-cases button[aria-pressed=true] {border-color:#607cc5;background:#6985c51c}
+.demo-shell pre {white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;padding:14px;background:#8293a414;border-radius:10px}
+.demo-stage {min-height:180px;padding:22px;margin-top:16px;border:1px solid #8293a444;border-radius:14px;background:#8096bf0a}
+.demo-controls {display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0 28px}.demo-controls progress {flex:1;min-width:65px;max-width:180px;accent-color:#6481be}
+.demo-shell footer {border-top:1px solid #8293a444;padding-top:12px}.demo-shell a {color:#5275bd}.demo-support {font-size:13px;opacity:.8}
+[data-theme=dark] .demo-dialog {background:#20252d;color:#e5eaf2}
+@media(max-width:600px){.demo-shell{padding:18px}.demo-cases{grid-template-columns:1fr}.demo-stage{min-height:220px}.demo-header h2{font-size:21px}}
+/* Keep tutorial text legible over scenic and translucent desktop themes. */
+.demo-dialog .demo-shell {background:#fff;color:#202c38}
+[data-theme=dark] .demo-dialog .demo-shell {background:#20252d;color:#e5eaf2}

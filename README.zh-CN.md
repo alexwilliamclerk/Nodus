@@ -8,11 +8,23 @@ Nodus 将基于真实任务的 Agent 安全评测、LLM 隐私控制与可追溯
 
 面向需要处理真实文件、外部资料，并希望比较不同模型的个人开发者与独立创作者。
 
-**[下载 v1.5.1](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.5.1)** · [English](README.md) · [使用手册](docs/guide.md) · [版本说明](docs/releases/v1.5.1.md)
+**[下载 v1.5.2](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.5.2)** · [English](README.md) · [使用手册](docs/guide.md) · [版本说明](docs/releases/v1.5.2.md)
 
 macOS · Windows · Linux &nbsp; / &nbsp; 接入自己的模型 &nbsp; / &nbsp; MIT 开源
 
 ---
+
+## 一分钟体验，无需 API Key
+
+v1.5.2 已包含此入口。
+
+打开侧栏 **“免密钥体验”**，逐步体验提示注入、记忆审阅与撤销、预算与上下文压缩。可回退、重播，并创建独立试用任务；连接模型、检查授权后再手动提交。
+
+**这是离线脚本演示，所有结果均为虚构示例，不是模型评测。** 真实试用不会继承演示结果或批准，可能产生模型费用。
+
+[演示与本地预览](docs/demo/README.md) · [提示注入案例](docs/tutorials/prompt-injection.md) · [可撤销记忆案例](docs/tutorials/reviewable-memory.md)
+
+如果 Nodus 对你有帮助，欢迎 Star 支持后续开发，或通过 Issue 分享遇到的具体问题。
 
 ## 任务预算：规划、执行、检查分别分配
 

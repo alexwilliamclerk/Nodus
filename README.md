@@ -8,11 +8,23 @@ Nodus combines AI agent evaluation on your own tasks, LLM privacy controls and a
 
 For independent developers and creators working with real files, external sources and more than one AI model.
 
-**[Download v1.5.1](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.5.1)** · [简体中文](README.zh-CN.md) · [User guide](docs/guide.md) · [Release notes](docs/releases/v1.5.1.md)
+**[Download v1.5.2](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.5.2)** · [简体中文](README.zh-CN.md) · [User guide](docs/guide.md) · [Release notes](docs/releases/v1.5.2.md)
 
 macOS · Windows · Linux &nbsp; / &nbsp; Bring your own model &nbsp; / &nbsp; MIT License
 
 ---
+
+## Try it in one minute — no API key
+
+Included in v1.5.2.
+
+Open **Try without a key** in the sidebar. Step through prompt injection, memory review and revocation, and budgets with context compression. Go back, replay, or create a separate trial task; connect a model and review permissions before submitting it yourself.
+
+**This is an offline scripted demo with fictional outcomes, not a model evaluation.** Real trials inherit no scripted results or approvals and may incur model charges.
+
+[Demo and local preview](docs/demo/README.md) · [Prompt injection walkthrough](docs/tutorials/prompt-injection.md) · [Revocable memory walkthrough](docs/tutorials/reviewable-memory.md)
+
+If Nodus helps you, star the project to support its development or open an issue with a concrete problem you encountered.
 
 ## Task budgets for planning, execution and checking
 

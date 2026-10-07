@@ -1,8 +1,8 @@
 import { typeInfo } from './artifact-types.js';
+const brandLogoUrl = new URL('./brand/nodus-mark-128.png', import.meta.url).href;
 const paths = {
   expand:'<path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"/>',
   contract:'<path d="M3 8h5V3M21 8h-5V3M16 21v-5h5M8 21v-5H3"/>',
-  brand:'<rect x="4" y="3" width="16" height="18" rx="4"/>',
   panel:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>',
   document:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>',
   edit:'<path d="m14 5 5 5M5 15l-1 5 5-1L21 7l-5-5zM11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>',
@@ -22,7 +22,7 @@ const paths = {
   chat:'<path d="M21 11a9 9 0 0 1-9 9H3l1-6a9 9 0 1 1 17-3z"/>', send:'<path d="M12 21V3M5 10l7-7 7 7"/>',
   stop:'<rect x="6" y="6" width="12" height="12" rx="1"/>', pin:'<path d="m8 3 8 0-1 6 4 4H5l4-4zM12 13v9"/>',
 };
-export function icon(name) { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.document}</svg>`; }
+export function icon(name) { if(name === 'brand') return `<img class="brand-logo" src="${brandLogoUrl}" width="32" height="32" alt="" aria-hidden="true">`; return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.document}</svg>`; }
 export function hydrateIcons(root = document) { root.querySelectorAll('[data-icon]').forEach(node => { node.innerHTML = icon(node.dataset.icon); }); }
 export function escapeHtml(value = '') { return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
 export function brief(description = '') {

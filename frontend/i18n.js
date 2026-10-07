@@ -3,6 +3,7 @@
 let activeLanguage='zh-CN';
 export const uiLanguage=()=>activeLanguage;
 const english={
+  '免密钥体验':'Try without a key','虚构示例材料':'Fictional example material','示例任务已创建；连接模型并检查授权后手动提交。':'Example created. Connect a model, review permissions, then submit manually.',
   '建议追踪':'Advice tracking','采纳并追踪':'Adopt and track',
   '紫岚晨光':'Lavender Dawn','星河夜阑':'Moonlit Peaks','桃源晨雾':'Peach Mist','竹影云亭':'Bamboo Pavilion','山水主题':'Landscape themes',
   '新对话':'New chat','新建对话':'New chat','添加插件':'Add plugins','已归档对话':'Archived chats','模型连接':'Model connections',

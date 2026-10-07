@@ -22,6 +22,6 @@
 
 .memory-dialog>details>label,.memory-record>label{display:block;margin:12px 0}.memory-dialog label>select{display:block;margin-top:6px;min-height:34px;padding:4px 8px}.memory-history{padding-left:22px}.memory-history li{margin:12px 0}.memory-history p{white-space:pre-wrap;overflow-wrap:anywhere}
 
-.budget-summary{display:flex;gap:16px;flex-wrap:wrap}.budget-table-wrap{overflow-x:auto}.budget-dialog table{width:100%;border-collapse:collapse;margin:12px 0}.budget-dialog th,.budget-dialog td{padding:9px;text-align:left;border-bottom:1px solid #d8c9bc}.budget-dialog small{display:block}.budget-dialog label{display:block;margin:10px 0}.budget-dialog input[type=number]{max-width:100%;width:140px;padding:7px}.budget-dialog .safety-actions{flex-wrap:wrap}
+
 
 .compression-protected,.compression-retained{padding:12px;border-left:3px solid #a28b76;background:#a28b760b;margin:12px 0}.compression-dialog label{display:block;margin:10px 0}.compression-dialog textarea{display:block;width:100%;box-sizing:border-box}.compression-dialog blockquote,.compression-dialog .memory-text{white-space:pre-wrap;overflow-wrap:anywhere}.compression-dialog blockquote{margin:10px 0;padding-left:12px;border-left:2px solid #bba38e}.compression-source-list article{padding:10px 0;border-bottom:1px solid #d8c9bc}.compression-dialog .safety-actions{flex-wrap:wrap}.compression-dialog select{max-width:100%}

@@ -56,6 +56,7 @@ app.setName("Nodus");
 configureUserDataPath();
 
 app.whenReady().then(async () => {
+  if (process.platform === "darwin") app.dock?.setIcon(path.join(rootDir, "frontend", "brand", "nodus-mark-1024.png"));
   const dataDir = process.env.NODUS_DATA_DIR || process.env.FORMA_DATA_DIR || path.join(app.getPath("userData"), "forma-data");
   storage = new StorageService(dataDir);
   await storage.initialize();
@@ -170,6 +171,7 @@ nativeTheme.on("updated", syncWindowAppearance);
 
 function createWindow() {
   mainWindow = new BrowserWindow({
+    icon: path.join(rootDir, "frontend", "brand", "nodus-mark-512.png"),
     title:process.env.NODUS_SAFETY_PREVIEW?'Nodus · Safety Preview':'Nodus',
     width: 1540,
     height: 960,

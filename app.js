@@ -1,3 +1,6 @@
+import {renderChatMarkdown} from './frontend/chat-markdown.js';
+import {createDemoUi} from './frontend/demo.js';
+let demoUi;
 import {createSafetyUi} from './frontend/safety.js';
 let safetyUi;
 import {createTaskBudgetUi} from './frontend/task-budget.js';
@@ -51,13 +54,13 @@ function renderLiveResponse(task){
   let node=$('#liveResponse');
   const text=liveResponses.get(task.id)||'';
   if(!text&&!isBusy(task)){node?.remove();return;}
-  if(!node){$('#timeline').insertAdjacentHTML('beforeend','<article id="liveResponse" class="event agent"><span class="thinking-indicator" role="status"><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>正在思考</span></span><small class="thinking-activity" hidden></small><p hidden></p></article>');node=$('#liveResponse');}
+  if(!node){$('#timeline').insertAdjacentHTML('beforeend','<article id="liveResponse" class="event agent"><span class="thinking-indicator" role="status"><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>正在思考</span></span><small class="thinking-activity" hidden></small><div class="chat-markdown" data-user-content hidden></div></article>');node=$('#liveResponse');}
   node.classList.toggle('thinking',!text);
   node.querySelector('.thinking-indicator').hidden=Boolean(text);
   const activity=node.querySelector('.thinking-activity');
   const currentActivity=task.operation?.lastActivity==='正在思考'?task.operation.label:task.operation?.lastActivity;
   activity.hidden=Boolean(text)||!currentActivity;activity.textContent=currentActivity?ui(currentActivity):'';
-  const response=node.querySelector('p');response.hidden=!text;response.textContent=text;
+  const response=node.querySelector('.chat-markdown');response.hidden=!text;response.innerHTML=renderChatMarkdown(text);
   transcriptFollower?.refresh();
 }
 const activeTask = () => state.tasks.find(t=>t.id===state.activeTaskId && !t.deletedAt);
@@ -192,8 +195,14 @@ function renderTimeline(task) {
   const panel=$('#recordPanel');
   const changed=lastRecordTask!==task.id;
   const position=panel.scrollTop;
-  $('#timeline').innerHTML=task.timeline.length?task.timeline.map((event,eventIndex)=>`<article class="event ${event.type==='user'?'user':'agent'}">${event.type==='user'&&event.kind==='chat'?`<button type="button" class="text-button delete-question" data-delete-turn="${esc(event.turnId)}" aria-label="删除这条提问及回答" ${isBusy(task)||task.archivedAt?'disabled':''}>删除</button>`:''}${event.meta?.includes('评价')||event.meta?.includes('修改')?`<div class="event-meta">${esc(event.meta)}</div>`:''}<p>${esc(event.text)}</p>${event.type==='agent'&&event.text?`<button type="button" class="text-button" data-adopt-advice="${eventIndex}">采纳并追踪</button>`:''}${event.sources?.length?`<ul class="search-sources">${event.sources.map(source=>`<li><a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title)}</a>${source.snippet?`<p>${esc(source.snippet)}</p>`:''}</li>`).join('')}</ul>`:''}</article>`).join(''):'<div class="welcome"><strong>从一个想法出发，改变世界</strong><p>描述你的任务目标和交付格式，我们一起确定方向。</p></div>';
+  $('#timeline').innerHTML=task.timeline.length?task.timeline.map((event,eventIndex)=>`<article class="event ${event.type==='user'?'user':'agent'}">${event.type==='user'&&event.kind==='chat'?`<button type="button" class="text-button delete-question" data-delete-turn="${esc(event.turnId)}" aria-label="删除这条提问及回答" ${isBusy(task)||task.archivedAt?'disabled':''}>删除</button>`:''}${event.meta?.includes('评价')||event.meta?.includes('修改')?`<div class="event-meta">${esc(event.meta)}</div>`:''}<div class="chat-markdown" data-user-content>${renderChatMarkdown(event.text)}</div>${event.type==='agent'&&event.text?`<div class="chat-message-actions"><button type="button" class="text-button" data-adopt-advice="${eventIndex}">采纳并追踪</button></div>`:''}${event.sources?.length?`<ul class="search-sources">${event.sources.map(source=>`<li><a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title)}</a>${source.snippet?`<p>${esc(source.snippet)}</p>`:''}</li>`).join('')}</ul>`:''}</article>`).join(''):'<div class="welcome"><strong>从一个想法出发，改变世界</strong><p>描述你的任务目标和交付格式，我们一起确定方向。</p><button id="welcomeDemo" class="secondary-button">免密钥体验</button></div>';
   if(task.versions.length||task.requirementLedger?.items?.length)$('#timeline').insertAdjacentHTML('beforeend',`<div class="event-actions">${task.versions.length?`<button id="viewWorkButton" class="text-button">${icon('preview')}查看作品 · ${esc(task.currentVersionId?.toUpperCase())}</button>`:''}<button id="understandingButton" class="text-button">任务要求</button></div>`);
+  if(task.demoExample && !task.timeline.length){
+    const en=state.settings.language==='en-US';
+    $('#timeline').insertAdjacentHTML('beforeend',`<section class="event demo-trial-guide" data-localized><strong>${en?'Real trial · not started':'真实试用 · 尚未运行'}</strong><p>${en?'Only fictional inputs were copied. Connect a model, review permissions and submit the request below manually. Model calls may incur charges. No demonstration outcomes or approvals were imported.':'仅复制了虚构任务与材料。连接模型、检查授权后，手动提交下方需求。调用可能产生费用；未导入演示结果或任何批准。'}</p><button id="trialConnect" class="secondary-button">${en?'Connect a model':'连接模型'}</button> <button id="trialSafety" class="secondary-button">${en?'Review permissions':'检查授权'}</button>${task.demoExample.id==='budget'?` <button id="trialBudget" class="secondary-button">${en?'Set task budget':'设置任务预算'}</button>`:''}</section>`);
+    on('#trialConnect','click',openSettings);on('#trialSafety','click',()=>safetyUi.open());on('#trialBudget','click',()=>$('#budgetButton').click());
+  }
+  on('#welcomeDemo','click',()=>demoUi.open());
   on('#viewWorkButton','click',()=>{layout.view='preview';setPreview(true);});
   $$('#timeline [data-adopt-advice]').forEach(button=>button.onclick=()=>adviceUi?.adopt(task,task.timeline[Number(button.dataset.adoptAdvice)]));
   $$('#timeline [data-delete-turn]').forEach(button=>button.onclick=()=>confirmDeleteChat(task,button.dataset.deleteTurn));
@@ -966,6 +975,7 @@ function openSettings() {
   $('#restoreSavedConnection').disabled=anyBusy();
   $('#uninstallPanel').hidden=api.platform!=='win32';
   $('#providerInput').innerHTML=(model.providers||[]).map(provider=>`<option value="${esc(provider.id)}">${esc(provider.label)}</option>`).join('')||$('#providerInput').innerHTML;
+  if($('#connectionFeedback'))$('#connectionFeedback').hidden=true;
   showModelPopover(false);$('#providerInput').value=state.settings.provider||model.providerId||'kimi-coding';$('#modelIdInput').value=model.modelId||state.settings.modelId||'';$('#apiKeyInput').value='';$('#settingsError').textContent='';$('#themeSetting').value=state.settings.theme||'light';$('#languageSetting').value=state.settings.language||'zh-CN';$('#showDialogSetting').checked=state.settings.showTemporaryDialog!==false;$('#connectModel').disabled=anyBusy();updateProviderNote();$('#settingsModal').showModal();
 }
 function updateProviderNote() { $('#providerNote').textContent=({openai:'使用 OpenAI Platform 的 API Key；ChatGPT 订阅不是 API Key。留空优先使用 gpt-4.1，可填写账户可用的完整 GPT 模型 ID。',anthropic:'使用 Anthropic Console 的 API Key；Claude 订阅不是 API Key。留空优先使用 claude-sonnet-4-6，可填写账户可用的完整 Claude 模型 ID。','minimax-cn':'MiniMax 中国站 API Key，接口 api.minimaxi.com/anthropic；模型须在账户权限内。',minimax:'MiniMax 全球站 API Key，接口 api.minimax.io/anthropic。','qwen-api-cn':'阿里云百炼中国北京普通 API Key；不是 Coding Plan。默认 qwen-plus，支持 qwen-turbo、qwen-max，当前只接入文本。','kimi-coding':'仅适用 Kimi Code 订阅凭据。platform.kimi.com 创建的开放平台 Key 请选中国开放平台，不要选此项。','moonshotai-cn':'platform.kimi.com 中国站 Key；使用 api.moonshot.cn/v1 和 Bearer 认证。先查询账户模型列表，留空优先选择列表中的 kimi-k3。','moonshotai':'platform.kimi.ai 国际站 Key；使用 api.moonshot.ai/v1。与中国站账户和 Key 隔离。','zai-coding-cn':'使用智谱中国区 Coding Plan 凭据；入口 open.bigmodel.cn/api/coding/paas/v4。',zai:'使用智谱全球 Coding Plan 凭据；入口 api.z.ai/api/coding/paas/v4。',deepseek:'DeepSeek 普通 API Key，留空默认 deepseek-flash（V4.1 Flash）。'})[$('#providerInput').value]; }
@@ -1009,12 +1019,26 @@ async function runWebSearch(task,query){
   }catch(error){showToast(error.message.replace(/^Error invoking remote method '[^']+': Error: /,''));return false;}
   finally{button.disabled=false;button.textContent='联网搜索';}
 }
+function connectionFeedback(status) {
+  let panel=$('#connectionFeedback');
+  if(!panel){$('#settingsError').insertAdjacentHTML('beforebegin','<section id="connectionFeedback" role="status" aria-live="polite" data-localized></section>');panel=$('#connectionFeedback');}
+  panel.dataset.status=status;panel.hidden=false;
+  const en=state.settings.language==='en-US';
+  if(status==='success'){
+    panel.innerHTML=`<strong>${en?'✓ Connected and verified':'✓ 连接验证成功'}</strong><p>${esc(providerLabel(model.providerId))} · ${esc(model.modelId||'')}</p><span>${en?'Ready to chat. Your connection is now active.':'当前连接已启用，可以开始对话。'}</span><button type="button" id="startConnectedChat" class="primary-button">${en?'Start chatting':'开始对话'}</button>`;
+    $('#startConnectedChat').onclick=()=>{$('#settingsModal').close();$('#requirementInput')?.focus();};
+  }else panel.textContent=status==='pending'?(en?'Verifying connection… Please wait.':'正在验证连接，请稍候…'):(en?'Connection failed. Check the details below and retry.':'连接失败，请根据下方提示检查后重试。');
+  panel.scrollIntoView({block:'nearest'});
+}
+
 async function connectModel() {
   if(anyBusy())return;
   const apiKey=$('#apiKeyInput').value.trim();if(!apiKey){$('#settingsError').textContent='请在本机填写此入口的凭据。';return;}
+  $('#settingsError').textContent='';
+  connectionFeedback('pending');
   $('#connectModel').disabled=true;$('#connectModel').textContent='正在验证…';
-  try {model=await api.configureModel({label:$('#connectionName').value,providerId:$('#providerInput').value,modelId:$('#modelIdInput').value.trim(),apiKey,remember:$('#rememberConnection').checked});if(model.remembered!==false){state.settings.provider=model.providerId;state.settings.modelId=model.modelId;}await persistNow();$('#apiKeyInput').value='';$('#connectionName').value='';render();renderConnections();showToast('模型已添加，可以继续添加或关闭设置后切换。');}
-  catch(error){$('#settingsError').textContent=error.message.replace(/^Error invoking remote method '[^']+': Error: /,'');}
+  try {model=await api.configureModel({label:$('#connectionName').value,providerId:$('#providerInput').value,modelId:$('#modelIdInput').value.trim(),apiKey,remember:$('#rememberConnection').checked});if(model.remembered!==false){state.settings.provider=model.providerId;state.settings.modelId=model.modelId;}await persistNow();$('#apiKeyInput').value='';$('#connectionName').value='';render();renderConnections();connectionFeedback('success');}
+  catch(error){connectionFeedback('error');$('#settingsError').textContent=error.message.replace(/^Error invoking remote method '[^']+': Error: /,'');}
   finally{$('#connectModel').disabled=false;$('#connectModel').textContent='添加并验证';}
 }
 function disconnectModel() {
@@ -1197,6 +1221,18 @@ async function initialize() {
   budgetUi=createTaskBudgetUi({api,getTask:activeTask,getLanguage:()=>state.settings.language,persist:persistNow,toast:showToast});
   safetyUi=createSafetyUi({api,getTask:activeTask,getLanguage:()=>state.settings.language,persist:persistNow,toast:showToast,beforeRecovery:beforeSafetyRecovery,onRecovered:runSafetyRecovery});
   await safetyUi.initialize();
+  demoUi=createDemoUi({getLanguage:()=>state.settings.language,onTry:async(scenario,language)=>{
+    await persistNow();
+    const i=language==='en-US'?1:0;
+    createTask();
+    const task=activeTask();
+    task.title=scenario.title[i];task.customTitle=true;task.requirement=scenario.request[i];
+    task.attachments=[{id:crypto.randomUUID(),name:`example-${scenario.id}.txt`,status:'read',text:scenario.material[i],message:ui('虚构示例材料')}];
+    task.demoExample={id:scenario.id,kind:'fictional-input-only'};
+    persist(task);await persistNow();render();
+    showToast('示例任务已创建；连接模型并检查授权后手动提交。');
+  }});
+  on('#demoButton','click',()=>demoUi.open());
   bindEvents();
   api.onMenuCommand?.(async command=>{
     try{
