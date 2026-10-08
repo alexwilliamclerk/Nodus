@@ -1,3 +1,5 @@
+> **发行方式变更：** Nodus 从 v1.6.0 起采用闭源安装包发行。[下载最新版本](https://github.com/alexwilliamclerk/Nodus/releases/latest)。下方源码与 MIT 许可对应 v1.5.2 及以前的历史版本；新版应用和云服务源码不在此公开。
+
 # Nodus — AI Agent 安全与可审阅记忆
 
 ### 用自己的任务检验 Agent，看清它发送什么，决定它记住什么。

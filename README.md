@@ -1,3 +1,5 @@
+> **Distribution change:** Nodus v1.6.0 and later is distributed as proprietary binary releases. [Download the latest release](https://github.com/alexwilliamclerk/Nodus/releases/latest). The source and MIT license below describe historical versions through v1.5.2; new application and cloud-server source is not published here.
+
 # Nodus — AI Agent Safety & Reviewable Memory
 
 ### Test your agents. Review what they send. Decide what they remember.
