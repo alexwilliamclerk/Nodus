@@ -1,0 +1,56 @@
+name: Installed binary smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/installed-binary-smoke.yml'
+      - '.github/scripts/installed-binary-smoke.mjs'
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Download and verify official installer
+        shell: pwsh
+        run: |
+          $installer = Join-Path $env:RUNNER_TEMP 'Nodus-v1.6.0-Windows-x64.exe'
+          $url = 'https://www.hongyiwu.cn/nodus/downloads/v1.6.0/Nodus-v1.6.0-Windows-x64.exe'
+          curl.exe --fail --location --retry 2 --max-time 900 $url -o $installer
+          if ($LASTEXITCODE -ne 0) { throw 'Independent download failed' }
+          $digest = (Get-FileHash -Algorithm SHA256 $installer).Hash.ToLowerInvariant()
+          if ($digest -ne 'a305333e39194f156bd6b659d26db72fbff7e527ba9b5e143eaad616079499f6') { throw 'Installer checksum mismatch' }
+          $target = Join-Path $env:RUNNER_TEMP 'NodusInstalled'
+          $install = Start-Process $installer -ArgumentList @('/S', "/D=$target") -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw 'Installation failed' }
+          "NODUS_QA_EXE=$target\Nodus.exe" >> $env:GITHUB_ENV
+          'NODUS_QA_VERSION=1.6.0' >> $env:GITHUB_ENV
+      - name: Inspect installed desktop UI
+        shell: pwsh
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          $qa = Join-Path $env:RUNNER_TEMP 'nodus-qa'
+          New-Item -ItemType Directory -Force $qa | Out-Null
+          Copy-Item .github/scripts/installed-binary-smoke.mjs (Join-Path $qa 'check.mjs')
+          Push-Location $qa
+          npm install --no-save playwright@1.63.0
+          if ($LASTEXITCODE -ne 0) { throw 'QA dependency install failed' }
+          node check.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Installed UI check failed' }
+          Pop-Location
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: installed-windows-evidence
+          path: ${{ runner.temp }}/nodus-binary-evidence
+          if-no-files-found: warn
+          retention-days: 7
