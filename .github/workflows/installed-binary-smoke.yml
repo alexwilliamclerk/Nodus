@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/installed-binary-smoke.yml'
       - '.github/scripts/installed-binary-smoke.mjs'
+      - '.github/scripts/installed-delivery-check.mjs'
 permissions:
   contents: read
 jobs:
@@ -23,7 +24,7 @@ jobs:
         shell: pwsh
         run: |
           $installer = Join-Path $env:RUNNER_TEMP 'Nodus-v1.6.2-Windows-x64.exe'
-          $url = 'https://www.hongyiwu.cn/nodus/downloads/v1.6.2/Nodus-v1.6.2-Windows-x64.exe'
+          $url = 'https://github.com/alexwilliamclerk/Nodus/releases/download/v1.6.2/Nodus-v1.6.2-Windows-x64.exe'
           curl.exe --fail --location --max-time 1800 $url -o $installer
           if ($LASTEXITCODE -ne 0) { throw 'Independent download failed' }
           $digest = (Get-FileHash -Algorithm SHA256 $installer).Hash.ToLowerInvariant()
@@ -42,16 +43,21 @@ jobs:
           $qa = Join-Path $env:RUNNER_TEMP 'nodus-qa'
           New-Item -ItemType Directory -Force $qa | Out-Null
           Copy-Item .github/scripts/installed-binary-smoke.mjs (Join-Path $qa 'check.mjs')
+          Copy-Item .github/scripts/installed-delivery-check.mjs (Join-Path $qa 'delivery.mjs')
           Push-Location $qa
           npm install --no-save playwright@1.63.0
           if ($LASTEXITCODE -ne 0) { throw 'QA dependency install failed' }
           node check.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Installed UI check failed' }
+          node delivery.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Installed delivery check failed' }
           Pop-Location
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: installed-windows-evidence
-          path: ${{ runner.temp }}/nodus-binary-evidence
+          path: |
+            ${{ runner.temp }}/nodus-binary-evidence
+            ${{ runner.temp }}/nodus-delivery-evidence-*
           if-no-files-found: warn
           retention-days: 7
