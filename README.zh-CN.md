@@ -1,3 +1,17 @@
+# Nodus — AI Agent 工作台
+
+连接自己的文字和图像模型，制作网页、报告、演示文稿和代码；保留任务权限、外发审阅和可撤销记忆。
+
+**[下载 v1.6.2](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.2)** · [官网直连下载](https://www.hongyiwu.cn/nodus/) · [使用指南](https://www.hongyiwu.cn/nodus/guide.html)
+
+v1.6.2 新增独立生图 API 入口，并精简安装包。服务地址、模型和密钥独立配置，兼容返回 base64 图片的 OpenAI Images generations 接口。生成文件可供网页作品引用。生图另行计费，保存设置不产生调用费用；现有 PPT 编译器仍不支持插入图片。
+
+账号支持手动跨设备同步，模型密钥和执行授权留在本机。
+
+**v1.6.0 起闭源发行，只公开安装包和说明。** 历史版本截至 v1.5.2 及第三方组件的原许可继续有效。
+
+<details><summary>历史开源版本文档（截至 v1.5.2）</summary>
+
 > **发行方式变更：** Nodus 从 v1.6.0 起采用闭源安装包发行。[下载最新版本](https://github.com/alexwilliamclerk/Nodus/releases/latest)。下方源码与 MIT 许可对应 v1.5.2 及以前的历史版本；新版应用和云服务源码不在此公开。
 
 # Nodus — AI Agent 安全与可审阅记忆
@@ -146,3 +160,5 @@ pnpm start
 [开发指南](docs/development.md) · [贡献指南](CONTRIBUTING.md) · [反馈问题](https://github.com/alexwilliamclerk/Nodus/issues) · [安全问题报告](SECURITY.md)
 
 基于 [Electron](https://www.electronjs.org/) 与 [Pi](https://github.com/earendil-works/pi) 构建。Nodus 源码遵循 [MIT License](LICENSE)，第三方依赖保留各自许可证。
+
+</details>

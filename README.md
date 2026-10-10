@@ -1,3 +1,17 @@
+# Nodus — AI Agent Workspace
+
+Bring your own text and image models. Create websites, reports, presentations and code with task permissions, privacy review and revocable memory.
+
+**[Download v1.6.2](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.2)** · [Official direct downloads](https://www.hongyiwu.cn/nodus/) · [User guide](https://www.hongyiwu.cn/nodus/guide.html) · [简体中文](README.zh-CN.md)
+
+v1.6.2 adds a separate image-generation API connection and smaller platform-specific installers. Configure the endpoint, model and key independently of the text model. Compatible services return base64 images; generated files can be referenced by website artifacts. Image calls are billed separately; saving settings makes no paid request. The PPT compiler does not yet embed images.
+
+Accounts support manual cross-device synchronization. Model keys and execution grants stay local.
+
+**v1.6.0 and later is proprietary binary-only distribution.** Historical source through v1.5.2 and third-party components retain their existing licenses.
+
+<details><summary>Historical open-source documentation (through v1.5.2)</summary>
+
 > **Distribution change:** Nodus v1.6.0 and later is distributed as proprietary binary releases. [Download the latest release](https://github.com/alexwilliamclerk/Nodus/releases/latest). The source and MIT license below describe historical versions through v1.5.2; new application and cloud-server source is not published here.
 
 # Nodus — AI Agent Safety & Reviewable Memory
@@ -146,3 +160,5 @@ pnpm start
 [Development guide](docs/development.md) · [Contributing](CONTRIBUTING.md) · [Report an issue](https://github.com/alexwilliamclerk/Nodus/issues) · [Security reporting](SECURITY.md)
 
 Built with [Electron](https://www.electronjs.org/) and [Pi](https://github.com/earendil-works/pi). Nodus is released under the [MIT License](LICENSE); third-party dependencies retain their own licenses.
+
+</details>
