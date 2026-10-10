@@ -2,9 +2,9 @@
 
 连接自己的文字和图像模型，制作网页、报告、演示文稿和代码；保留任务权限、外发审阅和可撤销记忆。
 
-**[下载 v1.6.2](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.2)** · [官网直连下载](https://www.hongyiwu.cn/nodus/) · [使用指南](https://www.hongyiwu.cn/nodus/guide.html)
+**[下载 v1.6.3](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.3)** · [官网直连下载](https://www.hongyiwu.cn/nodus/) · [使用指南](https://www.hongyiwu.cn/nodus/guide.html)
 
-v1.6.2 新增独立生图 API 入口，并精简安装包。服务地址、模型和密钥独立配置，兼容返回 base64 图片的 OpenAI Images generations 接口。生成文件可供网页作品引用。生图另行计费，保存设置不产生调用费用；现有 PPT 编译器仍不支持插入图片。
+v1.6.3 新增 MiniMax 国内、国际原生生图接口，同时保留 OpenAI 兼容服务，安装包已精简。服务地址、模型和密钥独立配置，兼容返回 base64 图片的 OpenAI Images generations 接口。生成文件可供网页作品引用。生图另行计费，保存设置不产生调用费用；现有 PPT 编译器仍不支持插入图片。
 
 账号支持手动跨设备同步，模型密钥和执行授权留在本机。
 
