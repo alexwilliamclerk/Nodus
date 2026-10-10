@@ -22,18 +22,18 @@ jobs:
       - name: Download and verify official installer
         shell: pwsh
         run: |
-          $installer = Join-Path $env:RUNNER_TEMP 'Nodus-v1.6.1-Windows-x64.exe'
-          $url = 'https://www.hongyiwu.cn/nodus/downloads/v1.6.1/Nodus-v1.6.1-Windows-x64.exe'
+          $installer = Join-Path $env:RUNNER_TEMP 'Nodus-v1.6.2-Windows-x64.exe'
+          $url = 'https://www.hongyiwu.cn/nodus/downloads/v1.6.2/Nodus-v1.6.2-Windows-x64.exe'
           curl.exe --fail --location --max-time 1800 $url -o $installer
           if ($LASTEXITCODE -ne 0) { throw 'Independent download failed' }
           $digest = (Get-FileHash -Algorithm SHA256 $installer).Hash.ToLowerInvariant()
-          if ($digest -ne '92aaf265a1706472f4b4f0e6056063ae49573379cb6aa6afe460e4d2753556b2') { throw 'Installer checksum mismatch' }
+          if ($digest -ne 'df0c4ceca559d77a30f1bca8883753c7736c0b4d33d1f28969b589cc2bcafa05') { throw 'Installer checksum mismatch' }
           $target = Join-Path $env:RUNNER_TEMP 'NodusInstalled'
           $install = Start-Process $installer -ArgumentList @('/S', "/D=$target") -PassThru
           if (-not $install.WaitForExit(180000)) { throw 'Installer did not exit within three minutes' }
           if ($install.ExitCode -ne 0) { throw 'Installation failed' }
           "NODUS_QA_EXE=$target\Nodus.exe" >> $env:GITHUB_ENV
-          'NODUS_QA_VERSION=1.6.1' >> $env:GITHUB_ENV
+          'NODUS_QA_VERSION=1.6.2' >> $env:GITHUB_ENV
       - name: Inspect installed desktop UI
         shell: pwsh
         env:
