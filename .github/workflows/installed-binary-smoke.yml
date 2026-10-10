@@ -11,7 +11,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,17 +22,18 @@ jobs:
       - name: Download and verify official installer
         shell: pwsh
         run: |
-          $installer = Join-Path $env:RUNNER_TEMP 'Nodus-v1.6.0-Windows-x64.exe'
-          $url = 'https://www.hongyiwu.cn/nodus/downloads/v1.6.0/Nodus-v1.6.0-Windows-x64.exe'
-          curl.exe --fail --location --retry 2 --max-time 900 $url -o $installer
+          $installer = Join-Path $env:RUNNER_TEMP 'Nodus-v1.6.1-Windows-x64.exe'
+          $url = 'https://www.hongyiwu.cn/nodus/downloads/v1.6.1/Nodus-v1.6.1-Windows-x64.exe'
+          curl.exe --fail --location --max-time 1800 $url -o $installer
           if ($LASTEXITCODE -ne 0) { throw 'Independent download failed' }
           $digest = (Get-FileHash -Algorithm SHA256 $installer).Hash.ToLowerInvariant()
-          if ($digest -ne 'a305333e39194f156bd6b659d26db72fbff7e527ba9b5e143eaad616079499f6') { throw 'Installer checksum mismatch' }
+          if ($digest -ne '92aaf265a1706472f4b4f0e6056063ae49573379cb6aa6afe460e4d2753556b2') { throw 'Installer checksum mismatch' }
           $target = Join-Path $env:RUNNER_TEMP 'NodusInstalled'
-          $install = Start-Process $installer -ArgumentList @('/S', "/D=$target") -Wait -PassThru
+          $install = Start-Process $installer -ArgumentList @('/S', "/D=$target") -PassThru
+          if (-not $install.WaitForExit(180000)) { throw 'Installer did not exit within three minutes' }
           if ($install.ExitCode -ne 0) { throw 'Installation failed' }
           "NODUS_QA_EXE=$target\Nodus.exe" >> $env:GITHUB_ENV
-          'NODUS_QA_VERSION=1.6.0' >> $env:GITHUB_ENV
+          'NODUS_QA_VERSION=1.6.1' >> $env:GITHUB_ENV
       - name: Inspect installed desktop UI
         shell: pwsh
         env:
