@@ -1,15 +1,14 @@
-# Nodus binary releases
+# Nodus — AI Agent Workspace
 
-This branch contains public download information only. Application and server source for Nodus 1.6.0 and later is not published here.
+Bring your own text and image models. Create websites, reports, presentations and code with task permissions, privacy review and revocable memory.
 
-## Nodus 1.6.0
+**[Download v1.6.2](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.2)** · [Official direct downloads](https://www.hongyiwu.cn/nodus/) · [User guide](https://www.hongyiwu.cn/nodus/guide.html) · [简体中文](README.zh-CN.md)
 
-Register and sign in from **Account & sync**. Enable synchronization, then use **Sync now** on each computer. Personal projects, conversations, attachment content and completed artifacts can be synchronized. Concurrent changes prompt a choice and create a local backup before replacement. Keep your recovery code safely.
+v1.6.2 adds a separate image-generation API connection and smaller platform-specific installers. Configure the endpoint, model and key independently of the text model. Compatible services return base64 images; generated files can be referenced by website artifacts. Image calls are billed separately; saving settings makes no paid request. The PPT compiler does not yet embed images.
 
-Model credentials, local execution grants, device settings, reviewed memory, budgets, assessments and watches remain device-local in this version. Synchronization is manual and server-encrypted, not end-to-end encrypted.
+Accounts support manual cross-device synchronization. Model keys and execution grants stay local.
 
-Download official packages from [Releases](https://github.com/alexwilliamclerk/Nodus/releases).
+**v1.6.0 and later is proprietary binary-only distribution.** Historical source through v1.5.2 and third-party components retain their existing licenses.
 
-Nodus-specific additions released from 1.6.0 are proprietary. Earlier releases through v1.5.2 remain available under their existing MIT license; third-party licenses remain applicable.
 
-GitHub's automatically generated Source code archives for this release contain this distribution documentation, not the application source.
+This branch contains distribution documentation only. GitHub-generated source archives for this tag do not contain current application or server source.
