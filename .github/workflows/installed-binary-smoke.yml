@@ -23,18 +23,18 @@ jobs:
       - name: Download and verify official installer
         shell: pwsh
         run: |
-          $installer = Join-Path $env:RUNNER_TEMP 'Nodus-v1.6.2-Windows-x64.exe'
-          $url = 'https://github.com/alexwilliamclerk/Nodus/releases/download/v1.6.2/Nodus-v1.6.2-Windows-x64.exe'
+          $installer = Join-Path $env:RUNNER_TEMP 'Nodus-v1.6.3-Windows-x64.exe'
+          $url = 'https://github.com/alexwilliamclerk/Nodus/releases/download/v1.6.3/Nodus-v1.6.3-Windows-x64.exe'
           curl.exe --fail --location --max-time 1800 $url -o $installer
           if ($LASTEXITCODE -ne 0) { throw 'Independent download failed' }
           $digest = (Get-FileHash -Algorithm SHA256 $installer).Hash.ToLowerInvariant()
-          if ($digest -ne 'df0c4ceca559d77a30f1bca8883753c7736c0b4d33d1f28969b589cc2bcafa05') { throw 'Installer checksum mismatch' }
+          if ($digest -ne 'b2e6ade0d488d88ff1537e3a908619ea412384702daa8dbc038726b854c79e28') { throw 'Installer checksum mismatch' }
           $target = Join-Path $env:RUNNER_TEMP 'NodusInstalled'
           $install = Start-Process $installer -ArgumentList @('/S', "/D=$target") -PassThru
           if (-not $install.WaitForExit(180000)) { throw 'Installer did not exit within three minutes' }
           if ($install.ExitCode -ne 0) { throw 'Installation failed' }
           "NODUS_QA_EXE=$target\Nodus.exe" >> $env:GITHUB_ENV
-          'NODUS_QA_VERSION=1.6.2' >> $env:GITHUB_ENV
+          'NODUS_QA_VERSION=1.6.3' >> $env:GITHUB_ENV
       - name: Inspect installed desktop UI
         shell: pwsh
         env:
@@ -44,6 +44,8 @@ jobs:
           New-Item -ItemType Directory -Force $qa | Out-Null
           Copy-Item .github/scripts/installed-binary-smoke.mjs (Join-Path $qa 'check.mjs')
           Copy-Item .github/scripts/installed-delivery-check.mjs (Join-Path $qa 'delivery.mjs')
+          Copy-Item .github/scripts/installed-onboarding-check.mjs (Join-Path $qa 'onboarding.mjs')
+          Copy-Item .github/scripts/installed-images-check.mjs (Join-Path $qa 'images.mjs')
           Push-Location $qa
           npm install --no-save playwright@1.63.0
           if ($LASTEXITCODE -ne 0) { throw 'QA dependency install failed' }
@@ -51,6 +53,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Installed UI check failed' }
           node delivery.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Installed delivery check failed' }
+          node onboarding.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Onboarding check failed' }
+          node images.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'MiniMax UI check failed' }
           Pop-Location
       - uses: actions/upload-artifact@v4
         if: always()
@@ -59,5 +65,7 @@ jobs:
           path: |
             ${{ runner.temp }}/nodus-binary-evidence
             ${{ runner.temp }}/nodus-delivery-evidence-*
+            ${{ runner.temp }}/nodus-onboarding-evidence-*
+            ${{ runner.temp }}/nodus-images-evidence-*
           if-no-files-found: warn
           retention-days: 7
