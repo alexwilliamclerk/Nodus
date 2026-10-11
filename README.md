@@ -1,13 +1,12 @@
-# Nodus v1.6.9
+# Nodus v1.6.10
 
-Create image-rich presentations with editable content, expressive title artwork and sourced web assets.
+Website creation now plans content and design before writing pages, then checks rendered desktop and mobile layouts.
 
-- Real image generation with MiniMax China/Global and OpenAI-compatible image APIs; image proportions are preserved in PPTX.
-- Per-slide planning, multiple layouts, native diagrams, tables and review checks.
-- Local brush/cursive title artwork with solid, gold and outline treatments.
-- Wikimedia Commons image search and download with attribution; configured web search can be used by the Agent.
-- Encrypted text, image and search connections restore after restart and updates.
-- Fixes for image distortion, title wrapping, table overflow and the contrasting composer input background.
+- Website plans record the audience, visitor action, sources, visual direction and page sections.
+- Browser review detects horizontal overflow, broken images, missing link targets and unnamed buttons at desktop and mobile widths.
+- Placeholder-heavy content and missing planned sections are returned for revision; edits invalidate earlier checks.
+- Local screenshots support further review with a vision-capable model. Layout checks do not certify aesthetics, factual accuracy or complete interaction behavior.
+- Existing presentation, image generation and encrypted connection persistence features remain available.
 
 [Official downloads](https://www.hongyiwu.cn/nodus/) · [User guide](https://www.hongyiwu.cn/nodus/guide.html)
 
