@@ -2,9 +2,16 @@
 
 Create websites, reports, presentations and code with your own models, task permissions and local control.
 
-**[Download v1.6.9](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.9)** · [Official direct downloads](https://www.hongyiwu.cn/nodus/) · [User guide](https://www.hongyiwu.cn/nodus/guide.html) · [简体中文](README.zh-CN.md)
+**[Download v1.7.0](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.7.0)** · [Official direct downloads](https://www.hongyiwu.cn/nodus/) · [User guide](https://www.hongyiwu.cn/nodus/guide.html) · [简体中文](README.zh-CN.md)
 
-### New in v1.6.9
+### New in v1.7.0
+
+- Plan website content, sources, visitor actions and visual direction before writing pages.
+- Check desktop and mobile layouts in an isolated browser, including overflow, broken images and missing link targets.
+- Return placeholder-heavy content and missing sections for revision; changed files must be checked again.
+- Save screenshots for further visual review. Layout checks do not certify aesthetics, factual accuracy or full interaction behavior.
+
+### Presentations and connections
 
 - Image-rich PPTX with per-slide planning, multiple layouts, native diagrams and proportion-preserving images.
 - Brush and cursive title artwork, including gold and outline effects, rendered locally.
