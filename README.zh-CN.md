@@ -1,10 +1,18 @@
 # Nodus — AI Agent 工作台
 
-连接自己的文字和图像模型，制作网页、报告、演示文稿和代码；保留任务权限、外发审阅和可撤销记忆。
+连接自己的模型，制作网页、报告、演示文稿和代码；保留任务权限、外发审阅和本机控制。
 
-**[下载 v1.6.3](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.3)** · [官网直连下载](https://www.hongyiwu.cn/nodus/) · [使用指南](https://www.hongyiwu.cn/nodus/guide.html)
+**[下载 v1.6.9](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.9)** · [官网直连下载](https://www.hongyiwu.cn/nodus/) · [使用指南](https://www.hongyiwu.cn/nodus/guide.html)
 
-v1.6.3 新增 MiniMax 国内、国际原生生图接口，同时保留 OpenAI 兼容服务，安装包已精简。服务地址、模型和密钥独立配置，兼容返回 base64 图片的 OpenAI Images generations 接口。生成文件可供网页作品引用。生图另行计费，保存设置不产生调用费用；现有 PPT 编译器仍不支持插入图片。
+### v1.6.9 亮点
+
+- PPT 真实插图、逐页设计、多种版式与原生示意图，图片保持原始比例。
+- 本机生成毛笔、行草、金色和描边标题字图。
+- Agent 自主搜索、下载 Wikimedia Commons 图片并保留来源；可调用已配置的网页搜索服务。
+- 文字、生图、搜索连接加密保存，重启和更新后自动恢复。
+- 修复标题断行、表格溢出与交互区白色输入底块。
+
+支持独立的 MiniMax 国内／国际及 OpenAI 兼容生图服务。图片调用单独计费；保存设置及本地花体标题不发起付费生图。花体字以图片保存，正文仍可编辑；PPTX 参考读取不保证任意母版完整复刻。
 
 账号支持手动跨设备同步，模型密钥和执行授权留在本机。
 

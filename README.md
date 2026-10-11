@@ -1,12 +1,20 @@
 # Nodus — AI Agent Workspace
 
-Bring your own text and image models. Create websites, reports, presentations and code with task permissions, privacy review and revocable memory.
+Create websites, reports, presentations and code with your own models, task permissions and local control.
 
-**[Download v1.6.3](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.3)** · [Official direct downloads](https://www.hongyiwu.cn/nodus/) · [User guide](https://www.hongyiwu.cn/nodus/guide.html) · [简体中文](README.zh-CN.md)
+**[Download v1.6.9](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.9)** · [Official direct downloads](https://www.hongyiwu.cn/nodus/) · [User guide](https://www.hongyiwu.cn/nodus/guide.html) · [简体中文](README.zh-CN.md)
 
-v1.6.3 adds native MiniMax China and Global image APIs, alongside OpenAI-compatible services, with smaller platform-specific installers. Configure the endpoint, model and key independently of the text model. Compatible services return base64 images; generated files can be referenced by website artifacts. Image calls are billed separately; saving settings makes no paid request. The PPT compiler does not yet embed images.
+### New in v1.6.9
 
-Accounts support manual cross-device synchronization. Model keys and execution grants stay local.
+- Image-rich PPTX with per-slide planning, multiple layouts, native diagrams and proportion-preserving images.
+- Brush and cursive title artwork, including gold and outline effects, rendered locally.
+- Autonomous Wikimedia Commons image search/download with attribution; configured web search is available to the Agent.
+- Encrypted text, image and search connections restore after restarts and updates.
+- Fixes for title wrapping, table overflow and mismatched composer backgrounds.
+
+MiniMax China/Global and OpenAI-compatible image connections are separate from the text model. Image calls are billed separately; saving settings and local title artwork do not call a paid image API. Title artwork is an image; body text remains editable. Reference PPTX reading does not guarantee exact template reproduction.
+
+Accounts support manual cross-device synchronization. Keys and execution grants stay local.
 
 **v1.6.0 and later is proprietary binary-only distribution.** Historical source through v1.5.2 and third-party components retain their existing licenses.
 
