@@ -1,14 +1,14 @@
-# Nodus — AI Agent Workspace
+# Nodus v1.6.9
 
-Bring your own text and image models. Create websites, reports, presentations and code with task permissions, privacy review and revocable memory.
+Create image-rich presentations with editable content, expressive title artwork and sourced web assets.
 
-**[Download v1.6.3](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.3)** · [Official direct downloads](https://www.hongyiwu.cn/nodus/) · [User guide](https://www.hongyiwu.cn/nodus/guide.html) · [简体中文](README.zh-CN.md)
+- Real image generation with MiniMax China/Global and OpenAI-compatible image APIs; image proportions are preserved in PPTX.
+- Per-slide planning, multiple layouts, native diagrams, tables and review checks.
+- Local brush/cursive title artwork with solid, gold and outline treatments.
+- Wikimedia Commons image search and download with attribution; configured web search can be used by the Agent.
+- Encrypted text, image and search connections restore after restart and updates.
+- Fixes for image distortion, title wrapping, table overflow and the contrasting composer input background.
 
-v1.6.3 adds native MiniMax China and Global image APIs, alongside OpenAI-compatible services, with smaller platform-specific installers. Configure the endpoint, model and key independently of the text model. Compatible services return base64 images; generated files can be referenced by website artifacts. Image calls are billed separately; saving settings makes no paid request. The PPT compiler does not yet embed images.
+[Official downloads](https://www.hongyiwu.cn/nodus/) · [User guide](https://www.hongyiwu.cn/nodus/guide.html)
 
-Accounts support manual cross-device synchronization. Model keys and execution grants stay local.
-
-**v1.6.0 and later is proprietary binary-only distribution.** Historical source through v1.5.2 and third-party components retain their existing licenses.
-
-
-This branch contains distribution documentation only. GitHub-generated source archives for this tag do not contain current application or server source.
+Nodus v1.6.0 and later is proprietary binary-only distribution. This branch contains distribution documentation only; GitHub-generated source archives do not contain current application or server source. Historical source through v1.5.2 and third-party components retain their existing licenses.
