@@ -26,7 +26,7 @@ jobs:
         shell: pwsh
         run: |
           $installer = Join-Path $env:RUNNER_TEMP 'Nodus-v1.6.9-Windows-x64.exe'
-          $url = 'https://www.hongyiwu.cn/nodus/downloads/v1.6.9/Nodus-v1.6.9-Windows-x64.exe'
+          $url = 'https://github.com/alexwilliamclerk/Nodus/releases/download/v1.6.9/Nodus-v1.6.9-Windows-x64.exe'
           curl.exe --fail --location --max-time 1800 $url -o $installer
           if ($LASTEXITCODE -ne 0) { throw 'Independent download failed' }
           $digest = (Get-FileHash -Algorithm SHA256 $installer).Hash.ToLowerInvariant()
