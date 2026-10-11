@@ -1,4 +1,4 @@
-# Nodus v1.6.10
+# Nodus v1.7.0
 
 Website creation now plans content and design before writing pages, then checks rendered desktop and mobile layouts.
 
