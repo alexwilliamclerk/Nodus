@@ -2,9 +2,16 @@
 
 连接自己的模型，制作网页、报告、演示文稿和代码；保留任务权限、外发审阅和本机控制。
 
-**[下载 v1.6.9](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.6.9)** · [官网直连下载](https://www.hongyiwu.cn/nodus/) · [使用指南](https://www.hongyiwu.cn/nodus/guide.html)
+**[下载 v1.7.0](https://github.com/alexwilliamclerk/Nodus/releases/tag/v1.7.0)** · [官网直连下载](https://www.hongyiwu.cn/nodus/) · [使用指南](https://www.hongyiwu.cn/nodus/guide.html)
 
-### v1.6.9 亮点
+### v1.7.0 亮点
+
+- 网站制作前规划内容来源、访客行动、视觉方向与页面区块。
+- 在隔离浏览器中检查桌面和手机布局，发现横向溢出、坏图及失效链接。
+- 占位内容与缺失区块返回模型修复；文件修改后必须重新检查。
+- 保存检查截图，供进一步视觉审阅。布局检查不等于审美、事实或完整交互已验收。
+
+### 演示文稿与模型连接
 
 - PPT 真实插图、逐页设计、多种版式与原生示意图，图片保持原始比例。
 - 本机生成毛笔、行草、金色和描边标题字图。
