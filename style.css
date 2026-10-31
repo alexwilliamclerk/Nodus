@@ -233,8 +233,8 @@ footer>div{margin-left:0}
   font-display: swap;
 }
 @font-face {
-  font-family: 'Instrument Serif';
-  src: url('assets/fonts/instrument-serif-italic.woff2') format('woff2');
+  font-family: 'EB Garamond';
+  src: url('assets/fonts/eb-garamond-italic.woff2') format('woff2');
   font-style: italic;
   font-weight: 400;
   font-display: swap;
@@ -254,9 +254,9 @@ footer>div{margin-left:0}
   font-display: swap;
 }
 :root {
-  --font: 'Manrope', 'Nodus Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font: 'Nodus English', 'Nodus Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-display: 'Nodus Song', 'Songti SC', SimSun, serif;
-  --font-editorial: 'Instrument Serif', Georgia, serif;
+  --font-editorial: 'EB Garamond', Georgia, serif;
   --type-display: clamp(3rem, 6.7vw, 6rem);
   --type-heading: clamp(2rem, 3.4vw, 3rem);
   --type-title: 1.375rem;
@@ -287,20 +287,20 @@ h1 .hero-emphasis { font-weight: 400; }
 h2 { font-family: var(--font-display); font-size: var(--type-heading); font-weight: 400; line-height: 1.45; letter-spacing: -.025em; }
 h3 { font-size: var(--type-title); font-weight: 500; line-height: 1.5; letter-spacing: 0; }
 h2 span { color: #91a4c4; }
-.brand { font-family: 'Manrope', sans-serif; font-size: 1.625rem; font-weight: 650; line-height: 1.2; letter-spacing: -.05em; }
-.mark { font-family: 'Manrope', sans-serif; font-size: 1.25rem; font-weight: 400; letter-spacing: 0; line-height: 1; flex-shrink: 0; }
+.brand { font-family: 'Nodus English', 'Nodus Sans SC', sans-serif; font-size: 1.625rem; font-weight: 650; line-height: 1.2; letter-spacing: -.05em; }
+.mark { font-family: 'Nodus English', 'Nodus Sans SC', sans-serif; font-size: 1.25rem; font-weight: 400; letter-spacing: 0; line-height: 1; flex-shrink: 0; }
 .nav nav, .nav-cta { font-size: var(--type-small); font-weight: 500; letter-spacing: .02em; line-height: 1.5; }
 .hero { height: auto; min-height: max(960px, 100svh); max-height: none; }
 .hero-content { padding-top: 145px; padding-bottom: 240px; }
 .hero-copy { font-size: 1.125rem; line-height: 1.95; letter-spacing: .035em; color: #b7c4da; margin-top: 28px; }
 .release { font-size: .8125rem; font-weight: 400; line-height: 1.5; letter-spacing: .01em; }
-.release > span:first-child { font-family: 'Manrope', sans-serif; font-size: .6875rem; font-weight: 500; letter-spacing: .09em; }
+.release > span:first-child { font-family: 'Nodus English', 'Nodus Sans SC', sans-serif; font-size: .6875rem; font-weight: 500; letter-spacing: .09em; }
 .eyebrow { font-family: var(--font-editorial); font-style: italic; font-size: 2.5rem; font-weight: 400; letter-spacing: -.02em; line-height: 1.25; margin-top: 29px; margin-bottom: 22px; color: #adc5ed; }
 .button { font-size: .9375rem; font-weight: 500; line-height: 1.5; letter-spacing: .015em; }
 .button-symbol { font-size: 1.25rem; line-height: 1; }
 .play { font-size: 1.125rem; line-height: 1; }
 .platforms { font-size: .8125rem; font-weight: 400; line-height: 1.6; letter-spacing: .02em; }
-.hero-bottom { font-family: 'Manrope', sans-serif; font-size: .6875rem; line-height: 1.6; letter-spacing: .14em; font-weight: 500; }
+.hero-bottom { font-family: 'Nodus English', 'Nodus Sans SC', sans-serif; font-size: .6875rem; line-height: 1.6; letter-spacing: .14em; font-weight: 500; }
 .hero-bottom b { font-size: 1.125rem; font-weight: 400; }
 .section-index { font-family: var(--font-editorial); font-style: italic; font-size: 2rem; font-weight: 400; line-height: 1.3; letter-spacing: -.01em; color: #a8bee1; }
 .intro-row p, .section-heading p { font-size: 1.0625rem; line-height: 1.95; letter-spacing: .02em; color: #a5b2c9; }
@@ -337,7 +337,7 @@ h2 span { color: #91a4c4; }
 .download h2 { font-size: clamp(2.625rem, 4.5vw, 4rem); font-weight: 400; line-height: 1.4; letter-spacing: -.035em; }
 .download > p { font-size: 1.0625rem; line-height: 1.9; letter-spacing: .02em; }
 .os-icon { font-size: 2rem; line-height: 1; }
-.download-card strong { font-family: 'Manrope', sans-serif; font-size: 1.125rem; line-height: 1.4; font-weight: 600; letter-spacing: -.015em; }
+.download-card strong { font-family: 'Nodus English', 'Nodus Sans SC', sans-serif; font-size: 1.125rem; line-height: 1.4; font-weight: 600; letter-spacing: -.015em; }
 .download-card small { font-size: .8125rem; line-height: 1.6; letter-spacing: .01em; }
 .download-icon { font-size: 1.125rem; }
 .download .download-note { font-size: .8125rem; line-height: 1.9; color: #96a9c6; }
@@ -603,3 +603,18 @@ main > section[id] { scroll-margin-top: 0; }
   .control .panel-content { padding-block: 16px; }
   .control .panel-top, .control .panel-bottom { padding-block: 11px; }
 }
+
+/* Use the reference's true italic Latin outlines without slanting Chinese glyphs. */
+@font-face {
+  font-family: 'Nodus English';
+  src: url('assets/fonts/eb-garamond-italic.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  unicode-range: U+0020-007E;
+}
+.eyebrow, .section-index { letter-spacing: .01em; }
+h1 .latin { font-size: 1.08em; letter-spacing: -.035em; }
+.brand { font-weight: 500; letter-spacing: -.02em; font-size: 1.875rem; }
+.release > span:first-child, .cap-type, .capability-list small { letter-spacing: .045em; }
+@media(max-width:760px) { .brand { font-size: 1.75rem; } }
